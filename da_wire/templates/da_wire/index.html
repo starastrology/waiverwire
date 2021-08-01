@@ -1,0 +1,30 @@
+<html>
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</head>
+<body>
+    {% include 'da_wire/header.html' %}
+    {% for team in teams %}
+        <a href="/wire/{{team.name}}">{{ team.location }} {{ team.name }}</a>
+    {% endfor %}
+    <h1>Free Agents</h1>
+    <ul>
+        {% for fa in fas %}
+            <li>{{fa.first_name}} {{fa.last_name}}</li>
+        {% endfor %}
+    </ul>
+    <h1>Options</h1>
+    <ul>
+    {% for option in options %}
+        <li>{{option.date }} - <a href="{{option.player.bb_ref}}" target=_blank>{{option.player.first_name }} {{ option.player.last_name }}</a> to {{option.player.mlbaffiliate.location }} {{option.player.mlbaffiliate.name }} from {{option.from_level.level }} </li>
+    {% endfor %}
+    </ul>
+    <h1>Trades</h1>
+    <ul>
+    {% for trade in trades %}
+        <li>{% for player in trade.players.all %} {{player.player.first_name}} {{player.player.last_name}} ({{player.team_from.name}}) {% if forloop.counter != trade.players.all|length %} for {% endif %} {% endfor %} </li>
+    {% endfor %}
+    </ul>
+</body>
+</html>
