@@ -55,6 +55,11 @@ class Option(models.Model):
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     from_level = models.ForeignKey(Level, on_delete=models.CASCADE)
     
+class CallUp(models.Model):
+    date = models.DateField()
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    from_level = models.ForeignKey(Level, on_delete=models.CASCADE)   
+    
 class DFA(models.Model):
     date = models.DateField()
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
@@ -71,10 +76,11 @@ class PersonalLeave(models.Model):
     
 class FASignings(models.Model):
     date = models.DateField()
+    is_draftpick = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(1)])
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     
 class PlayerTrade(models.Model):
-    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    players = models.ManyToManyField(Player)
     team_from = models.ForeignKey(MLBAffiliate, on_delete=models.CASCADE)
     
 class Trade(models.Model):

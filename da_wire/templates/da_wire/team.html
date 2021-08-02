@@ -5,11 +5,36 @@
 </head>
 <body>
     {% include 'da_wire/header.html' %}
-    <h1>{% with players|first as first_player %}
-            {{ first_player.mlbaffiliate.name }}
-        {% endwith %}</h1>
-    {% for player in players %}
-        <a href="{{option.player.bb_ref}}" target=_blank>{{ player.first_name }} {{ player.last_name }}</a>
+    <div class="container">
+    {% for mlbaffiliate in mlbaffiliates %}
+        {% with players|first as first_player %}
+        {% if mlbaffiliate == first_player.mlbaffiliate %} <b>{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</b> {% else %}
+        <a href="{% url 'team' mlbaffiliate.level.level mlbaffiliate.name %}">{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</a>
+        {% endif %} {% endwith %} {% if forloop.counter != mlbaffiliates|length %} > {% endif %}
     {% endfor %}
+    <h1>{% with players|first as first_player %}
+            {{ first_player.mlbaffiliate.location }} {{ first_player.mlbaffiliate.name }}
+        {% endwith %}</h1>
+    <h2>Roster</h2>
+    <ul>
+    <div class="row">
+    {% for player in players %}
+    {% if forloop.counter == 1 %}
+        <div class="col">
+    {% endif %}
+    {% if forloop.counter|divisibleby:4 %}
+        </div>
+        <div class="col">
+    {% endif %}
+        <li><a href="{{player.bb_ref}}" target=_blank>{{ player.first_name }} {{ player.last_name }}</a></li>
+    {% if forloop.counter == players|length %}
+        </div>
+    {% endif %}
+    {% endfor %}
+    </ul>
+         </div>
+    </div>
+    {% include 'da_wire/container.html' %}
+    {% include 'da_wire/footer.html' %}
 </body>
 </html>

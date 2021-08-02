@@ -5,13 +5,8 @@
       <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
       <button class="btn btn-outline-success" type="submit">Search</button>
     </form>
-    <ul>
-        <li>
-            Teams
-        </li>
-        <li>
-            Transactions
-        </li>
-    </ul>
+    {% for team in teams %}
+        <a href="{% url 'team' 'MLB' team.name %}">{{ team.location }} {{ team.name }}</a>
+    {% endfor %}
   </div>
 </nav>
