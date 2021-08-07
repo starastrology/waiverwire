@@ -1,12 +1,33 @@
 {% load da_wire_extras %}
+<br>
 <div class="container">
+    <form>
+        Sort By:
+        <select>
+            <option>Recent</option>
+            <option>Approval</option>
+            <option>Comments</option>
+        </select>
+    </form>
+{% if position %}
+    <h1>{{position.position}}</h1>
+    <div class="row">
+        <div class="r col">
+        <h2>Non-FA</h2>
+            {% for non_fa in non_fas %}
+                <li><a href="{{non_fa.bb_ref}}" target=_blank>{{ non_fa.first_name }} {{non_fa.last_name }}</a> 
+                - {{ non_fa.mlbaffiliate.location }} {{ non_fa.mlbaffiliate.name }}</li>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
     <div class="row">
     {% if fas %}
     <div class="r col-sm-4">
     <h1>Free Agents</h1>
     <ul>
         {% for fa in fas %}
-            <li>{{fa.position}} - <a href="{{fa.bb_ref}}">{{fa.first_name}} {{fa.last_name}}</a></li>
+            <li class="something"><div class="arrows"><div class="up"></div><div class="down"></div></div>{{fa.position}} - <a href="{{fa.bb_ref}}">{{fa.first_name}} {{fa.last_name}}</a> </li>
         {% endfor %}
     </ul>
     </div>
@@ -15,19 +36,23 @@
     <div class="r col-sm-4"> <h1>Callups</h1>
     <ul>
     {% for callup in callups %}
-        <li>{{callup.date }} - <a href="{{callup.player.bb_ref}}" target=_blank>{{callup.player.first_name }} {{ callup.player.last_name }}</a> to {{callup.player.mlbaffiliate.location }} {{callup.player.mlbaffiliate.name }} from {{callup.from_level.level }} 
-        {% get_affiliate callup.from_level.level callup.player.mlbaffiliate.mlbteam as team %}
+        <li>{{callup.date }} - <a href="{{callup.player.bb_ref}}" target=_blank>{{callup.player.first_name }} {{ callup.player.last_name }}</a> 
+        {% get_affiliate callup.to_level.level callup.mlbteam as team_to %}
+        to {{team_to.location }} {{team_to.name }} from {{callup.from_level.level }} 
+        {% get_affiliate callup.from_level.level callup.mlbteam as team %}
         <a href="{% url 'team' callup.from_level.level team.name %}">{{ team.location }}</a> </li>
     {% endfor %}
     </ul>
     </div>
     
     
-     <div class="r col-sm-4"><h1>Options</h1>
+     <div class="r {% if players %} col-sm-8 {% else %} col-sm-4 {% endif %}"><h1>Options</h1>
     <ul>
     {% for option in options %}
-        <li>{{option.date }} - <a href="{{option.player.bb_ref}}" target=_blank>{{option.player.first_name }} {{ option.player.last_name }}</a> to {{option.player.mlbaffiliate.location }} {{option.player.mlbaffiliate.name }} ({{option.player.mlbaffiliate.level}}) from {{option.from_level.level }} 
-        {% get_affiliate option.from_level.level option.player.mlbaffiliate.mlbteam as team %}
+        <li>{{option.date }} - <a href="{{option.player.bb_ref}}" target=_blank>{{option.player.first_name }} {{ option.player.last_name }}</a>
+        {% get_affiliate option.to_level.level option.mlbteam as team_to %}
+        to {{team_to.location }} {{team_to.name }} ({{ option.to_level.level }}) from {{ option.from_level.level }} 
+        {% get_affiliate option.from_level.level option.mlbteam as team %}
         <a href="{% url 'team' option.from_level.level team.name %}">{{ team.location }}</a>
         </li>
     {% endfor %}
@@ -48,7 +73,10 @@
     <h1>Trades</h1>
     <ul>
     {% for trade in trades %}
-        <li>{{ trade.date }} - {% for players in trade.players.all %} {% for player in players.players.all %} <a href="{{player.bb_ref}}" target=_blank>{{player.first_name}} {{player.last_name}}</a> to {{player.mlbaffiliate.name}} (from {{players.team_from.name}}){% if forloop.counter != trade.players.all|length %}, {% endif %} {% endfor %} {% endfor %} </li>
+        <li>{{ trade.date }} - {% for players in trade.players.all %}{% with forloop.counter as cntr %} {% for player in players.players.all %} 
+        <a href="{{player.bb_ref}}" target=_blank>{{player.first_name}} {{player.last_name}}</a> 
+        to {{players.team_to.mlbteam.name}} (from {{players.team_from.mlbteam.name}}){% if cntr != trade.players.all|length %}, 
+        {% endif %} {% endfor %}{% endwith %} {% endfor %} </li>
     {% endfor %}
     </ul>
     </div>
@@ -67,7 +95,7 @@
     <h1>Draft Signings</h1>
     <ul>
     {% for draft_signing in draft_signings %}
-        <li>{{draft_signing.date}} - <a href="{{draft_signing.player.bb_ref}}" target=_blank>{{draft_signing.player.first_name}} {{draft_signing.player.last_name}}</a> to {{draft_signing.player.mlbaffiliate.location}} {{draft_signing.player.mlbaffiliate.name}}</li>
+        <li>{{draft_signing.date}} - <a href="{{draft_signing.player.bb_ref}}" target=_blank>{{draft_signing.player.first_name}} {{draft_signing.player.last_name}}</a> to {{draft_signing.team_to.location}} {{draft_signing.team_to.name}}</li>
     {% endfor %}
     </ul>
     </div>
@@ -75,17 +103,27 @@
     <h1>FA Signings</h1>
     <ul>
     {% for fa_signing in fa_signings %}
-        <li>{{fa_signing.date}} - <a href="{{fa_signing.player.bb_ref}}" target=_blank>{{fa_signing.player.first_name}} {{fa_signing.player.last_name}}</a> to {{fa_signing.player.mlbaffiliate.location}} {{fa_signing.player.mlbaffiliate.name}}</li>
+        <li>{{fa_signing.date}} - <a href="{{fa_signing.player.bb_ref}}" target=_blank>{{fa_signing.player.first_name}} {{fa_signing.player.last_name}}</a> to {{fa_signing.team_to.location}} {{fa_signing.team_to.name}}</li>
     {% endfor %}
     </ul>
     </div>
     </div>
     <div class="row">
-    <div class="r col-sm-12">
+    <div class="r col-sm-6">
     <h1>Personal Leave</h1>
     <ul>
         {% for personale in personal_leave %}
         <li>{{personale.date}} - <a href="{{personale.player.bb_ref}}">{{personale.player.first_name}} {{personale.player.last_name}}</a> for {{personale.length}} days</li>
+        {% endfor %}
+    </ul>
+    </div>
+    <div class="r col-sm-6">
+    <h1>Rehab Assignment</h1>
+    <ul>
+        {% for option in rehab_assignment %}
+        <li>{{option.date}} - <a href="{{option.player.bb_ref}}">{{option.player.first_name }} {{ option.player.last_name }}</a> to {{option.player.mlbaffiliate.location }} {{option.player.mlbaffiliate.name }} ({{option.player.mlbaffiliate.level}}) from {{option.from_level.level }} 
+        {% get_affiliate option.from_level.level option.player.mlbaffiliate.mlbteam as team %}
+        <a href="{% url 'team' option.from_level.level team.name %}">{{ team.location }}</a>
         {% endfor %}
     </ul>
     </div>

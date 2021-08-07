@@ -1,13 +1,9 @@
-<style>
-    .card{
-        bottom: 0;
-        display: inline;
-    }
-</style>
-<div class="card mb-3">
-  <div class="card-body">
+<nav class="navbar fixed-bottom navbar-light bg-light">
     <h5 class="card-title">Waiver Wire</h5>
-    <p class="card-text">Thanks for perusing our site. Check back for more changes.</p>
+    {% load static %}
+    <p class="card-text">{% if logo %}
+        <img style="height: 40px;" src="{% static 'da_wire/'|add:logo %}" alt="...">{% else %}<a href="http://mlb.com" target=_blank>
+        <img style="height: 40px;" src="{% static 'da_wire/mlb.png' %}" alt="..."></a>{% endif %}
+    </p>
     <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
-  </div>
-</div>
+</nav>

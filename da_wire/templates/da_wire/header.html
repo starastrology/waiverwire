@@ -1,12 +1,63 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
   <div class="container-fluid">
     <a class="navbar-brand" href="/wire">Waiver Wire</a>
-    <form class="d-flex">
-      <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <!--form class="d-flex" action="{% url 'search' %}" method="GET">
+      <input class="form-control me-2" name="search" type="search" placeholder="players, teams, positions" aria-label="Search">
       <button class="btn btn-outline-success" type="submit">Search</button>
-    </form>
-    {% for team in teams %}
-        <a href="{% url 'team' 'MLB' team.name %}">{{ team.location }} {{ team.name }}</a>
-    {% endfor %}
+    </form-->
+    <form class="container-fluid">
+    <div class="input-group">
+      <span class="input-group-text" id="basic-addon1">@</span>
+      <input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
+    </div>
+  </form>
+  <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Features</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Pricing</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Leagues
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+          {% for league in leagues %}
+              <li><a class="dropdown-item" href="{% url 'league' league.level %}">{{ league.level }}</a></li>
+           {% endfor %}
+          </ul>
+         </li>
+          <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            MLB Teams
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+          {% for team in teams %}
+            <li><a class="dropdown-item" href="{% url 'team' 'MLB' team.name %}">{{ team.location }} {{ team.name }}</a></li>
+          {% endfor %}
+          </ul>
+          </li>
+          <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Positions
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+          {% for position in list_of_positions %}
+              <li><a class="dropdown-item" href="{% url 'position' position.position %}">{{ position.position }}</a></li>
+           {% endfor %}
+          </ul>
+         </li>
+        </ul>
+    </div>
+   
+    
   </div>
 </nav>
