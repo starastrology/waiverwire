@@ -1,0 +1,39 @@
+<p> Whaddya think about this??? </p>
+<span>
+    Sort By:
+    <select>
+        <option>Date</option>
+        <option>Approval</option>
+    </select>
+</span>
+<div class="comments">
+    {% for comment in comments %}
+        <div class="comment">{{comment.user.username }} | {{ comment.datetime }}
+            <div class="text">{{ comment.text }}</div>
+            <div style="padding:10px;" id="comment_{{comment.id}}">
+                <div style="display:inline;" class="count">{{comment.votes}}</div>
+                <div class="arrows">
+                    <form id="comment_upvote_{{comment.id}}" action="{% url 'transaction_upvote' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="pid" value="{{ comment.id }}">
+                    </form>
+                    <form id="comment_downvote_{{comment.id}}" action="{% url 'transaction_downvote' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="pid" value="{{ comment.id }}">
+                    </form>
+                    <div class="up" onclick="ajax_submit_upvote_comment('{{comment.id}}')"></div>
+                    <div class="down" onclick="ajax_submit_downvote_comment('{{comment.id}}')"></div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+<div>
+<form action="{% url 'comment' %}" method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="tid" value="{{tid}}" />
+    <textarea required placeholder="Comment here" name="comment" cols=100 rows=10></textarea>
+    <hr>
+    <button class="btn btn-primary" style="float:right;">Submit</button>
+</form>
+</div>

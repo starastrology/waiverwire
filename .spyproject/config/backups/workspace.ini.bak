@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = empty-project-type
-recent_files = ['da_wire\\models.py', 'da_wire\\views.py', 'da_wire\\templates\\da_wire\\container.html']
+recent_files = ['da_wire\\templates\\da_wire\\comment.html', 'da_wire\\views.py', 'da_wire\\models.py']
 
 [main]
 version = 0.2.0

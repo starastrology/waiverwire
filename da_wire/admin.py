@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import MLBTeam, MLBAffiliate, Level, Salary, Position, Player, \
 DFA, InjuredList, PersonalLeave, Option, FASignings, Trade, PlayerTrade, CallUp, \
-    Color
+    Color, Transaction, Comment, TransactionVote, CommentVote
 
 admin.site.register(MLBTeam)
 admin.site.register(MLBAffiliate)
@@ -18,3 +18,7 @@ admin.site.register(FASignings)
 admin.site.register(Trade)
 admin.site.register(PlayerTrade)
 admin.site.register(Color)
+admin.site.register(Transaction)
+admin.site.register(Comment)
+admin.site.register(CommentVote)
+admin.site.register(TransactionVote)
