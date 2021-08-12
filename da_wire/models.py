@@ -1,5 +1,6 @@
 from django.db import models
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, \
+    MaxLengthValidator, MinLengthValidator
 from django.contrib.auth.models import User
 
 class MLBTeam(models.Model):
@@ -132,7 +133,7 @@ class Comment(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, default=None)
     datetime = models.DateTimeField()
     user = models.ForeignKey(User, on_delete=models.CASCADE)  
-    text = models.TextField(max_length=5000)
+    text = models.TextField(validators=[MinLengthValidator(1), MaxLengthValidator(2000)])
     
 class CommentVote(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

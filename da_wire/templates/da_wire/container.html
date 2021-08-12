@@ -15,13 +15,26 @@
         <div class="r col">
         <h2>Non-FA</h2>
             {% for non_fa in non_fas %}
-                <li class="something">
-                <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">0</div>
-                <div class="arrows">
-                    <div class="up"></div>
-                    <div class="down"></div>
-                </div><a href="{{non_fa.bb_ref}}" target=_blank>{{ non_fa.first_name }} {{non_fa.last_name }}</a> 
-                - {{ non_fa.mlbaffiliate.location }} {{ non_fa.mlbaffiliate.name }}</li>
+                <li class="something" id="transaction_{{non_fa.transaction.tid}}">
+                    {% if request.user.is_authenticated %}
+                    <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{non_fa.votes}}</div>
+                    <div class="arrows">
+                        <form id="transaction_upvote_{{ non_fa.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="tid" value="{{ non_fa.transaction.tid }}">
+                        </form>
+                        <form id="transaction_downvote_{{ non_fa.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
+                           {% csrf_token %}
+                            <input type="hidden" name="tid" value="{{ non_fa.transaction.tid }}">
+                        </form>
+                        <div class="up" onclick="ajax_submit_upvote('{{ non_fa.transaction.tid }}')"></div>
+                        <div class="down" onclick="ajax_submit_downvote('{{ non_fa.transaction.tid }}')"></div>
+                    </div>
+                    {% endif %}
+                    <a href="{{non_fa.bb_ref}}" target=_blank>{{ non_fa.first_name }} {{non_fa.last_name }}</a> 
+                    - {{ non_fa.mlbaffiliate.location }} {{ non_fa.mlbaffiliate.name }}
+                    <a href="{% url 'transaction' non_fa.transaction.tid %}">&#129193;</a> 
+                </li>
             {% endfor %}
         </div>
     </div>
@@ -33,14 +46,26 @@
     <ul>
         {% for fa in fas %}
             <li class="something" id="transaction_{{fa.transaction.tid}}">
+                {% if request.user.is_authenticated %}
                 <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{fa.votes}}</div>
                 <div class="arrows">
-                    <div class="up"></div>
-                    <div class="down"></div>
+                    <form id="transaction_upvote_{{fa.transaction.tid}}" action="{% url 'transaction_upvote' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="tid" value="{{ fa.transaction.tid }}">
+                    </form>
+                    <form id="transaction_downvote_{{fa.transaction.tid}}" action="{% url 'transaction_downvote' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="tid" value="{{ fa.transaction.tid }}">
+                    </form>
+                    <div class="up" onclick="ajax_submit_upvote('{{ fa.transaction.tid }}')"></div>
+                    <div class="down" onclick="ajax_submit_downvote('{{ fa.transaction.tid }}')"></div>
                 </div>
+                {% endif %}
+                <span>
                 <b>{{fa.position}}</b>
                 - <a href="{{fa.bb_ref}}">{{fa.first_name}} {{fa.last_name}}</a>
                 <a href="{% url 'transaction' fa.transaction.tid %}">&#129193;</a> 
+                </span>
             </li>
         {% endfor %}
     </ul>
@@ -51,11 +76,22 @@
     <ul>
     {% for callup in callups %}
         <li class="something" id="transaction_{{callup.transaction.tid}}">
+                {% if request.user.is_authenticated %}
                 <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{callup.votes}}</div>
                 <div class="arrows">
-                    <div class="up"></div>
-                    <div class="down"></div>
-                </div>{{callup.date }} - <a href="{{callup.player.bb_ref}}" target=_blank>{{callup.player.first_name }} {{ callup.player.last_name }}</a> 
+                    <form id="transaction_upvote_{{ callup.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ callup.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote_{{ callup.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ callup.transaction.tid }}">
+            </form>
+                    <div class="up" onclick="ajax_submit_upvote('{{ callup.transaction.tid }}')"></div>
+            <div class="down" onclick="ajax_submit_downvote('{{ callup.transaction.tid }}')"></div>
+                </div>
+                {% endif %}
+                <b>{{callup.date }}</b> - <a href="{{callup.player.bb_ref}}" target=_blank>{{callup.player.first_name }} {{ callup.player.last_name }}</a> 
         {% get_affiliate callup.to_level.level callup.mlbteam as team_to %}
         to {{team_to.location }} {{team_to.name }} from {{callup.from_level.level }} 
         {% get_affiliate callup.from_level.level callup.mlbteam as team %}
@@ -71,11 +107,22 @@
     <ul>
     {% for option in options %}
         <li class="something" id="transaction_{{option.transaction.tid}}">
+                {% if request.user.is_authenticated %}
                 <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{option.votes}}</div>
                 <div class="arrows">
-                    <div class="up"></div>
-                    <div class="down"></div>
-                </div>{{option.date }} - <a href="{{option.player.bb_ref}}" target=_blank>{{option.player.first_name }} {{ option.player.last_name }}</a>
+                    <form id="transaction_upvote_{{ option.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ option.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote_{{ option.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ option.transaction.tid }}">
+            </form>
+                    <div class="up" onclick="ajax_submit_upvote('{{ option.transaction.tid }}')"></div>
+            <div class="down" onclick="ajax_submit_downvote('{{ option.transaction.tid }}')"></div>
+                </div>
+                {% endif %}
+                <b>{{option.date }}</b> - <a href="{{option.player.bb_ref}}" target=_blank>{{option.player.first_name }} {{ option.player.last_name }}</a>
         {% get_affiliate option.to_level.level option.mlbteam as team_to %}
         to {{team_to.location }} {{team_to.name }} ({{ option.to_level.level }}) from {{ option.from_level.level }} 
         {% get_affiliate option.from_level.level option.mlbteam as team %}
@@ -93,11 +140,22 @@
     <ul>
     {% for dfa in dfas %}
         <li class="something" id="transaction_{{dfa.transaction.tid}}">
+                {% if request.user.is_authenticated %}
                 <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{dfa.votes}}</div>
                 <div class="arrows">
-                    <div class="up"></div>
-                    <div class="down"></div>
-                </div>{{dfa.date }} - <a href="{{dfa.player.bb_ref}}" target=_blank>{{dfa.player.first_name }} {{ dfa.player.last_name }}</a>
+                    <form id="transaction_upvote_{{ dfa.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ dfa.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote_{{ dfa.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ dfa.transaction.tid }}">
+            </form>
+                    <div class="up" onclick="ajax_submit_upvote('{{ dfa.transaction.tid }}')"></div>
+            <div class="down" onclick="ajax_submit_downvote('{{ dfa.transaction.tid }}')"></div>
+                </div>
+                {% endif %}
+                <b>{{dfa.date }}</b> - <a href="{{dfa.player.bb_ref}}" target=_blank>{{dfa.player.first_name }} {{ dfa.player.last_name }}</a>
                  - {{dfa.player.mlbaffiliate.location }} {{dfa.player.mlbaffiliate.name }}  
                  <a href="{% url 'transaction' dfa.transaction.tid %}">&#129193;</a> 
                  </li>
@@ -109,11 +167,22 @@
     <ul>
     {% for trade in trades %}
         <li class="something" id="transaction_{{trade.transaction.tid}}">
+                {% if request.user.is_authenticated %}
                 <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{trade.votes}}</div>
                 <div class="arrows">
-                    <div class="up"></div>
-                    <div class="down"></div>
-                </div>{{ trade.date }} - {% for players in trade.players.all %}{% with forloop.counter as cntr %} {% for player in players.players.all %} 
+                    <form id="transaction_upvote_{{ trade.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ trade.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote_{{ trade.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ trade.transaction.tid }}">
+            </form>
+                    <div class="up" onclick="ajax_submit_upvote('{{ trade.transaction.tid }}')"></div>
+            <div class="down" onclick="ajax_submit_downvote('{{ trade.transaction.tid }}')"></div>
+                </div>
+                {% endif %}
+                <b>{{ trade.date }}</b> - {% for players in trade.players.all %}{% with forloop.counter as cntr %} {% for player in players.players.all %} 
         <a href="{{player.bb_ref}}" target=_blank>{{player.first_name}} {{player.last_name}}</a> 
         to {{players.team_to.mlbteam.name}} (from {{players.team_from.mlbteam.name}}){% if cntr != trade.players.all|length %}, 
         {% endif %} {% endfor %}{% endwith %} 
@@ -129,11 +198,22 @@
     <ul>
     {% for injured in injured_list %}
         <li class="something" id="transaction_{{injured.transaction.tid}}">
+                {% if request.user.is_authenticated %}
                 <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{injured.votes}}</div>
                 <div class="arrows">
-                    <div class="up"></div>
-                    <div class="down"></div>
-                </div>{{injured.date}} - <a href="{{injured.player.bb_ref}}" target=_blank>{{injured.player.first_name}} {{injured.player.last_name}}</a> - {{injured.length}}-day IL
+                    <form id="transaction_upvote_{{ injured.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ injured.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote_{{ injured.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ injured.transaction.tid }}">
+            </form>
+                    <div class="up" onclick="ajax_submit_upvote('{{ injured.transaction.tid }}')"></div>
+            <div class="down" onclick="ajax_submit_downvote('{{ injured.transaction.tid }}')"></div>
+                </div>
+                {% endif %}
+                <b>{{injured.date}}</b> - <a href="{{injured.player.bb_ref}}" target=_blank>{{injured.player.first_name}} {{injured.player.last_name}}</a> - {{injured.length}}-day IL
                 <a href="{% url 'transaction' injured.transaction.tid %}">&#129193;</a> 
                 </li>
     {% endfor %}
@@ -146,11 +226,22 @@
     <ul>
     {% for draft_signing in draft_signings %}
         <li class="something" id="transaction_{{draft_signing.transaction.tid}}">
+                {% if request.user.is_authenticated %}
                 <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{draft_signing.votes}}</div>
                 <div class="arrows">
-                    <div class="up"></div>
-                    <div class="down"></div>
-                </div>{{draft_signing.date}} - <a href="{{draft_signing.player.bb_ref}}" target=_blank>{{draft_signing.player.first_name}} {{draft_signing.player.last_name}}</a> to {{draft_signing.team_to.location}} {{draft_signing.team_to.name}}
+                    <form id="transaction_upvote_{{ draft_signing.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ draft_signing.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote_{{ draft_signing.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ draft_signing.transaction.tid }}">
+            </form>
+                    <div class="up" onclick="ajax_submit_upvote('{{ draft_signing.transaction.tid }}')"></div>
+            <div class="down" onclick="ajax_submit_downvote('{{ draft_signing.transaction.tid }}')"></div>
+                </div>
+                {% endif %}
+                <b>{{draft_signing.date}}</b> - <a href="{{draft_signing.player.bb_ref}}" target=_blank>{{draft_signing.player.first_name}} {{draft_signing.player.last_name}}</a> to {{draft_signing.team_to.location}} {{draft_signing.team_to.name}}
                 <a href="{% url 'transaction' draft_signing.transaction.tid %}">&#129193;</a> 
                 </li>
     {% endfor %}
@@ -161,11 +252,22 @@
     <ul>
     {% for fa_signing in fa_signings %}
         <li class="something" id="transaction_{{fa_signing.transaction.tid}}">
+                {% if request.user.is_authenticated %}
                 <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{fa_signing.votes}}</div>
                 <div class="arrows">
-                    <div class="up"></div>
-                    <div class="down"></div>
-                </div>{{fa_signing.date}} - <a href="{{fa_signing.player.bb_ref}}" target=_blank>{{fa_signing.player.first_name}} {{fa_signing.player.last_name}}</a> to {{fa_signing.team_to.location}} {{fa_signing.team_to.name}}
+                    <form id="transaction_upvote_{{ fa_signing.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ fa_signing.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote_{{ fa_signing.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ fa_signing.transaction.tid }}">
+            </form>
+                    <div class="up" onclick="ajax_submit_upvote('{{ fa_signing.transaction.tid }}')"></div>
+                    <div class="down" onclick="ajax_submit_downvote('{{ fa_signing.transaction.tid }}')"></div>
+                </div>
+                {% endif %}
+                <b>{{fa_signing.date}}</b> - <a href="{{fa_signing.player.bb_ref}}" target=_blank>{{fa_signing.player.first_name}} {{fa_signing.player.last_name}}</a> to {{fa_signing.team_to.location}} {{fa_signing.team_to.name}}
                 <a href="{% url 'transaction' fa_signing.transaction.tid %}">&#129193;</a> 
                 </li>
     {% endfor %}
@@ -178,11 +280,22 @@
     <ul>
         {% for personale in personal_leave %}
         <li class="something" id="transaction_{{personale.transaction.tid}}">
+                {% if request.user.is_authenticated %}
                 <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{personale.votes}}</div>
                 <div class="arrows">
-                    <div class="up"></div>
-                    <div class="down"></div>
-                </div>{{personale.date}} - <a href="{{personale.player.bb_ref}}">{{personale.player.first_name}} {{personale.player.last_name}}</a> for {{personale.length}} days
+                    <form id="transaction_upvote_{{ personale.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ personale.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote_{{ personale.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ personale.transaction.tid }}">
+            </form>
+                    <div class="up" onclick="ajax_submit_upvote('{{ personale.transaction.tid }}')"></div>
+            <div class="down" onclick="ajax_submit_downvote('{{ personale.transaction.tid }}')"></div>
+                </div>
+                {% endif %}
+                <b>{{personale.date}}</b> - <a href="{{personale.player.bb_ref}}">{{personale.player.first_name}} {{personale.player.last_name}}</a> for {{personale.length}} days
                 <a href="{% url 'transaction' personale.transaction.tid %}">&#129193;</a> 
                 </li>
         {% endfor %}
@@ -193,11 +306,22 @@
     <ul>
         {% for option in rehab_assignment %}
         <li class="something" id="transaction_{{option.transaction.tid}}">
+                {% if request.user.is_authenticated %}
                 <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{option.votes}}</div>
                 <div class="arrows">
-                    <div class="up"></div>
-                    <div class="down"></div>
-                </div>{{option.date}} - <a href="{{option.player.bb_ref}}">{{option.player.first_name }} {{ option.player.last_name }}</a> to {{option.player.mlbaffiliate.location }} {{option.player.mlbaffiliate.name }} ({{option.player.mlbaffiliate.level}}) from {{option.from_level.level }} 
+                    <form id="transaction_upvote_{{ option.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ option.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote_{{ option.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ option.transaction.tid }}">
+            </form>
+                    <div class="up" onclick="ajax_submit_upvote('{{ option.transaction.tid }}')"></div>
+            <div class="down" onclick="ajax_submit_downvote('{{ option.transaction.tid }}')"></div>
+                </div>
+                {% endif %}
+                <b>{{option.date}}</b> - <a href="{{option.player.bb_ref}}">{{option.player.first_name }} {{ option.player.last_name }}</a> to {{option.player.mlbaffiliate.location }} {{option.player.mlbaffiliate.name }} ({{option.player.mlbaffiliate.level}}) from {{option.from_level.level }} 
         {% get_affiliate option.from_level.level option.player.mlbaffiliate.mlbteam as team %}
         <a href="{% url 'team' option.from_level.level team.name %}">{{ team.location }}</a>
         <a href="{% url 'transaction' option.transaction.tid %}">&#129193;</a> 

@@ -79,8 +79,10 @@
         }
         .arrows{
             display: inline;
-            float: left;
-            margin-top: -9px;
+            float: left;        
+            {% if not request.user.is_authenticated %}
+                display: none;
+            {% endif %}
         }
         #main{
             margin-bottom: 25px;
@@ -94,6 +96,12 @@
             height: 40px;
             margin: 4px 0;
         }
+        .arrows{
+            margin-top: -23px;
+        }
+        #main .arrows{
+            margin-top: -9px;    
+        }
         li.something{
             list-style-type: none;
             height: 50px;
@@ -103,6 +111,10 @@
             margin: 10px 0;
             padding: 10px;
             background-color: var(--red);
+        }
+        .comments .comment .text{
+             word-wrap: break-word;
+             width: 800px;
         }
         .comments .comment .text{
             background-color: var(--blue);
@@ -118,7 +130,13 @@
         .upvoted{
             opacity: 1;
         }
+        @media(max-width:800px){
+            .comments .comment .text{
+            width: 400px;
+            }
+        }
     </style>
+    {% if request.user.is_authenticated %}
     <script
       src="https://code.jquery.com/jquery-3.6.0.min.js"
           integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
@@ -238,6 +256,7 @@
                 });
             }
       </script>
+      {% endif %}
 </head>
 <body>
 {% include 'da_wire/header.html' %}
@@ -260,6 +279,27 @@
         </div>
         <div>
             <h5>{{fa.position}}</h5>
+            <a href="{{ fa.bb_ref }}" target=_blank>baseball-reference</a>
+        </div>
+    </div>
+{% elif non_fa %}
+    <h1>{{ non_fa.first_name }} {{ non_fa.last_name }} ({{type}})</h1>
+    <div id="main">
+        <div style="display:inline;" class="count">{{ votes }}</div>
+        <div class="arrows">
+            <form id="transaction_upvote" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ fa.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ fa.transaction.tid }}">
+            </form>
+            <div class="up" onclick="ajax_submit_upvote()"></div>
+            <div class="down" onclick="ajax_submit_downvote()"></div>
+        </div>
+        <div>
+            <h5>{{non_fa.position}}</h5>
             <a href="{{ fa.bb_ref }}" target=_blank>baseball-reference</a>
         </div>
     </div>

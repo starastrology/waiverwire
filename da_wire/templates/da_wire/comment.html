@@ -1,4 +1,8 @@
+{% if request.user.is_authenticated %}
 <p> Whaddya think about this??? </p>
+{% else %}
+<p> Login to comment (and upvote)! </p>
+{% endif %}
 <span>
     Sort By:
     <select>
@@ -28,12 +32,21 @@
         </div>
     {% endfor %}
 </div>
+{% if request.user.is_authenticated %}
 <div>
 <form action="{% url 'comment' %}" method="POST">
     {% csrf_token %}
     <input type="hidden" name="tid" value="{{tid}}" />
-    <textarea required placeholder="Comment here" name="comment" cols=100 rows=10></textarea>
+    <textarea required placeholder="Comment here" name="comment" cols=100 rows=10>{{ too_long }}</textarea>
     <hr>
     <button class="btn btn-primary" style="float:right;">Submit</button>
 </form>
+{% if too_long %}
+<div id="messages">
+    <p>
+        Post submission may have been too long! (max 2000 chars)
+    </p>
 </div>
+{% endif %}
+</div>
+{% endif %}

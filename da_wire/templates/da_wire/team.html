@@ -40,7 +40,7 @@
         .r {
             background-color: #ffffff;
             display: table-cell;
-            border: 3px dashed var(--secondary);
+            border: 1px dashed var(--secondary);
             -webkit-box-sizing: border-box;
             -moz-box-sizing: border-box;
             box-sizing: border-box;
@@ -90,16 +90,17 @@
         .arrows{
             display: inline;
             float: left;
-            margin-top: -9px;
+            margin-top: -23px;
         }
         li.something{
             list-style-type: none;
-            height: 50px;
+            min-height: 50px;
         }
         .upvoted{
             opacity: 1;
         }
     </style>
+    {% if request.user.is_authenticated %}
     <script
       src="https://code.jquery.com/jquery-3.6.0.min.js"
           integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
@@ -177,7 +178,56 @@
                   {% endif %}
               {% endfor %}
           });
+    
+        function ajax_submit_upvote(id){
+              form = $('#transaction_upvote_'+id);
+                  $.ajax({
+                    type: "POST",
+                    url: "{% url 'transaction_upvote' %}", 
+                    data: form.serialize(),
+                    success : function(data) {
+                         if (data === "upvote"){
+                             $("#transaction_" + id + " .up").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+1).toString())
+                         }
+                         else if(data === "undo"){
+                             $("#transaction_" + id + " .up").removeClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-1).toString())
+                         }
+                         else{
+                             $("#transaction_" + id + " .down").removeClass('upvoted');
+                             $("#transaction_" + id + " .up").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+2).toString())
+                         }
+                     }
+                });
+            }
+            
+            function ajax_submit_downvote(id){
+              form = $('#transaction_downvote_'+id);
+                  $.ajax({
+                    type: "POST",
+                    url: "{% url 'transaction_downvote' %}", 
+                    data: form.serialize(),
+                    success : function(data) {
+                         if (data === "downvote"){
+                             $("#transaction_" + id + " .down").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-1).toString())
+                         }
+                         else if(data === "undo"){
+                             $("#transaction_" + id + " .down").removeClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+1).toString())
+                         }
+                         else{
+                             $("#transaction_" + id + " .up").removeClass('upvoted');
+                             $("#transaction_" + id + " .down").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-2).toString())
+                         }
+                     }
+                });
+            }
     </script>
+    {% endif %}
 </head>
 <body>
     {% include 'da_wire/header.html' %}

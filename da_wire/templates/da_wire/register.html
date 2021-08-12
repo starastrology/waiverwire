@@ -1,0 +1,108 @@
+<html>
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <style>
+        :root {
+          --blue: #002D72;
+          --red: #D50032;
+        }
+        body{
+            background-color: var(--blue);
+            color: #ffffff;
+        }
+        .r {
+            height: 340px;
+            overflow-y: scroll;
+            padding: 10px;
+        }
+        .container {
+            display: table;
+            border-collapse:collapse
+        }
+        .col {
+            display:table-row;
+        }
+        .r {
+            background-color: #ffffff;
+            display: table-cell;
+            border: 1px dashed var(--red);
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            color: var(--blue);
+        }
+        .r::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .r {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+        }
+        .container{
+            margin-bottom: 80px;
+        }
+        .upvoted{
+            opacity: 1;
+        }
+        {% load static %}
+        .up{
+            background-image: url("{% static 'da_wire/up.png' %}");
+        }
+        .down{
+            background-image: url("{% static 'da_wire/down.png' %}");
+        }
+        .up, .down{
+            background-repeat: no-repeat;
+            background-size: 18px;
+            width: 20px;
+            height: 20px;
+            margin: 2px 0;
+            opacity: .35;
+        }
+        .up:hover, .down:hover{
+            opacity: 1;
+            cursor: pointer;
+        }
+        .arrows{
+            display: inline;
+            float: left;
+            margin-top: -23px;
+        }
+        li.something{
+            list-style-type: none;
+            min-height: 50px;
+        }
+        .upvoted{
+            opacity: 1;
+        }
+        #messages{
+            border: 1px solid black;
+            background-color: #f09;
+        }
+    </style>
+</head>
+<body>
+    {% include 'da_wire/header.html' %}
+    <div class="container">
+       <h1>Register</h1>
+       <span id="messages">{{error_messages}}</span>
+        <form action="{% url 'register' %}" method="POST">
+            <label for="username">Username</label>
+            <input class="form-control" id="username" name="username" type="text" />
+            <label for="email">Email</label>
+            <input class="form-control" id="email" name="email" type="email" />
+            <label for="password">Password</label>
+            <input class="form-control" id="password" name="password" type="password" />
+            <label for="confirm_password">Confirm Password</label>
+            <input class="form-control" id="confirm_password" name="confirm_password" type="password" />
+            </br>
+            {% csrf_token %}
+            <button class="btn btn-primary" type=submit>Register</button>
+        </form>       
+    </div>
+    {% include 'da_wire/footer.html' %}
+</body>
+</html>

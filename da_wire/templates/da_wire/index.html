@@ -42,20 +42,7 @@
           scrollbar-width: none;  /* Firefox */
         }
         .container{
-            margin-bottom: 100px;
-        }
-        .carousel{
-            border: 10px solid white;
-            width: 50%;
-            height: 500px;
-            margin: 50px auto;
-        }
-        .carousel-item{
-            height: 500px;
-        }
-        .carousel-caption{
-            background-color: black;
-            opacity: .8;
+            margin-bottom: 80px;
         }
         .upvoted{
             opacity: 1;
@@ -82,22 +69,30 @@
         .arrows{
             display: inline;
             float: left;
-            margin-top: -9px;
+            margin-top: -23px;
         }
         li.something{
             list-style-type: none;
-            height: 50px;
+            min-height: 50px;
         }
         .upvoted{
             opacity: 1;
         }
     </style>
+    {% if request.user.is_authenticated %}
     <script
       src="https://code.jquery.com/jquery-3.6.0.min.js"
           integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
       crossorigin="anonymous"></script>
     <script>
           $(document).ready(function(){
+              {% for fa in non_fas %}
+                  {% if fa.user_upvoted == 1 %}
+                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
+                  {% elif fa.user_upvoted == -1 %}       
+                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
+                  {% endif %}
+              {% endfor %}
               {% for fa in fas %}
                   {% if fa.user_upvoted == 1 %}
                          $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
@@ -169,16 +164,59 @@
                   {% endif %}
               {% endfor %}
           });
+          
+          function ajax_submit_upvote(id){
+              form = $('#transaction_upvote_'+id);
+                  $.ajax({
+                    type: "POST",
+                    url: "{% url 'transaction_upvote' %}", 
+                    data: form.serialize(),
+                    success : function(data) {
+                         if (data === "upvote"){
+                             $("#transaction_" + id + " .up").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+1).toString())
+                         }
+                         else if(data === "undo"){
+                             $("#transaction_" + id + " .up").removeClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-1).toString())
+                         }
+                         else{
+                             $("#transaction_" + id + " .down").removeClass('upvoted');
+                             $("#transaction_" + id + " .up").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+2).toString())
+                         }
+                     }
+                });
+            }
+            
+            function ajax_submit_downvote(id){
+              form = $('#transaction_downvote_'+id);
+                  $.ajax({
+                    type: "POST",
+                    url: "{% url 'transaction_downvote' %}", 
+                    data: form.serialize(),
+                    success : function(data) {
+                         if (data === "downvote"){
+                             $("#transaction_" + id + " .down").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-1).toString())
+                         }
+                         else if(data === "undo"){
+                             $("#transaction_" + id + " .down").removeClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+1).toString())
+                         }
+                         else{
+                             $("#transaction_" + id + " .up").removeClass('upvoted');
+                             $("#transaction_" + id + " .down").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-2).toString())
+                         }
+                     }
+                });
+            }
     </script>
+    {% endif %}
 </head>
 <body>
     {% include 'da_wire/header.html' %}
-    {% if not request.user.is_authenticated %}
-    <div style="background-color: white;">
-        {% include 'da_wire/carousel.html' %}
-    </div>
-    <hr>
-    {% endif %}
     {% include 'da_wire/container.html' %}
     {% include 'da_wire/footer.html' %}
 </body>

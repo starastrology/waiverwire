@@ -1,11 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, reverse
 from .models import MLBAffiliate, Level, Player, Option, Trade, \
     CallUp, InjuredList, FASignings, DFA, MLBTeam, PersonalLeave, Position, \
         Transaction, Comment, TransactionVote, CommentVote
 from django.db.models import Q
 from django.contrib.auth import authenticate
 from django.contrib.auth import logout, login
-from django.template.loader import render_to_string
 from django.http import HttpResponse
 
 def transaction_upvote(request):
@@ -76,18 +75,6 @@ def comment_downvote(request):
         else:
             comment_upvote.delete()
             return HttpResponse("undo")
-    
-def comment(request):
-    comment = request.POST["comment"]
-    tid = request.POST["tid"]
-    transaction = Transaction.objects.filter(tid=tid).first()
-    import datetime
-    now=datetime.datetime.now()
-    comment = Comment(text=comment, transaction=transaction, user=request.user, datetime=now)
-    comment.save()
-    from django.urls import reverse
-    return redirect(reverse('transaction',  kwargs={'tid': tid}))
-
 def transaction(request, tid):
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
@@ -97,27 +84,34 @@ def transaction(request, tid):
     tid = transaction.tid
     
     comments = Comment.objects.filter(transaction=transaction).order_by("-datetime")
-    for comment in comments:
-        comment.votes = CommentVote.objects.filter(comment=comment, is_up=1).count() - CommentVote.objects.filter(comment=comment, is_up=0).count()
-        user_upvoted = CommentVote.objects.filter(comment=comment, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                comment.user_upvoted = 1
-            else:
-                comment.user_upvoted = -1
-        else:
-            comment.user_upvoted = 0
-            
-    up_votes = TransactionVote.objects.filter(transaction=transaction, is_up=1).count()
-    down_votes = TransactionVote.objects.filter(transaction=transaction, is_up=0).count()
-    votes = up_votes - down_votes
-    user_transaction_vote = TransactionVote.objects.filter(transaction=transaction, user=request.user).first()
     
-    context = {'teams': mlbteams, 'leagues': leagues, \
+    if request.user.is_authenticated:
+        for comment in comments:
+            comment.votes = CommentVote.objects.filter(comment=comment, is_up=1).count() - CommentVote.objects.filter(comment=comment, is_up=0).count()
+            user_upvoted = CommentVote.objects.filter(comment=comment, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    comment.user_upvoted = 1
+                else:
+                    comment.user_upvoted = -1
+            else:
+                comment.user_upvoted = 0
+                
+        up_votes = TransactionVote.objects.filter(transaction=transaction, is_up=1).count()
+        down_votes = TransactionVote.objects.filter(transaction=transaction, is_up=0).count()
+        votes = up_votes - down_votes
+        user_transaction_vote = TransactionVote.objects.filter(transaction=transaction, user=request.user).first()
+        context = {'teams': mlbteams, 'leagues': leagues, \
                    'list_of_positions':  list_of_positions, \
                        'tid': tid, 'comments': comments, 'votes': votes,
                        'user_transaction_vote': user_transaction_vote}
-    fa = Player.objects.filter(transaction=transaction).first()
+    else:
+        context = {'teams': mlbteams, 'leagues': leagues, \
+                   'list_of_positions':  list_of_positions, \
+                       'tid': tid, 'comments': comments}        
+        
+    fa = Player.objects.filter(transaction=transaction, is_FA=1).first()
+    non_fa = Player.objects.filter(transaction=transaction, is_FA=0).first()
     dfa = DFA.objects.filter(transaction=transaction).first()
     option = Option.objects.filter(transaction=transaction).first()
     callup = CallUp.objects.filter(transaction=transaction).first()
@@ -128,6 +122,9 @@ def transaction(request, tid):
     if fa:
         transaction_type = 'FA'
         context['fa'] = fa
+    elif non_fa:
+        transaction_type = non_fa.mlbaffiliate
+        context['non_fa'] = non_fa
     elif dfa:
         transaction_type = 'DFA'
         context['dfa'] = dfa
@@ -161,7 +158,22 @@ def transaction(request, tid):
     else:
         context = {}
     context['type'] = transaction_type
+    if request.POST.get('comment'):
+        context['too_long'] = request.POST['comment']
     return render(request, 'da_wire/transaction.html', context)
+
+def comment(request):
+    comment = request.POST["comment"]
+    tid = request.POST["tid"]
+    if len(comment) > 2000:
+        return transaction(request, tid)
+    _transaction = Transaction.objects.filter(tid=tid).first()
+    import datetime
+    now=datetime.datetime.now()
+    comment = Comment(text=comment, transaction=_transaction, user=request.user, datetime=now)
+    comment.save()
+    from django.urls import reverse
+    return redirect(reverse('transaction',  kwargs={'tid': tid}))
 
 def index(request):
     mlb_level = Level.objects.filter(level="MLB").first()
@@ -179,106 +191,107 @@ def index(request):
     personal_leave = PersonalLeave.objects.all()
     rehab_assignment = Option.objects.filter(is_rehab_assignment=1)
     
-    for fa in fas:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+    if request.user.is_authenticated:
+        for fa in fas:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
-    for fa in callups:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+                fa.user_upvoted = 0
+        for fa in callups:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
-    for fa in options:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+                fa.user_upvoted = 0
+        for fa in options:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
-    for fa in dfas:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+                fa.user_upvoted = 0
+        for fa in dfas:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
-    for fa in trades:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+                fa.user_upvoted = 0
+        for fa in trades:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
-    for fa in injured_list:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+                fa.user_upvoted = 0
+        for fa in injured_list:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
-    for fa in draft_signings:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+                fa.user_upvoted = 0
+        for fa in draft_signings:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
-    for fa in fa_signings:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+                fa.user_upvoted = 0
+        for fa in fa_signings:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
-    for fa in personal_leave:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+                fa.user_upvoted = 0
+        for fa in personal_leave:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
-    for fa in rehab_assignment:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+                fa.user_upvoted = 0
+        for fa in rehab_assignment:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
+                fa.user_upvoted = 0
     
     context = {'teams': mlbteams, 'leagues': leagues, 'list_of_positions':  list_of_positions, 'options': options, 'fas': fas, \
                'trades': trades, 'callups': callups, \
@@ -294,15 +307,88 @@ def login_view(request):
     if user is not None:
         login(request, user)
         message = "Logged In; welcome " + username
-        return index(request)
+        if request.META.get('HTTP_REFERER'):
+            return redirect(request.META.get('HTTP_REFERER'))
+        else:
+            return index(request)
     else:
         message = "Failed to log in due to incorrect password or username"
         return index(request)
 
 def logout_view(request):
     logout(request)
-    return index(request)
+    return redirect(reverse('index'))
 
+def register_page(request):
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    leagues = Level.objects.all()
+    list_of_positions = Position.objects.all().order_by("position")
+    return render(request, 'da_wire/register.html', {'teams': mlbteams, 'leagues': leagues, 'list_of_positions':  list_of_positions})
+
+def register(request):
+    username = request.POST['username']
+    password = request.POST['password']
+    password_confirm = request.POST['confirm_password']
+    email = request.POST['email']
+    from django.contrib.auth.models import User
+    user = User.objects.filter(username=username).first()
+    if user:
+        return render(request, 'da_wire/register.html', {'error_messages': "User already exists"})
+    user = User.objects.filter(email=email).first()
+    if user:
+        return render(request, 'da_wire/register.html', {'error_messages': "Email already in use"})
+    if password_confirm != password:
+        return render(request, 'da_wire/register.html', {'error_messages': "Passwords not matching"})
+    if len(password) < 8:
+        return render(request, 'da_wire/register.html', {'error_messages': "Password must be 8 or more characters"})
+    #otherwise
+    user = User.objects.create_user(username=username, email=email, password=password)
+    user.save()
+    login(request, user)
+    return redirect(reverse('index'))
+
+def change_password(request):
+    username = request.POST['username']
+    password = request.POST['password']
+    password_confirm = request.POST['confirm_password']
+    from django.contrib.auth.models import User
+    user = User.objects.filter(username=username).first()
+    if password_confirm != password:
+        return render(request, 'da_wire/user.html', {'error_messages': "New passwords not matching"})
+    if len(password) < 8:
+        return render(request, 'da_wire/user.html', {'error_messages': "Password must be 8 or more characters"})
+    #otherwise
+    uid = user.id
+    user.set_password(password)
+    user.save()
+    login(request, user)
+    
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    leagues = Level.objects.all()
+    list_of_positions = Position.objects.all().order_by("position")
+    return render(request, 'da_wire/user.html', {'message': "Successfully updated password", 'teams': mlbteams, 'leagues': leagues, 'list_of_positions':  list_of_positions})
+    
+
+def user_page(request, id):
+    if request.user.is_authenticated and request.user.id==id:
+        mlb_level = Level.objects.filter(level="MLB").first()
+        mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+        leagues = Level.objects.all()
+        list_of_positions = Position.objects.all().order_by("position")
+        return render(request, 'da_wire/user.html', {'teams': mlbteams, 'leagues': leagues, 'list_of_positions':  list_of_positions})
+    else:
+        return index(request)
+    
+def delete_account(request):
+    if request.user.is_authenticated:
+        username = request.user.username
+        logout(request)
+        from django.contrib.auth.models import User
+        User.objects.filter(username=username).first().delete()
+    return index(request)
+    
 def league(request, level):
     level = Level.objects.filter(level=level).first()
     mlb_level = Level.objects.filter(level="MLB").first()
@@ -322,6 +408,99 @@ def league(request, level):
     dfas = DFA.objects.filter(team_by__level=level)
     personal_leave = PersonalLeave.objects.filter(team_for__level=level)
     rehab_assignment = Option.objects.filter(Q(is_rehab_assignment=1, from_level=level)|Q(is_rehab_assignment=1, to_level=level))
+    
+    if request.user.is_authenticated:                                                       
+        for fa in callups:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+        for fa in options:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+        for fa in dfas:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+        for fa in trades:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+        for fa in injured_list:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+        for fa in draft_signings:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+        for fa in fa_signings:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+        for fa in personal_leave:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+        for fa in rehab_assignment:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    
     context = {'teams': mlbteams, 'leagues': leagues, 'list_of_positions':  list_of_positions, 'options': options, 'fas': fas, \
                'trades': trades, 'callups': callups, \
                    'injured_list': injured_list, 'fa_signings': fa_signings, \
@@ -346,6 +525,109 @@ def position(request, position):
     dfas = DFA.objects.filter(player__position=position)
     personal_leave = PersonalLeave.objects.filter(player__position=position)
     rehab_assignment = Option.objects.filter(is_rehab_assignment=1, player__position=position)
+    
+    if request.user.is_authenticated:  
+        for fa in non_fas:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0                                                    
+        for fa in callups:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+        for fa in options:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+        for fa in dfas:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+        for fa in trades:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+        for fa in injured_list:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+        for fa in draft_signings:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+        for fa in fa_signings:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+        for fa in personal_leave:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+        for fa in rehab_assignment:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0    
+    
     context = {'position': position, 'non_fas': non_fas, 'teams': mlbteams, 'leagues': leagues, \
                'list_of_positions': list_of_positions, 'options': options, 'fas': fas, \
                'trades': trades, 'callups': callups, \
@@ -386,97 +668,97 @@ def team(request, level, name):
     rehab_assignment = Option.objects.filter(Q(player__mlbaffiliate__level=level_obj, player__mlbaffiliate=mlbaffiliate, \
                                                is_rehab_assignment=1)|Q(from_level=mlbaffiliate.level, \
                                                                         player__mlbaffiliate__mlbteam=mlbaffiliate.mlbteam, is_rehab_assignment=1))
-                                                                    
-    for fa in callups:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+    if request.user.is_authenticated:
+        for fa in callups:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
-    for fa in options:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+                fa.user_upvoted = 0
+        for fa in options:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
-    for fa in dfas:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+                fa.user_upvoted = 0
+        for fa in dfas:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
-    for fa in trades:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+                fa.user_upvoted = 0
+        for fa in trades:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
-    for fa in injured_list:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+                fa.user_upvoted = 0
+        for fa in injured_list:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
-    for fa in draft_signings:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+                fa.user_upvoted = 0
+        for fa in draft_signings:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
-    for fa in fa_signings:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+                fa.user_upvoted = 0
+        for fa in fa_signings:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
-    for fa in personal_leave:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+                fa.user_upvoted = 0
+        for fa in personal_leave:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
-    for fa in rehab_assignment:
-        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-        user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-        if user_upvoted:
-            if user_upvoted.is_up:
-                fa.user_upvoted = 1
+                fa.user_upvoted = 0
+        for fa in rehab_assignment:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
             else:
-                fa.user_upvoted = -1
-        else:
-            fa.user_upvoted = 0
+                fa.user_upvoted = 0    
     context = {'players': players, 'mlbaffiliates': mlbaffiliates, \
                'teams': mlbteams, 'leagues': leagues, 'list_of_positions':  list_of_positions, 'options': options, \
                'trades': trades, 'callups': callups, \
