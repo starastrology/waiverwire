@@ -249,7 +249,9 @@
     <ul>
     {% for player in players %}
     
-        <li>{{player.position }} - <a href="{{player.bb_ref}}" target=_blank>{{ player.first_name }} {{ player.last_name }}</a></li>
+        <li>{{player.position }} - <a href="{{player.bb_ref}}" target=_blank>{{ player.first_name }} {{ player.last_name }}</a>
+             <a href="{% url 'transaction' player.transaction.tid %}">&#129193;</a>
+        </li>
     
     {% endfor %}
     </ul>

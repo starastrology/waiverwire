@@ -1,0 +1,37 @@
+{% for fa in fas %}
+<li class="something" id="transaction_{{fa.transaction.tid}}">
+                {% if request.user.is_authenticated %}
+                <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{fa.votes}}</div>
+                <div class="arrows">
+                    <form id="transaction_upvote_{{fa.transaction.tid}}" action="{% url 'transaction_upvote' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="tid" value="{{ fa.transaction.tid }}">
+                    </form>
+                    <form id="transaction_downvote_{{fa.transaction.tid}}" action="{% url 'transaction_downvote' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="tid" value="{{ fa.transaction.tid }}">
+                    </form>
+                    <div class="up" onclick="ajax_submit_upvote('{{ fa.transaction.tid }}')"></div>
+                    <div class="down" onclick="ajax_submit_downvote('{{ fa.transaction.tid }}')"></div>
+                </div>
+                {% endif %}
+                <span>
+                <b>{{fa.position}}</b>
+                - <a href="{{fa.bb_ref}}">{{fa.first_name}} {{fa.last_name}}</a>
+                <a href="{% url 'transaction' fa.transaction.tid %}">&#129193;</a> 
+                </span>
+            </li>
+{% endfor %}
+
+<script>
+          $(document).ready(function(){
+              {% for fa in fas %}
+                  {% if fa.user_upvoted == 1 %}
+                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
+                  {% elif fa.user_upvoted == -1 %}       
+                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
+                  {% endif %}
+                  
+            {% endfor %}
+            });
+            </script>

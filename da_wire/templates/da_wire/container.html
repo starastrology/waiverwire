@@ -1,14 +1,14 @@
 {% load da_wire_extras %}
 <br>
 <div class="container">
-    <form>
+    <!--form>
         Sort By:
         <select>
             <option>Recent</option>
             <option>Approval</option>
             <option>Comments</option>
         </select>
-    </form>
+    </form-->
 {% if position %}
     <h1>{{position.position}}</h1>
     <div class="row">
@@ -41,35 +41,29 @@
 {% endif %}
     <div class="row">
     {% if fas %}
-    <div class="r col-sm-4">
-    <h1>Free Agents</h1>
-    <ul>
-        {% for fa in fas %}
-            <li class="something" id="transaction_{{fa.transaction.tid}}">
-                {% if request.user.is_authenticated %}
-                <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{fa.votes}}</div>
-                <div class="arrows">
-                    <form id="transaction_upvote_{{fa.transaction.tid}}" action="{% url 'transaction_upvote' %}" method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" name="tid" value="{{ fa.transaction.tid }}">
-                    </form>
-                    <form id="transaction_downvote_{{fa.transaction.tid}}" action="{% url 'transaction_downvote' %}" method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" name="tid" value="{{ fa.transaction.tid }}">
-                    </form>
-                    <div class="up" onclick="ajax_submit_upvote('{{ fa.transaction.tid }}')"></div>
-                    <div class="down" onclick="ajax_submit_downvote('{{ fa.transaction.tid }}')"></div>
-                </div>
-                {% endif %}
-                <span>
-                <b>{{fa.position}}</b>
-                - <a href="{{fa.bb_ref}}">{{fa.first_name}} {{fa.last_name}}</a>
-                <a href="{% url 'transaction' fa.transaction.tid %}">&#129193;</a> 
-                </span>
-            </li>
-        {% endfor %}
-    </ul>
-    </div>
+        <div class="r col-sm-4">
+            <h1>Free Agents</h1>
+            <ul id="ul_fa">
+                {% include 'da_wire/transaction_type/fa.html' %}
+            </ul>
+            <form action="{% url 'pick_page' %}" method="POST" id="fa_form">
+            <input id="fa_index" type="hidden" name="index" value="1" />
+            <input id="fa_transaction_type" name="transaction_type" type="hidden" value="fa" />
+            {% csrf_token %}
+            <nav aria-label="...">
+                <ul class="pagination pagination-sm">
+                    <li class="page-item active" aria-current="page" id="fa_1">
+                      <span class="page-link" onclick="pick_page('1', 'fa');">1</span>
+                    </li>
+            {% for i in fas.range %}
+                    <li class="page-item" id="fa_{{i}}">
+                        <span class="page-link" href="#" onclick="pick_page('{{i}}', 'fa');">{{i}}</span>
+                    </li>
+            {% endfor %}
+                </ul>
+            </nav>
+            </form>
+        </div>
     {% endif %}
    
     <div class="r col-sm-4"> <h1>Callups</h1>

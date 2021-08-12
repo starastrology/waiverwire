@@ -78,12 +78,15 @@
         .upvoted{
             opacity: 1;
         }
+        .page-item{
+            cursor: pointer;
+        }
     </style>
-    {% if request.user.is_authenticated %}
     <script
       src="https://code.jquery.com/jquery-3.6.0.min.js"
           integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
       crossorigin="anonymous"></script>
+     {% if request.user.is_authenticated %}
     <script>
           $(document).ready(function(){
               {% for fa in non_fas %}
@@ -165,12 +168,17 @@
               {% endfor %}
           });
           
+          let cookie = document.cookie
+          let csrfToken = cookie.substring(cookie.indexOf('=') + 1)
           function ajax_submit_upvote(id){
               form = $('#transaction_upvote_'+id);
                   $.ajax({
                     type: "POST",
                     url: "{% url 'transaction_upvote' %}", 
                     data: form.serialize(),
+                    headers: {
+                       'X-CSRFToken': csrfToken
+                    },
                     success : function(data) {
                          if (data === "upvote"){
                              $("#transaction_" + id + " .up").addClass('upvoted');
@@ -195,6 +203,9 @@
                     type: "POST",
                     url: "{% url 'transaction_downvote' %}", 
                     data: form.serialize(),
+                    headers: {
+                       'X-CSRFToken': csrfToken
+                    },
                     success : function(data) {
                          if (data === "downvote"){
                              $("#transaction_" + id + " .down").addClass('upvoted');
@@ -214,6 +225,22 @@
             }
     </script>
     {% endif %}
+    <script>
+        function pick_page(index, transaction_type){
+            form = $('#' + transaction_type + '_form');
+            form.find('#' + transaction_type + '_index').val(index);
+            $.ajax({
+                    type: "POST",
+                    url: "{% url 'pick_page' %}",
+                    data: form.serialize(),
+                    success : function(data) {
+                         $('#ul_' + transaction_type).html(data);
+                         form.find('.active').removeClass('active');
+                         form.find('#' + transaction_type + '_' +index).addClass('active');
+                     }
+                });
+        }
+    </script>
 </head>
 <body>
     {% include 'da_wire/header.html' %}

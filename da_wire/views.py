@@ -175,6 +175,29 @@ def comment(request):
     from django.urls import reverse
     return redirect(reverse('transaction',  kwargs={'tid': tid}))
 
+
+per_page = 1
+def pick_page(request):
+    index=int(request.POST['index']) - 1
+    # need to check see if upper bound exists
+    lower_bound = index * per_page
+    upper_bound = (index + 1) * per_page
+    fas = Player.objects.filter(is_FA=1).order_by("last_name")[lower_bound:upper_bound]
+    if request.user.is_authenticated:
+        for fa in fas:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    from django.template.loader import render_to_string
+    html = render_to_string('da_wire/transaction_type/fa.html', {'fas': fas, 'request': request})
+    return HttpResponse(html)
+
 def index(request):
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
@@ -183,6 +206,10 @@ def index(request):
     options = Option.objects.filter(is_rehab_assignment=0)
     callups = CallUp.objects.all()
     fas = Player.objects.filter(is_FA=1).order_by("last_name")
+    fas_count = fas.count()
+    fas = fas[0:per_page]
+    upper = int(fas_count / per_page) + 1
+    fas.range = range(2, upper)
     trades = Trade.objects.all().order_by("-date")
     injured_list = InjuredList.objects.all().order_by("-date")
     fa_signings = FASignings.objects.filter(is_draftpick=0)
