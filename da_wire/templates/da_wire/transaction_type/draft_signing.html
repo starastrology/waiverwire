@@ -1,0 +1,36 @@
+{% for draft_signing in draft_signings %}
+        <li class="something" id="transaction_{{draft_signing.transaction.tid}}">
+                {% if request.user.is_authenticated %}
+                <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{draft_signing.votes}}</div>
+                <div class="arrows">
+                    <form id="transaction_upvote_{{ draft_signing.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ draft_signing.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote_{{ draft_signing.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ draft_signing.transaction.tid }}">
+            </form>
+                    <div class="up" onclick="ajax_submit_upvote('{{ draft_signing.transaction.tid }}')"></div>
+            <div class="down" onclick="ajax_submit_downvote('{{ draft_signing.transaction.tid }}')"></div>
+                </div>
+                {% endif %}
+                <b>{{draft_signing.date}}</b> - <a href="{{draft_signing.player.bb_ref}}" target=_blank>{{draft_signing.player.first_name}} {{draft_signing.player.last_name}}</a> to {{draft_signing.team_to.location}} {{draft_signing.team_to.name}}
+                <a href="{% url 'transaction' draft_signing.transaction.tid %}">&#129193;</a> 
+                </li>
+    <hr>
+{% endfor %}
+{% if request.user.is_authenticated %}
+<script>
+          $(document).ready(function(){
+              {% for fa in draft_signings %}
+                  {% if fa.user_upvoted == 1 %}
+                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
+                  {% elif fa.user_upvoted == -1 %}       
+                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
+                  {% endif %}
+                  
+            {% endfor %}
+            });
+</script>
+{% endif %}

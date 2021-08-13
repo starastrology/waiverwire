@@ -1,0 +1,40 @@
+{% load da_wire_extras %}
+{% for option in rehab_assignment %}
+        <li class="something" id="transaction_{{option.transaction.tid}}">
+                {% if request.user.is_authenticated %}
+                <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{option.votes}}</div>
+                <div class="arrows">
+                    <form id="transaction_upvote_{{ option.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ option.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote_{{ option.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ option.transaction.tid }}">
+            </form>
+                    <div class="up" onclick="ajax_submit_upvote('{{ option.transaction.tid }}')"></div>
+            <div class="down" onclick="ajax_submit_downvote('{{ option.transaction.tid }}')"></div>
+                </div>
+                {% endif %}
+                <b>{{option.date}}</b> - <a href="{{option.player.bb_ref}}">{{option.player.first_name }} {{ option.player.last_name }}</a> to {{option.player.mlbaffiliate.location }} {{option.player.mlbaffiliate.name }} ({{option.player.mlbaffiliate.level}}) from {{option.from_level.level }} 
+        {% get_affiliate option.from_level.level option.player.mlbaffiliate.mlbteam as team %}
+        <a href="{% url 'team' option.from_level.level team.name %}">{{ team.location }}</a>
+        <a href="{% url 'transaction' option.transaction.tid %}">&#129193;</a> 
+        </li>  
+<hr>
+{% endfor %}
+
+{% if request.user.is_authenticated %}
+<script>
+          $(document).ready(function(){
+              {% for fa in rehab_assignment %}
+                  {% if fa.user_upvoted == 1 %}
+                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
+                  {% elif fa.user_upvoted == -1 %}       
+                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
+                  {% endif %}
+                  
+            {% endfor %}
+            });
+</script>
+{% endif %}

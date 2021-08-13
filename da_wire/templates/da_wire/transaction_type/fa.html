@@ -21,8 +21,9 @@
                 <a href="{% url 'transaction' fa.transaction.tid %}">&#129193;</a> 
                 </span>
             </li>
+            <hr>
 {% endfor %}
-
+{% if request.user.is_authenticated %}
 <script>
           $(document).ready(function(){
               {% for fa in fas %}
@@ -34,4 +35,5 @@
                   
             {% endfor %}
             });
-            </script>
+</script>
+{% endif %}

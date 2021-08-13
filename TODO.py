@@ -8,6 +8,7 @@ TODOS
 """
 - Email confirmation
 - Password change via email
+- ordering on pages
 - 404s
 - CMS
 - Warnings, meta tags

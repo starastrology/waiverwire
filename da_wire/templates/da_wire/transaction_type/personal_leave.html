@@ -1,0 +1,37 @@
+{% for personale in personal_leave %}
+        <li class="something" id="transaction_{{personale.transaction.tid}}">
+                {% if request.user.is_authenticated %}
+                <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{personale.votes}}</div>
+                <div class="arrows">
+                    <form id="transaction_upvote_{{ personale.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ personale.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote_{{ personale.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ personale.transaction.tid }}">
+            </form>
+                    <div class="up" onclick="ajax_submit_upvote('{{ personale.transaction.tid }}')"></div>
+            <div class="down" onclick="ajax_submit_downvote('{{ personale.transaction.tid }}')"></div>
+                </div>
+                {% endif %}
+                <b>{{personale.date}}</b> - <a href="{{personale.player.bb_ref}}">{{personale.player.first_name}} {{personale.player.last_name}}</a> for {{personale.length}} days
+                <a href="{% url 'transaction' personale.transaction.tid %}">&#129193;</a> 
+                </li>
+        <hr>
+{% endfor %}
+
+{% if request.user.is_authenticated %}
+<script>
+          $(document).ready(function(){
+              {% for fa in personal_leave %}
+                  {% if fa.user_upvoted == 1 %}
+                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
+                  {% elif fa.user_upvoted == -1 %}       
+                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
+                  {% endif %}
+                  
+            {% endfor %}
+            });
+</script>
+{% endif %}

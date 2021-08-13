@@ -175,48 +175,249 @@ def comment(request):
     from django.urls import reverse
     return redirect(reverse('transaction',  kwargs={'tid': tid}))
 
-
+from django.template.loader import render_to_string
 per_page = 1
 def pick_page(request):
     index=int(request.POST['index']) - 1
+    transaction_type = request.POST['transaction_type']
     # need to check see if upper bound exists
     lower_bound = index * per_page
     upper_bound = (index + 1) * per_page
-    fas = Player.objects.filter(is_FA=1).order_by("last_name")[lower_bound:upper_bound]
-    if request.user.is_authenticated:
-        for fa in fas:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
+    
+    context = {'request': request}
+    
+    # Free Agents
+    if transaction_type == 'fa':
+        fas = Player.objects.filter(is_FA=1).order_by("last_name")[lower_bound:upper_bound]
+        if request.user.is_authenticated:
+            for fa in fas:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
                 else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-    from django.template.loader import render_to_string
-    html = render_to_string('da_wire/transaction_type/fa.html', {'fas': fas, 'request': request})
+                    fa.user_upvoted = 0
+        context['fas'] = fas
+        html = render_to_string('da_wire/transaction_type/fa.html', context)
+    elif transaction_type == 'callup':
+        callups = CallUp.objects.all()
+        if request.user.is_authenticated:
+            for fa in callups:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['callups'] = callups
+        html = render_to_string('da_wire/transaction_type/callup.html', context)
+    elif transaction_type == 'option':
+        options = Option.objects.filter(is_rehab_assignment=0)
+        if request.user.is_authenticated:
+            for fa in options:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['options'] = options
+        html = render_to_string('da_wire/transaction_type/option.html', context)
+    elif transaction_type == 'dfa':
+        dfas = DFA.objects.all()
+        if request.user.is_authenticated:
+            for fa in dfas:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['dfas'] = dfas
+        html = render_to_string('da_wire/transaction_type/dfa.html', context)
+    elif transaction_type == 'trade':
+        trades = Trade.objects.all()
+        if request.user.is_authenticated:
+            for fa in trades:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['trades'] = trades
+        html = render_to_string('da_wire/transaction_type/trade.html', context)
+    elif transaction_type == 'injured':
+        injured_list = InjuredList.objects.all().order_by("-date") 
+        if request.user.is_authenticated:
+            for fa in injured_list:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['injured_list'] = injured_list
+        html = render_to_string('da_wire/transaction_type/injured.html', context)
+    elif transaction_type == 'fa_signing':
+        fa_signings = FASignings.objects.filter(is_draftpick=0)
+        if request.user.is_authenticated:
+            for fa in fa_signings:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['fa_signings'] = fa_signings
+        html = render_to_string('da_wire/transaction_type/fa_signing.html', context)
+    elif transaction_type == 'draft_signing':
+        draft_signings = FASignings.objects.filter(is_draftpick=1)
+        if request.user.is_authenticated:
+            for fa in draft_signings:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['draft_signings'] = draft_signings
+        html = render_to_string('da_wire/transaction_type/draft_signing.html', context)
+    elif transaction_type == 'personal_leave':
+        personal_leave = PersonalLeave.objects.all()
+        if request.user.is_authenticated:
+            for fa in personal_leave:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['personal_leave'] = personal_leave
+        html = render_to_string('da_wire/transaction_type/personal_leave.html', context)
+    elif transaction_type == 'rehab':
+        rehab_assignment = Option.objects.filter(is_rehab_assignment=1)
+        if request.user.is_authenticated:
+            for fa in rehab_assignment:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['rehab_assignment'] = rehab_assignment
+        html = render_to_string('da_wire/transaction_type/rehab_assignment.html', context)
+    else:
+        html = ""
     return HttpResponse(html)
 
 def index(request):
+    ############### For the header #######################
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
     leagues = Level.objects.all()
     list_of_positions = Position.objects.all().order_by("position")
-    options = Option.objects.filter(is_rehab_assignment=0)
-    callups = CallUp.objects.all()
+    ################################################
+    
+    # Free Agents
     fas = Player.objects.filter(is_FA=1).order_by("last_name")
     fas_count = fas.count()
     fas = fas[0:per_page]
     upper = int(fas_count / per_page) + 1
     fas.range = range(2, upper)
-    trades = Trade.objects.all().order_by("-date")
-    injured_list = InjuredList.objects.all().order_by("-date")
-    fa_signings = FASignings.objects.filter(is_draftpick=0)
-    draft_signings = FASignings.objects.filter(is_draftpick=1)
+    
+    # Call Ups
+    callups = CallUp.objects.all()
+    callups_count = callups.count()
+    callups = callups[0:per_page]
+    upper = int(callups_count / per_page) + 1
+    callups.range = range(2, upper)
+    
+    # Options
+    options = Option.objects.filter(is_rehab_assignment=0)
+    options_count = options.count()
+    options = options[0:per_page]
+    upper = int(options_count / per_page) + 1
+    options.range = range(2, upper)
+    
+    # DFAs
     dfas = DFA.objects.all()
+    dfas_count = dfas.count()
+    dfas = dfas[0:per_page]
+    upper = int(dfas_count / per_page) + 1
+    dfas.range = range(2, upper)
+    
+    # Trades
+    trades = Trade.objects.all().order_by("-date")
+    trades_count = trades.count()
+    trades = trades[0:per_page]
+    upper = int(trades_count / per_page) + 1
+    trades.range = range(2, upper)
+    
+    # IL
+    injured_list = InjuredList.objects.all().order_by("-date")
+    injured_list_count = injured_list.count()
+    injured_list = injured_list[0:per_page]
+    upper = int(injured_list_count / per_page) + 1
+    injured_list.range = range(2, upper)    
+    
+    # FA Signings
+    fa_signings = FASignings.objects.filter(is_draftpick=0)
+    fa_signings_count = fa_signings.count()
+    fa_signings = fa_signings[0:per_page]
+    upper = int(fa_signings_count / per_page) + 1
+    fa_signings.range = range(2, upper)
+    
+    # Draft Signings
+    draft_signings = FASignings.objects.filter(is_draftpick=1)
+    draft_signings_count = draft_signings.count()
+    draft_signings = draft_signings[0:per_page]
+    upper = int(draft_signings_count / per_page) + 1
+    draft_signings.range = range(2, upper)
+    
+    # Personal Leave
     personal_leave = PersonalLeave.objects.all()
+    personal_leave_count = personal_leave.count()
+    personal_leave = personal_leave[0:per_page]
+    upper = int(personal_leave_count / per_page) + 1
+    personal_leave.range = range(2, upper)
+    
+    # Rehab Assignments
     rehab_assignment = Option.objects.filter(is_rehab_assignment=1)
+    rehab_assignment_count = rehab_assignment.count()
+    rehab_assignment = rehab_assignment[0:per_page]
+    upper = int(rehab_assignment_count / per_page) + 1
+    rehab_assignment.range = range(2, upper)
     
     if request.user.is_authenticated:
         for fa in fas:

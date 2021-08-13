@@ -47,281 +47,250 @@
                 {% include 'da_wire/transaction_type/fa.html' %}
             </ul>
             <form action="{% url 'pick_page' %}" method="POST" id="fa_form">
-            <input id="fa_index" type="hidden" name="index" value="1" />
-            <input id="fa_transaction_type" name="transaction_type" type="hidden" value="fa" />
-            {% csrf_token %}
-            <nav aria-label="...">
-                <ul class="pagination pagination-sm">
-                    <li class="page-item active" aria-current="page" id="fa_1">
-                      <span class="page-link" onclick="pick_page('1', 'fa');">1</span>
-                    </li>
-            {% for i in fas.range %}
-                    <li class="page-item" id="fa_{{i}}">
-                        <span class="page-link" href="#" onclick="pick_page('{{i}}', 'fa');">{{i}}</span>
-                    </li>
-            {% endfor %}
-                </ul>
-            </nav>
+                <input id="fa_index" type="hidden" name="index" value="1" />
+                <input id="fa_transaction_type" name="transaction_type" type="hidden" value="fa" />
+                {% csrf_token %}
+                <hr>
+                <nav aria-label="...">
+                    <ul class="pagination pagination-sm">
+                        <li class="page-item active" aria-current="page" id="fa_1">
+                          <span class="page-link" onclick="pick_page('1', 'fa');">1</span>
+                        </li>
+                    {% for i in fas.range %}
+                        <li class="page-item" id="fa_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'fa');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
             </form>
         </div>
     {% endif %}
    
     <div class="r col-sm-4"> <h1>Callups</h1>
-    <ul>
-    {% for callup in callups %}
-        <li class="something" id="transaction_{{callup.transaction.tid}}">
-                {% if request.user.is_authenticated %}
-                <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{callup.votes}}</div>
-                <div class="arrows">
-                    <form id="transaction_upvote_{{ callup.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ callup.transaction.tid }}">
-            </form>
-            <form id="transaction_downvote_{{ callup.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ callup.transaction.tid }}">
-            </form>
-                    <div class="up" onclick="ajax_submit_upvote('{{ callup.transaction.tid }}')"></div>
-            <div class="down" onclick="ajax_submit_downvote('{{ callup.transaction.tid }}')"></div>
-                </div>
-                {% endif %}
-                <b>{{callup.date }}</b> - <a href="{{callup.player.bb_ref}}" target=_blank>{{callup.player.first_name }} {{ callup.player.last_name }}</a> 
-        {% get_affiliate callup.to_level.level callup.mlbteam as team_to %}
-        to {{team_to.location }} {{team_to.name }} from {{callup.from_level.level }} 
-        {% get_affiliate callup.from_level.level callup.mlbteam as team %}
-        <a href="{% url 'team' callup.from_level.level team.name %}">{{ team.location }}</a>
-        <a href="{% url 'transaction' callup.transaction.tid %}">&#129193;</a> 
-         </li>
-    {% endfor %}
+    <ul id="ul_callup">
+        {% include 'da_wire/transaction_type/callup.html' %}
     </ul>
+    <form action="{% url 'pick_page' %}" method="POST" id="callup_form">
+                <input id="callup_index" type="hidden" name="index" value="1" />
+                <input id="callup_transaction_type" name="transaction_type" type="hidden" value="callup" />
+                {% csrf_token %}
+                <hr>
+                <nav aria-label="...">
+                    <ul class="pagination pagination-sm">
+                        <li class="page-item active" aria-current="page" id="callup_1">
+                          <span class="page-link" onclick="pick_page('1', 'callup');">1</span>
+                        </li>
+                    {% for i in callups.range %}
+                        <li class="page-item" id="callup_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'callup');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
+            </form>
     </div>
     
     
      <div class="r {% if players %} col-sm-8 {% else %} col-sm-4 {% endif %}"><h1>Options</h1>
-    <ul>
-    {% for option in options %}
-        <li class="something" id="transaction_{{option.transaction.tid}}">
-                {% if request.user.is_authenticated %}
-                <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{option.votes}}</div>
-                <div class="arrows">
-                    <form id="transaction_upvote_{{ option.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ option.transaction.tid }}">
-            </form>
-            <form id="transaction_downvote_{{ option.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ option.transaction.tid }}">
-            </form>
-                    <div class="up" onclick="ajax_submit_upvote('{{ option.transaction.tid }}')"></div>
-            <div class="down" onclick="ajax_submit_downvote('{{ option.transaction.tid }}')"></div>
-                </div>
-                {% endif %}
-                <b>{{option.date }}</b> - <a href="{{option.player.bb_ref}}" target=_blank>{{option.player.first_name }} {{ option.player.last_name }}</a>
-        {% get_affiliate option.to_level.level option.mlbteam as team_to %}
-        to {{team_to.location }} {{team_to.name }} ({{ option.to_level.level }}) from {{ option.from_level.level }} 
-        {% get_affiliate option.from_level.level option.mlbteam as team %}
-        <a href="{% url 'team' option.from_level.level team.name %}">{{ team.location }}</a>
-        <a href="{% url 'transaction' option.transaction.tid %}">&#129193;</a> 
-        </li>
-    {% endfor %}
+    <ul id="ul_option">
+         {% include 'da_wire/transaction_type/option.html' %}
     </ul>
+    <form action="{% url 'pick_page' %}" method="POST" id="option_form">
+                <input id="option_index" type="hidden" name="index" value="1" />
+                <input id="option_transaction_type" name="transaction_type" type="hidden" value="option" />
+                {% csrf_token %}
+                <hr>
+                <nav aria-label="...">
+                    <ul class="pagination pagination-sm">
+                        <li class="page-item active" aria-current="page" id="option_1">
+                          <span class="page-link" onclick="pick_page('1', 'option');">1</span>
+                        </li>
+                    {% for i in options.range %}
+                        <li class="page-item" id="option_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'option');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
+            </form>
     </div>
 
     </div>
     <div class="row">
     
      <div class="r col-sm-4"><h1>DFA'd</h1>
-    <ul>
-    {% for dfa in dfas %}
-        <li class="something" id="transaction_{{dfa.transaction.tid}}">
-                {% if request.user.is_authenticated %}
-                <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{dfa.votes}}</div>
-                <div class="arrows">
-                    <form id="transaction_upvote_{{ dfa.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
+            <ul id="ul_dfa">
+                {% include 'da_wire/transaction_type/dfa.html' %}
+            </ul>
+            <form action="{% url 'pick_page' %}" method="POST" id="dfa_form">
+                <input id="dfa_index" type="hidden" name="index" value="1" />
+                <input id="dfa_transaction_type" name="transaction_type" type="hidden" value="dfa" />
                 {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ dfa.transaction.tid }}">
+                <hr>
+                <nav aria-label="...">
+                    <ul class="pagination pagination-sm">
+                        <li class="page-item active" aria-current="page" id="dfa_1">
+                          <span class="page-link" onclick="pick_page('1', 'dfa');">1</span>
+                        </li>
+                    {% for i in dfas.range %}
+                        <li class="page-item" id="dfa_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'dfa');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
             </form>
-            <form id="transaction_downvote_{{ dfa.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ dfa.transaction.tid }}">
-            </form>
-                    <div class="up" onclick="ajax_submit_upvote('{{ dfa.transaction.tid }}')"></div>
-            <div class="down" onclick="ajax_submit_downvote('{{ dfa.transaction.tid }}')"></div>
-                </div>
-                {% endif %}
-                <b>{{dfa.date }}</b> - <a href="{{dfa.player.bb_ref}}" target=_blank>{{dfa.player.first_name }} {{ dfa.player.last_name }}</a>
-                 - {{dfa.player.mlbaffiliate.location }} {{dfa.player.mlbaffiliate.name }}  
-                 <a href="{% url 'transaction' dfa.transaction.tid %}">&#129193;</a> 
-                 </li>
-    {% endfor %}
-    </ul>
     </div>
+    
     <div class="r col-sm-4">
     <h1>Trades</h1>
-    <ul>
-    {% for trade in trades %}
-        <li class="something" id="transaction_{{trade.transaction.tid}}">
-                {% if request.user.is_authenticated %}
-                <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{trade.votes}}</div>
-                <div class="arrows">
-                    <form id="transaction_upvote_{{ trade.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ trade.transaction.tid }}">
-            </form>
-            <form id="transaction_downvote_{{ trade.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ trade.transaction.tid }}">
-            </form>
-                    <div class="up" onclick="ajax_submit_upvote('{{ trade.transaction.tid }}')"></div>
-            <div class="down" onclick="ajax_submit_downvote('{{ trade.transaction.tid }}')"></div>
-                </div>
-                {% endif %}
-                <b>{{ trade.date }}</b> - {% for players in trade.players.all %}{% with forloop.counter as cntr %} {% for player in players.players.all %} 
-        <a href="{{player.bb_ref}}" target=_blank>{{player.first_name}} {{player.last_name}}</a> 
-        to {{players.team_to.mlbteam.name}} (from {{players.team_from.mlbteam.name}}){% if cntr != trade.players.all|length %}, 
-        {% endif %} {% endfor %}{% endwith %} 
-        {% endfor %} 
-        <a href="{% url 'transaction' trade.transaction.tid %}">&#129193;</a> 
-        </li>
-    {% endfor %}
+    <ul id="ul_trade">
+        {% include 'da_wire/transaction_type/trade.html' %}
     </ul>
+    <form action="{% url 'pick_page' %}" method="POST" id="trade_form">
+                <input id="trade_index" type="hidden" name="index" value="1" />
+                <input id="trade_transaction_type" name="transaction_type" type="hidden" value="trade" />
+                {% csrf_token %}
+                <hr>
+                <nav aria-label="...">
+                    <ul class="pagination pagination-sm">
+                        <li class="page-item active" aria-current="page" id="trade_1">
+                          <span class="page-link" onclick="pick_page('1', 'trade');">1</span>
+                        </li>
+                    {% for i in trades.range %}
+                        <li class="page-item" id="trade_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'trade');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
+            </form>
     </div>
     
     
      <div class="r col-sm-4"><h1>Injured List</h1>
-    <ul>
-    {% for injured in injured_list %}
-        <li class="something" id="transaction_{{injured.transaction.tid}}">
-                {% if request.user.is_authenticated %}
-                <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{injured.votes}}</div>
-                <div class="arrows">
-                    <form id="transaction_upvote_{{ injured.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ injured.transaction.tid }}">
-            </form>
-            <form id="transaction_downvote_{{ injured.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ injured.transaction.tid }}">
-            </form>
-                    <div class="up" onclick="ajax_submit_upvote('{{ injured.transaction.tid }}')"></div>
-            <div class="down" onclick="ajax_submit_downvote('{{ injured.transaction.tid }}')"></div>
-                </div>
-                {% endif %}
-                <b>{{injured.date}}</b> - <a href="{{injured.player.bb_ref}}" target=_blank>{{injured.player.first_name}} {{injured.player.last_name}}</a> - {{injured.length}}-day IL
-                <a href="{% url 'transaction' injured.transaction.tid %}">&#129193;</a> 
-                </li>
-    {% endfor %}
+        <ul id="ul_injured">
+        {% include 'da_wire/transaction_type/injured.html' %}
     </ul>
+    <form action="{% url 'pick_page' %}" method="POST" id="injured_form">
+                <input id="injured_index" type="hidden" name="index" value="1" />
+                <input id="injured_transaction_type" name="transaction_type" type="hidden" value="injured" />
+                {% csrf_token %}
+                <hr>
+                <nav aria-label="...">
+                    <ul class="pagination pagination-sm">
+                        <li class="page-item active" aria-current="page" id="injured_1">
+                          <span class="page-link" onclick="pick_page('1', 'injured');">1</span>
+                        </li>
+                    {% for i in injured_list.range %}
+                        <li class="page-item" id="injured_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'injured');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
+            </form>
     </div>
     </div>
     <div class="row">
     <div class="r col-sm-6">
     <h1>Draft Signings</h1>
-    <ul>
-    {% for draft_signing in draft_signings %}
-        <li class="something" id="transaction_{{draft_signing.transaction.tid}}">
-                {% if request.user.is_authenticated %}
-                <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{draft_signing.votes}}</div>
-                <div class="arrows">
-                    <form id="transaction_upvote_{{ draft_signing.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ draft_signing.transaction.tid }}">
-            </form>
-            <form id="transaction_downvote_{{ draft_signing.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ draft_signing.transaction.tid }}">
-            </form>
-                    <div class="up" onclick="ajax_submit_upvote('{{ draft_signing.transaction.tid }}')"></div>
-            <div class="down" onclick="ajax_submit_downvote('{{ draft_signing.transaction.tid }}')"></div>
-                </div>
-                {% endif %}
-                <b>{{draft_signing.date}}</b> - <a href="{{draft_signing.player.bb_ref}}" target=_blank>{{draft_signing.player.first_name}} {{draft_signing.player.last_name}}</a> to {{draft_signing.team_to.location}} {{draft_signing.team_to.name}}
-                <a href="{% url 'transaction' draft_signing.transaction.tid %}">&#129193;</a> 
-                </li>
-    {% endfor %}
+    <ul id="ul_draft_signing">
+        {% include 'da_wire/transaction_type/draft_signing.html' %}
     </ul>
+    <form action="{% url 'pick_page' %}" method="POST" id="draft_signing_form">
+                <input id="draft_signing_index" type="hidden" name="index" value="1" />
+                <input id="draft_signing_transaction_type" name="transaction_type" type="hidden" value="draft_signing" />
+                {% csrf_token %}
+                <hr>
+                <nav aria-label="...">
+                    <ul class="pagination pagination-sm">
+                        <li class="page-item active" aria-current="page" id="draft_signing_1">
+                          <span class="page-link" onclick="pick_page('1', 'draft_signing');">1</span>
+                        </li>
+                    {% for i in draft_signings.range %}
+                        <li class="page-item" id="draft_signing_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'draft_signing');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
+            </form>
     </div>
     <div class="r col-sm-6">
     <h1>FA Signings</h1>
-    <ul>
-    {% for fa_signing in fa_signings %}
-        <li class="something" id="transaction_{{fa_signing.transaction.tid}}">
-                {% if request.user.is_authenticated %}
-                <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{fa_signing.votes}}</div>
-                <div class="arrows">
-                    <form id="transaction_upvote_{{ fa_signing.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ fa_signing.transaction.tid }}">
-            </form>
-            <form id="transaction_downvote_{{ fa_signing.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ fa_signing.transaction.tid }}">
-            </form>
-                    <div class="up" onclick="ajax_submit_upvote('{{ fa_signing.transaction.tid }}')"></div>
-                    <div class="down" onclick="ajax_submit_downvote('{{ fa_signing.transaction.tid }}')"></div>
-                </div>
-                {% endif %}
-                <b>{{fa_signing.date}}</b> - <a href="{{fa_signing.player.bb_ref}}" target=_blank>{{fa_signing.player.first_name}} {{fa_signing.player.last_name}}</a> to {{fa_signing.team_to.location}} {{fa_signing.team_to.name}}
-                <a href="{% url 'transaction' fa_signing.transaction.tid %}">&#129193;</a> 
-                </li>
-    {% endfor %}
+    <ul id="ul_fa_signing">
+        {% include 'da_wire/transaction_type/fa_signing.html' %}
     </ul>
+    <form action="{% url 'pick_page' %}" method="POST" id="fa_signing_form">
+                <input id="fa_signing_index" type="hidden" name="index" value="1" />
+                <input id="fa_signing_transaction_type" name="transaction_type" type="hidden" value="fa_signing" />
+                {% csrf_token %}
+                <hr>
+                <nav aria-label="...">
+                    <ul class="pagination pagination-sm">
+                        <li class="page-item active" aria-current="page" id="fa_signing_1">
+                          <span class="page-link" onclick="pick_page('1', 'fa_signing');">1</span>
+                        </li>
+                    {% for i in fa_signings.range %}
+                        <li class="page-item" id="fa_signing_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'fa_signing');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
+            </form>
     </div>
     </div>
     <div class="row">
     <div class="r col-sm-6">
     <h1>Personal Leave</h1>
-    <ul>
-        {% for personale in personal_leave %}
-        <li class="something" id="transaction_{{personale.transaction.tid}}">
-                {% if request.user.is_authenticated %}
-                <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{personale.votes}}</div>
-                <div class="arrows">
-                    <form id="transaction_upvote_{{ personale.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ personale.transaction.tid }}">
-            </form>
-            <form id="transaction_downvote_{{ personale.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ personale.transaction.tid }}">
-            </form>
-                    <div class="up" onclick="ajax_submit_upvote('{{ personale.transaction.tid }}')"></div>
-            <div class="down" onclick="ajax_submit_downvote('{{ personale.transaction.tid }}')"></div>
-                </div>
-                {% endif %}
-                <b>{{personale.date}}</b> - <a href="{{personale.player.bb_ref}}">{{personale.player.first_name}} {{personale.player.last_name}}</a> for {{personale.length}} days
-                <a href="{% url 'transaction' personale.transaction.tid %}">&#129193;</a> 
-                </li>
-        {% endfor %}
+    <ul id="ul_personal_leave">
+        {% include 'da_wire/transaction_type/personal_leave.html' %}
     </ul>
+    <form action="{% url 'pick_page' %}" method="POST" id="personal_leave_form">
+                <input id="personal_leave_index" type="hidden" name="index" value="1" />
+                <input id="personal_leave_transaction_type" name="transaction_type" type="hidden" value="personal_leave" />
+                {% csrf_token %}
+                <hr>
+                <nav aria-label="...">
+                    <ul class="pagination pagination-sm">
+                        <li class="page-item active" aria-current="page" id="personal_leave_1">
+                          <span class="page-link" onclick="pick_page('1', 'personal_leave');">1</span>
+                        </li>
+                    {% for i in fas.range %}
+                        <li class="page-item" id="personal_leave_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'personal_leave');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
+            </form>
     </div>
     <div class="r col-sm-6">
     <h1>Rehab Assignment</h1>
-    <ul>
-        {% for option in rehab_assignment %}
-        <li class="something" id="transaction_{{option.transaction.tid}}">
-                {% if request.user.is_authenticated %}
-                <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{option.votes}}</div>
-                <div class="arrows">
-                    <form id="transaction_upvote_{{ option.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ option.transaction.tid }}">
-            </form>
-            <form id="transaction_downvote_{{ option.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ option.transaction.tid }}">
-            </form>
-                    <div class="up" onclick="ajax_submit_upvote('{{ option.transaction.tid }}')"></div>
-            <div class="down" onclick="ajax_submit_downvote('{{ option.transaction.tid }}')"></div>
-                </div>
-                {% endif %}
-                <b>{{option.date}}</b> - <a href="{{option.player.bb_ref}}">{{option.player.first_name }} {{ option.player.last_name }}</a> to {{option.player.mlbaffiliate.location }} {{option.player.mlbaffiliate.name }} ({{option.player.mlbaffiliate.level}}) from {{option.from_level.level }} 
-        {% get_affiliate option.from_level.level option.player.mlbaffiliate.mlbteam as team %}
-        <a href="{% url 'team' option.from_level.level team.name %}">{{ team.location }}</a>
-        <a href="{% url 'transaction' option.transaction.tid %}">&#129193;</a> 
-        </li>
-        {% endfor %}
+    <ul id="ul_rehab">
+        {% include 'da_wire/transaction_type/rehab_assignment.html' %}
     </ul>
+    <form action="{% url 'pick_page' %}" method="POST" id="rehab_form">
+                <input id="rehab_index" type="hidden" name="index" value="1" />
+                <input id="rehab_transaction_type" name="transaction_type" type="hidden" value="rehab" />
+                {% csrf_token %}
+                <hr>
+                <nav aria-label="...">
+                    <ul class="pagination pagination-sm">
+                        <li class="page-item active" aria-current="page" id="rehab_1">
+                          <span class="page-link" onclick="pick_page('1', 'rehab');">1</span>
+                        </li>
+                    {% for i in rehab_assignment.range %}
+                        <li class="page-item" id="rehab_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'rehab');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
+            </form>
     </div>
     </div>
     

@@ -1,0 +1,37 @@
+{% for dfa in dfas %}
+        <li class="something" id="transaction_{{dfa.transaction.tid}}">
+                {% if request.user.is_authenticated %}
+                <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{dfa.votes}}</div>
+                <div class="arrows">
+                    <form id="transaction_upvote_{{ dfa.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ dfa.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote_{{ dfa.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ dfa.transaction.tid }}">
+            </form>
+                    <div class="up" onclick="ajax_submit_upvote('{{ dfa.transaction.tid }}')"></div>
+            <div class="down" onclick="ajax_submit_downvote('{{ dfa.transaction.tid }}')"></div>
+                </div>
+                {% endif %}
+                <b>{{dfa.date }}</b> - <a href="{{dfa.player.bb_ref}}" target=_blank>{{dfa.player.first_name }} {{ dfa.player.last_name }}</a>
+                 - {{dfa.player.mlbaffiliate.location }} {{dfa.player.mlbaffiliate.name }}  
+                 <a href="{% url 'transaction' dfa.transaction.tid %}">&#129193;</a> 
+                 </li>
+                 <hr>
+{% endfor %}
+{% if request.user.is_authenticated %}
+<script>
+          $(document).ready(function(){
+              {% for fa in dfas %}
+                  {% if fa.user_upvoted == 1 %}
+                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
+                  {% elif fa.user_upvoted == -1 %}       
+                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
+                  {% endif %}
+                  
+            {% endfor %}
+            });
+</script>
+{% endif %}
