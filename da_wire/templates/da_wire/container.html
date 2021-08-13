@@ -46,6 +46,7 @@
             <ul id="ul_fa">
                 {% include 'da_wire/transaction_type/fa.html' %}
             </ul>
+            {% if request.resolver_match.view_name == 'index' %}
             <form action="{% url 'pick_page' %}" method="POST" id="fa_form">
                 <input id="fa_index" type="hidden" name="index" value="1" />
                 <input id="fa_transaction_type" name="transaction_type" type="hidden" value="fa" />
@@ -64,6 +65,7 @@
                     </ul>
                 </nav>
             </form>
+            {% endif %}
         </div>
     {% endif %}
    
@@ -71,6 +73,7 @@
     <ul id="ul_callup">
         {% include 'da_wire/transaction_type/callup.html' %}
     </ul>
+    {% if request.resolver_match.view_name == 'index' %}
     <form action="{% url 'pick_page' %}" method="POST" id="callup_form">
                 <input id="callup_index" type="hidden" name="index" value="1" />
                 <input id="callup_transaction_type" name="transaction_type" type="hidden" value="callup" />
@@ -89,6 +92,7 @@
                     </ul>
                 </nav>
             </form>
+            {% endif %}
     </div>
     
     
@@ -96,6 +100,7 @@
     <ul id="ul_option">
          {% include 'da_wire/transaction_type/option.html' %}
     </ul>
+    {% if request.resolver_match.view_name == 'index' %}
     <form action="{% url 'pick_page' %}" method="POST" id="option_form">
                 <input id="option_index" type="hidden" name="index" value="1" />
                 <input id="option_transaction_type" name="transaction_type" type="hidden" value="option" />
@@ -114,6 +119,7 @@
                     </ul>
                 </nav>
             </form>
+            {% endif %}
     </div>
 
     </div>
@@ -123,6 +129,7 @@
             <ul id="ul_dfa">
                 {% include 'da_wire/transaction_type/dfa.html' %}
             </ul>
+            {% if request.resolver_match.view_name == 'index' %}
             <form action="{% url 'pick_page' %}" method="POST" id="dfa_form">
                 <input id="dfa_index" type="hidden" name="index" value="1" />
                 <input id="dfa_transaction_type" name="transaction_type" type="hidden" value="dfa" />
@@ -141,16 +148,21 @@
                     </ul>
                 </nav>
             </form>
+            {% endif %}
     </div>
     
     <div class="r col-sm-4">
+    
     <h1>Trades</h1>
     <ul id="ul_trade">
         {% include 'da_wire/transaction_type/trade.html' %}
     </ul>
+    {% if request.resolver_match.view_name == 'index' %}
     <form action="{% url 'pick_page' %}" method="POST" id="trade_form">
                 <input id="trade_index" type="hidden" name="index" value="1" />
                 <input id="trade_transaction_type" name="transaction_type" type="hidden" value="trade" />
+                <input id="trade_team" name="team" type="hidden" value="{{players.all.0.mlbaffiliate.name}}" />
+                <input id="trade_level" name="level" type="hidden" value="{{players.all.0.mlbaffiliate.level.level}}" />
                 {% csrf_token %}
                 <hr>
                 <nav aria-label="...">
@@ -166,6 +178,7 @@
                     </ul>
                 </nav>
             </form>
+            {% endif %}
     </div>
     
     
@@ -173,6 +186,7 @@
         <ul id="ul_injured">
         {% include 'da_wire/transaction_type/injured.html' %}
     </ul>
+    {% if request.resolver_match.view_name == 'index' %}
     <form action="{% url 'pick_page' %}" method="POST" id="injured_form">
                 <input id="injured_index" type="hidden" name="index" value="1" />
                 <input id="injured_transaction_type" name="transaction_type" type="hidden" value="injured" />
@@ -191,6 +205,7 @@
                     </ul>
                 </nav>
             </form>
+            {% endif %}
     </div>
     </div>
     <div class="row">
@@ -199,6 +214,7 @@
     <ul id="ul_draft_signing">
         {% include 'da_wire/transaction_type/draft_signing.html' %}
     </ul>
+    {% if request.resolver_match.view_name == 'index' %}
     <form action="{% url 'pick_page' %}" method="POST" id="draft_signing_form">
                 <input id="draft_signing_index" type="hidden" name="index" value="1" />
                 <input id="draft_signing_transaction_type" name="transaction_type" type="hidden" value="draft_signing" />
@@ -217,12 +233,14 @@
                     </ul>
                 </nav>
             </form>
+            {% endif %}
     </div>
     <div class="r col-sm-6">
     <h1>FA Signings</h1>
     <ul id="ul_fa_signing">
         {% include 'da_wire/transaction_type/fa_signing.html' %}
     </ul>
+    {% if request.resolver_match.view_name == 'index' %}
     <form action="{% url 'pick_page' %}" method="POST" id="fa_signing_form">
                 <input id="fa_signing_index" type="hidden" name="index" value="1" />
                 <input id="fa_signing_transaction_type" name="transaction_type" type="hidden" value="fa_signing" />
@@ -241,6 +259,7 @@
                     </ul>
                 </nav>
             </form>
+            {% endif %}
     </div>
     </div>
     <div class="row">
@@ -249,6 +268,7 @@
     <ul id="ul_personal_leave">
         {% include 'da_wire/transaction_type/personal_leave.html' %}
     </ul>
+    {% if request.resolver_match.view_name == 'index' %}
     <form action="{% url 'pick_page' %}" method="POST" id="personal_leave_form">
                 <input id="personal_leave_index" type="hidden" name="index" value="1" />
                 <input id="personal_leave_transaction_type" name="transaction_type" type="hidden" value="personal_leave" />
@@ -267,12 +287,14 @@
                     </ul>
                 </nav>
             </form>
+    {% endif %}
     </div>
     <div class="r col-sm-6">
     <h1>Rehab Assignment</h1>
     <ul id="ul_rehab">
         {% include 'da_wire/transaction_type/rehab_assignment.html' %}
     </ul>
+    {% if request.resolver_match.view_name == 'index' %}
     <form action="{% url 'pick_page' %}" method="POST" id="rehab_form">
                 <input id="rehab_index" type="hidden" name="index" value="1" />
                 <input id="rehab_transaction_type" name="transaction_type" type="hidden" value="rehab" />
@@ -291,6 +313,7 @@
                     </ul>
                 </nav>
             </form>
+            {% endif %}
     </div>
     </div>
     

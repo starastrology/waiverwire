@@ -1,5 +1,7 @@
-<html>
+<html lang="en">
 <head>
+    <title>Waiver Wire</title>
+    <meta charset="UTF-8">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <style>
@@ -99,92 +101,29 @@
         .upvoted{
             opacity: 1;
         }
+        .page-item{
+            cursor: pointer;
+        }
     </style>
-    {% if request.user.is_authenticated %}
+    
     <script
       src="https://code.jquery.com/jquery-3.6.0.min.js"
           integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
       crossorigin="anonymous"></script>
+      {% if request.user.is_authenticated %}
     <script>
-          $(document).ready(function(){
-              {% for fa in fas %}
-                  {% if fa.user_upvoted == 1 %}
-                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
-                  {% elif fa.user_upvoted == -1 %}       
-                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
-                  {% endif %}
-              {% endfor %}
-              {% for fa in callups %}
-                  {% if fa.user_upvoted == 1 %}
-                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
-                  {% elif fa.user_upvoted == -1 %}       
-                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
-                  {% endif %}
-              {% endfor %}
-              {% for fa in options %}
-                  {% if fa.user_upvoted == 1 %}
-                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
-                  {% elif fa.user_upvoted == -1 %}       
-                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
-                  {% endif %}
-              {% endfor %}
-              {% for fa in trades %}
-                  {% if fa.user_upvoted == 1 %}
-                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
-                  {% elif fa.user_upvoted == -1 %}       
-                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
-                  {% endif %}
-              {% endfor %}
-              {% for fa in dfas %}
-                  {% if fa.user_upvoted == 1 %}
-                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
-                  {% elif fa.user_upvoted == -1 %}       
-                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
-                  {% endif %}
-              {% endfor %}
-              {% for fa in injured_list %}
-                  {% if fa.user_upvoted == 1 %}
-                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
-                  {% elif fa.user_upvoted == -1 %}       
-                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
-                  {% endif %}
-              {% endfor %}
-              {% for fa in fa_signings %}
-                  {% if fa.user_upvoted == 1 %}
-                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
-                  {% elif fa.user_upvoted == -1 %}       
-                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
-                  {% endif %}
-              {% endfor %}
-              {% for fa in draft_signings %}
-                  {% if fa.user_upvoted == 1 %}
-                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
-                  {% elif fa.user_upvoted == -1 %}       
-                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
-                  {% endif %}
-              {% endfor %}
-              {% for fa in personal_leave %}
-                  {% if fa.user_upvoted == 1 %}
-                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
-                  {% elif fa.user_upvoted == -1 %}       
-                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
-                  {% endif %}
-              {% endfor %}
-              {% for fa in rehab_assignment %}
-                  {% if fa.user_upvoted == 1 %}
-                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
-                  {% elif fa.user_upvoted == -1 %}       
-                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
-                  {% endif %}
-              {% endfor %}
-          });
     
+        let cookie = document.cookie
+          let csrfToken = cookie.substring(cookie.indexOf('=') + 1)
         function ajax_submit_upvote(id){
               form = $('#transaction_upvote_'+id);
                   $.ajax({
                     type: "POST",
                     url: "{% url 'transaction_upvote' %}", 
                     data: form.serialize(),
+                    headers: {
+                       'X-CSRFToken': csrfToken
+                    },
                     success : function(data) {
                          if (data === "upvote"){
                              $("#transaction_" + id + " .up").addClass('upvoted');
@@ -209,6 +148,9 @@
                     type: "POST",
                     url: "{% url 'transaction_downvote' %}", 
                     data: form.serialize(),
+                    headers: {
+                       'X-CSRFToken': csrfToken
+                    },
                     success : function(data) {
                          if (data === "downvote"){
                              $("#transaction_" + id + " .down").addClass('upvoted');
