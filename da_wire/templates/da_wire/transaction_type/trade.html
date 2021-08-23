@@ -20,7 +20,7 @@
         to {{players.team_to.mlbteam.name}} (from {{players.team_from.mlbteam.name}}){% if cntr != trade.players.all|length %}, 
         {% endif %} {% endfor %}{% endwith %} 
         {% endfor %} 
-        <a href="{% url 'transaction' trade.transaction.tid %}">&#129193;</a> 
+        <a href="{% url 'transaction' trade.transaction.tid %}">&rarr;</a> 
         </li>
         <hr>
 {% endfor %}

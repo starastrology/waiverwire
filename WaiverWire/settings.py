@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-i1l(e27&kdv$v4nv1klv7_terx$ry4#i*rm*_h+tu&r=#7vffy'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = ['localhost', '18.119.12.169']
 
 
 # Application definition
@@ -120,8 +120,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = ["C:\\Users\\15134\\Desktop\\WaiverWire\\WaiverWire\\static"]
-#STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+if DEBUG:
+    STATICFILES_DIRS = ["C:\\Users\\15134\\Desktop\\WaiverWire\\WaiverWire\\static"]
+else:
+    import os
+    STATIC_ROOT = os.path.join(BASE_DIR, "WaiverWire/static/")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

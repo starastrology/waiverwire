@@ -21,7 +21,7 @@
         to {{team_to.location }} {{team_to.name }} from {{callup.from_level.level }} 
         {% get_affiliate callup.from_level.level callup.mlbteam as team %}
         <a href="{% url 'team' callup.from_level.level team.name %}">{{ team.location }}</a>
-        <a href="{% url 'transaction' callup.transaction.tid %}">&#129193;</a> 
+        <a href="{% url 'transaction' callup.transaction.tid %}">&rarr;</a> 
          </li>
     <hr>
 {% endfor %}

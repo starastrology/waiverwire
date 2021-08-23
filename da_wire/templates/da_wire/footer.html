@@ -1,9 +1,7 @@
 <nav class="navbar fixed-bottom navbar-light bg-light">
-    <h5 class="card-title">Waiver Wire</h5>
     {% load static %}
-    <p class="card-text">{% if logo %}
+    <p style="margin:auto;">{% if logo %}
         <img style="height: 40px;" src="{% static 'da_wire/'|add:logo %}" alt="...">{% else %}<a href="http://mlb.com" target=_blank>
         <img style="height: 40px;" src="{% static 'da_wire/mlb.png' %}" alt="..."></a>{% endif %}
     </p>
-    <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
 </nav>

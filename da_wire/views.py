@@ -75,11 +75,12 @@ def comment_downvote(request):
         else:
             comment_upvote.delete()
             return HttpResponse("undo")
+
 def transaction(request, tid):
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
     leagues = Level.objects.all()
-    list_of_positions = Position.objects.all().order_by("position")
+    #list_of_positions = Position.objects.all().order_by("position")
     transaction = Transaction.objects.filter(tid=tid).first()
     tid = transaction.tid
     
@@ -102,13 +103,11 @@ def transaction(request, tid):
         votes = up_votes - down_votes
         user_transaction_vote = TransactionVote.objects.filter(transaction=transaction, user=request.user).first()
         context = {'teams': mlbteams, 'leagues': leagues, \
-                   'list_of_positions':  list_of_positions, \
                        'tid': tid, 'comments': comments, 'votes': votes,
                        'user_transaction_vote': user_transaction_vote}
     else:
         context = {'teams': mlbteams, 'leagues': leagues, \
-                   'list_of_positions':  list_of_positions, \
-                       'tid': tid, 'comments': comments}        
+                    'tid': tid, 'comments': comments}        
         
     fa = Player.objects.filter(transaction=transaction, is_FA=1).first()
     non_fa = Player.objects.filter(transaction=transaction, is_FA=0).first()
@@ -206,7 +205,7 @@ def pick_page(request):
         context['fas'] = fas
         html = render_to_string('da_wire/transaction_type/fa.html', context)
     elif transaction_type == 'callup':
-        callups = CallUp.objects.all()[lower_bound:upper_bound]
+        callups = CallUp.objects.all().order_by('-date')[lower_bound:upper_bound]
         if request.user.is_authenticated:
             for fa in callups:
                 fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
@@ -221,7 +220,7 @@ def pick_page(request):
         context['callups'] = callups
         html = render_to_string('da_wire/transaction_type/callup.html', context)
     elif transaction_type == 'option':
-        options = Option.objects.filter(is_rehab_assignment=0)[lower_bound:upper_bound]
+        options = Option.objects.filter(is_rehab_assignment=0).order_by('-date')[lower_bound:upper_bound]
         if request.user.is_authenticated:
             for fa in options:
                 fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
@@ -236,7 +235,7 @@ def pick_page(request):
         context['options'] = options
         html = render_to_string('da_wire/transaction_type/option.html', context)
     elif transaction_type == 'dfa':
-        dfas = DFA.objects.all()[lower_bound:upper_bound]
+        dfas = DFA.objects.all().order_by('-date')[lower_bound:upper_bound]
         if request.user.is_authenticated:
             for fa in dfas:
                 fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
@@ -281,7 +280,7 @@ def pick_page(request):
         context['injured_list'] = injured_list
         html = render_to_string('da_wire/transaction_type/injured.html', context)
     elif transaction_type == 'fa_signing':
-        fa_signings = FASignings.objects.filter(is_draftpick=0)[lower_bound:upper_bound]
+        fa_signings = FASignings.objects.filter(is_draftpick=0).order_by('-date')[lower_bound:upper_bound]
         if request.user.is_authenticated:
             for fa in fa_signings:
                 fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
@@ -296,7 +295,7 @@ def pick_page(request):
         context['fa_signings'] = fa_signings
         html = render_to_string('da_wire/transaction_type/fa_signing.html', context)
     elif transaction_type == 'draft_signing':
-        draft_signings = FASignings.objects.filter(is_draftpick=1)[lower_bound:upper_bound]
+        draft_signings = FASignings.objects.filter(is_draftpick=1).order_by('-date')[lower_bound:upper_bound]
         if request.user.is_authenticated:
             for fa in draft_signings:
                 fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
@@ -311,7 +310,7 @@ def pick_page(request):
         context['draft_signings'] = draft_signings
         html = render_to_string('da_wire/transaction_type/draft_signing.html', context)
     elif transaction_type == 'personal_leave':
-        personal_leave = PersonalLeave.objects.all()[lower_bound:upper_bound]
+        personal_leave = PersonalLeave.objects.all().order_by('-date')[lower_bound:upper_bound]
         if request.user.is_authenticated:
             for fa in personal_leave:
                 fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
@@ -326,7 +325,7 @@ def pick_page(request):
         context['personal_leave'] = personal_leave
         html = render_to_string('da_wire/transaction_type/personal_leave.html', context)
     elif transaction_type == 'rehab':
-        rehab_assignment = Option.objects.filter(is_rehab_assignment=1)[lower_bound:upper_bound]
+        rehab_assignment = Option.objects.filter(is_rehab_assignment=1).order_by('-date')[lower_bound:upper_bound]
         if request.user.is_authenticated:
             for fa in rehab_assignment:
                 fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
@@ -349,7 +348,7 @@ def index(request):
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
     leagues = Level.objects.all()
-    list_of_positions = Position.objects.all().order_by("position")
+    #list_of_positions = Position.objects.all().order_by("position")
     ################################################
     
     # Free Agents
@@ -360,21 +359,21 @@ def index(request):
     fas.range = range(2, upper)
     
     # Call Ups
-    callups = CallUp.objects.all()
+    callups = CallUp.objects.all().order_by('-date')
     callups_count = callups.count()
     callups = callups[0:per_page]
     upper = int(callups_count / per_page) + 1
     callups.range = range(2, upper)
     
     # Options
-    options = Option.objects.filter(is_rehab_assignment=0)
+    options = Option.objects.filter(is_rehab_assignment=0).order_by('-date')
     options_count = options.count()
     options = options[0:per_page]
     upper = int(options_count / per_page) + 1
     options.range = range(2, upper)
     
     # DFAs
-    dfas = DFA.objects.all()
+    dfas = DFA.objects.all().order_by('-date')
     dfas_count = dfas.count()
     dfas = dfas[0:per_page]
     upper = int(dfas_count / per_page) + 1
@@ -395,28 +394,28 @@ def index(request):
     injured_list.range = range(2, upper)    
     
     # FA Signings
-    fa_signings = FASignings.objects.filter(is_draftpick=0)
+    fa_signings = FASignings.objects.filter(is_draftpick=0).order_by('-date')
     fa_signings_count = fa_signings.count()
     fa_signings = fa_signings[0:per_page]
     upper = int(fa_signings_count / per_page) + 1
     fa_signings.range = range(2, upper)
     
     # Draft Signings
-    draft_signings = FASignings.objects.filter(is_draftpick=1)
+    draft_signings = FASignings.objects.filter(is_draftpick=1).order_by('-date')
     draft_signings_count = draft_signings.count()
     draft_signings = draft_signings[0:per_page]
     upper = int(draft_signings_count / per_page) + 1
     draft_signings.range = range(2, upper)
     
     # Personal Leave
-    personal_leave = PersonalLeave.objects.all()
+    personal_leave = PersonalLeave.objects.all().order_by('-date')
     personal_leave_count = personal_leave.count()
     personal_leave = personal_leave[0:per_page]
     upper = int(personal_leave_count / per_page) + 1
     personal_leave.range = range(2, upper)
     
     # Rehab Assignments
-    rehab_assignment = Option.objects.filter(is_rehab_assignment=1)
+    rehab_assignment = Option.objects.filter(is_rehab_assignment=1).order_by('-date')
     rehab_assignment_count = rehab_assignment.count()
     rehab_assignment = rehab_assignment[0:per_page]
     upper = int(rehab_assignment_count / per_page) + 1
@@ -524,7 +523,7 @@ def index(request):
             else:
                 fa.user_upvoted = 0
     
-    context = {'teams': mlbteams, 'leagues': leagues, 'list_of_positions':  list_of_positions, 'options': options, 'fas': fas, \
+    context = {'teams': mlbteams, 'leagues': leagues, 'options': options, 'fas': fas, \
                'trades': trades, 'callups': callups, \
                    'injured_list': injured_list, 'fa_signings': fa_signings, \
                        'draft_signings': draft_signings, 'dfas': dfas, \
@@ -554,8 +553,8 @@ def register_page(request):
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
     leagues = Level.objects.all()
-    list_of_positions = Position.objects.all().order_by("position")
-    return render(request, 'da_wire/register.html', {'teams': mlbteams, 'leagues': leagues, 'list_of_positions':  list_of_positions})
+    #list_of_positions = Position.objects.all().order_by("position")
+    return render(request, 'da_wire/register.html', {'teams': mlbteams, 'leagues': leagues})
 
 def register(request):
     username = request.POST['username']
@@ -598,8 +597,8 @@ def change_password(request):
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
     leagues = Level.objects.all()
-    list_of_positions = Position.objects.all().order_by("position")
-    return render(request, 'da_wire/user.html', {'message': "Successfully updated password", 'teams': mlbteams, 'leagues': leagues, 'list_of_positions':  list_of_positions})
+    #list_of_positions = Position.objects.all().order_by("position")
+    return render(request, 'da_wire/user.html', {'message': "Successfully updated password", 'teams': mlbteams, 'leagues': leagues})
     
 
 def user_page(request, id):
@@ -607,8 +606,8 @@ def user_page(request, id):
         mlb_level = Level.objects.filter(level="MLB").first()
         mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
         leagues = Level.objects.all()
-        list_of_positions = Position.objects.all().order_by("position")
-        return render(request, 'da_wire/user.html', {'teams': mlbteams, 'leagues': leagues, 'list_of_positions':  list_of_positions})
+        #list_of_positions = Position.objects.all().order_by("position")
+        return render(request, 'da_wire/user.html', {'teams': mlbteams, 'leagues': leagues})
     else:
         return redirect(reverse('index'))
     
@@ -625,83 +624,19 @@ def league(request, level):
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
     leagues = Level.objects.all()
-    list_of_positions = Position.objects.all().order_by("position")
+    #list_of_positions = Position.objects.all().order_by("position")
     options = Option.objects.filter(Q(is_rehab_assignment=0, from_level=level)|Q(is_rehab_assignment=0, to_level=level))
-    callups = CallUp.objects.filter(Q(from_level=level)|Q(to_level=level))
-    if level.level == "MLB":
-        fas = Player.objects.filter(is_FA=1).order_by("last_name")
-    else:
-        fas = None
+    callups = CallUp.objects.filter(Q(from_level=level)|Q(to_level=level)).order_by('-date')
+    fas = Player.objects.filter(is_FA=1).order_by("last_name")
     from django.db import models
     trade_players = PlayerTrade.objects.filter(Q(team_from__level=level)|Q(team_to__level=level))
     trades = Trade.objects.filter(players__in=trade_players).order_by('-date')
     injured_list = InjuredList.objects.filter(team_for__level=level).order_by("-date")
-    fa_signings = FASignings.objects.filter(is_draftpick=0, team_to__level=level)
-    draft_signings = FASignings.objects.filter(is_draftpick=1, team_to__level=level)
-    dfas = DFA.objects.filter(team_by__level=level)
-    personal_leave = PersonalLeave.objects.filter(team_for__level=level)
-    rehab_assignment = Option.objects.filter(Q(is_rehab_assignment=1, from_level=level)|Q(is_rehab_assignment=1, to_level=level))
-    
-    # Free Agents
-    fas_count = fas.count()
-    fas = fas[0:per_page]
-    upper = int(fas_count / per_page) + 1
-    fas.range = range(2, upper)
-    
-    # Call Ups
-    callups_count = callups.count()
-    callups = callups[0:per_page]
-    upper = int(callups_count / per_page) + 1
-    callups.range = range(2, upper)
-    
-    # Options
-    options_count = options.count()
-    options = options[0:per_page]
-    upper = int(options_count / per_page) + 1
-    options.range = range(2, upper)
-    
-    # DFAs
-    dfas_count = dfas.count()
-    dfas = dfas[0:per_page]
-    upper = int(dfas_count / per_page) + 1
-    dfas.range = range(2, upper)
-    
-    # Trades
-    tc = trades.annotate(models.Count('players'))
-    trades_count = len(tc)
-    upper = int(trades_count / per_page) + 1
-    trades = trades[0:per_page]
-    trades.range = range(2, upper)
-    
-    # IL
-    injured_list_count = injured_list.count()
-    injured_list = injured_list[0:per_page]
-    upper = int(injured_list_count / per_page) + 1
-    injured_list.range = range(2, upper)    
-    
-    # FA Signings
-    fa_signings_count = fa_signings.count()
-    fa_signings = fa_signings[0:per_page]
-    upper = int(fa_signings_count / per_page) + 1
-    fa_signings.range = range(2, upper)
-    
-    # Draft Signings
-    draft_signings_count = draft_signings.count()
-    draft_signings = draft_signings[0:per_page]
-    upper = int(draft_signings_count / per_page) + 1
-    draft_signings.range = range(2, upper)
-    
-    # Personal Leave
-    personal_leave_count = personal_leave.count()
-    personal_leave = personal_leave[0:per_page]
-    upper = int(personal_leave_count / per_page) + 1
-    personal_leave.range = range(2, upper)
-    
-    # Rehab Assignments
-    rehab_assignment_count = rehab_assignment.count()
-    rehab_assignment = rehab_assignment[0:per_page]
-    upper = int(rehab_assignment_count / per_page) + 1
-    rehab_assignment.range = range(2, upper)
+    fa_signings = FASignings.objects.filter(is_draftpick=0, team_to__level=level).order_by('-date')
+    draft_signings = FASignings.objects.filter(is_draftpick=1, team_to__level=level).order_by('-date')
+    dfas = DFA.objects.filter(team_by__level=level).order_by('-date')
+    personal_leave = PersonalLeave.objects.filter(team_for__level=level).order_by('-date')
+    rehab_assignment = Option.objects.filter(Q(is_rehab_assignment=1, from_level=level)|Q(is_rehab_assignment=1, to_level=level)).order_by('-date')
     
     if request.user.is_authenticated:   
         for fa in fas:
@@ -805,20 +740,20 @@ def league(request, level):
             else:
                 fa.user_upvoted = 0
     
-    context = {'teams': mlbteams, 'leagues': leagues, 'list_of_positions':  list_of_positions, 'options': options, 'fas': fas, \
+    context = {'teams': mlbteams, 'leagues': leagues, 'options': options, 'fas': fas, \
                'trades': trades, 'callups': callups, \
                    'injured_list': injured_list, 'fa_signings': fa_signings, \
                        'draft_signings': draft_signings, 'dfas': dfas, \
-                           'personal_leave': personal_leave, 'rehab_assignment': rehab_assignment}
+                       'personal_leave': personal_leave, 'level': level, 'rehab_assignment': rehab_assignment}
     return render(request, 'da_wire/index.html', context)
-
+"""
 def position(request, position):
     position = Position.objects.filter(position=position).first()
     non_fas = Player.objects.filter(position=position, is_FA=0).order_by("last_name")
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
     leagues = Level.objects.all()
-    list_of_positions = Position.objects.all().order_by("position")
+    #list_of_positions = Position.objects.all().order_by("position")
     options = Option.objects.filter(is_rehab_assignment=0, player__position=position)
     callups = CallUp.objects.filter(player__position=position)
     fas = Player.objects.filter(is_FA=1, position=position).order_by("last_name")
@@ -1003,12 +938,13 @@ def position(request, position):
                 fa.user_upvoted = 0    
     
     context = {'position': position, 'non_fas': non_fas, 'teams': mlbteams, 'leagues': leagues, \
-               'list_of_positions': list_of_positions, 'options': options, 'fas': fas, \
+               'options': options, 'fas': fas, \
                'trades': trades, 'callups': callups, \
                    'injured_list': injured_list, 'fa_signings': fa_signings, \
                        'draft_signings': draft_signings, 'dfas': dfas, \
                            'personal_leave': personal_leave, 'rehab_assignment': rehab_assignment}
     return render(request, 'da_wire/index.html', context)
+"""
 
 def team(request, level, name):
     level_obj = Level.objects.filter(level=level).first()
@@ -1022,13 +958,20 @@ def team(request, level, name):
         secondary = colors.all()[1]
     else:
         secondary = ""
+    if colors.all().count() > 2:
+        ternary = colors.all()[2]
+    else:
+        ternary = ""
+    
+
+
     logo = mlbaffiliate.logo
     players = Player.objects.filter(mlbaffiliate=mlbaffiliate).order_by("last_name")
     mlbaffiliates = MLBAffiliate.objects.filter(mlbteam=mlbaffiliate.mlbteam).order_by("level")
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
     leagues = Level.objects.all()
-    list_of_positions = Position.objects.all().order_by("position")
+    #list_of_positions = Position.objects.all().order_by("position")
     options = Option.objects.filter(Q(mlbteam=mlbaffiliate.mlbteam, from_level=level_obj, is_rehab_assignment=0) \
                                     |Q(mlbteam=mlbaffiliate.mlbteam, to_level=level_obj, is_rehab_assignment=0))
     callups = CallUp.objects.filter(Q(mlbteam=mlbaffiliate.mlbteam, from_level=level_obj) \
@@ -1044,6 +987,18 @@ def team(request, level, name):
                                                                         player__mlbaffiliate__mlbteam=mlbaffiliate.mlbteam, is_rehab_assignment=1))                                                 
     
     if request.user.is_authenticated:
+        for fa in players:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+        import operator
+        players = sorted(players, key=operator.attrgetter('votes'), reverse=True)
         for fa in callups:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
             user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
@@ -1135,12 +1090,12 @@ def team(request, level, name):
             else:
                 fa.user_upvoted = 0    
     context = {'players': players, 'mlbaffiliates': mlbaffiliates, \
-               'teams': mlbteams, 'leagues': leagues, 'list_of_positions':  list_of_positions, 'options': options, \
+               'teams': mlbteams, 'leagues': leagues, 'options': options, \
                'trades': trades, 'callups': callups, \
                    'injured_list': injured_list, 'fa_signings': fa_signings, \
                        'draft_signings': draft_signings, 'dfas': dfas, \
                            'personal_leave': personal_leave, 'rehab_assignment': rehab_assignment, \
-                               'primary': primary, 'secondary': secondary, 'logo' : logo}
+                           'primary': primary, 'secondary': secondary, 'ternary': ternary, 'logo' : logo}
     return render(request, 'da_wire/team.html', context)
 
 def search(request):

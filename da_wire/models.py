@@ -6,7 +6,8 @@ from django.contrib.auth.models import User
 class MLBTeam(models.Model):
     location = models.CharField(max_length=50)
     name = models.CharField(max_length=50)
-    
+    is_NL = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(1)])
+
     def __str__(self):
         return self.location + " " + self.name
     
@@ -28,7 +29,7 @@ class MLBAffiliate(models.Model):
     name = models.CharField(max_length=50)
     level = models.ForeignKey(Level, on_delete=models.CASCADE)
     mlbteam = models.ForeignKey(MLBTeam, on_delete=models.CASCADE)
-    colors = models.ManyToManyField(Color)
+    colors = models.ManyToManyField(Color, blank=True)
     logo = models.CharField(max_length=20, default="")
     
     def __str__(self):

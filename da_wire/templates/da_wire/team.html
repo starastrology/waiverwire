@@ -1,7 +1,10 @@
 <html lang="en">
 <head>
     <title>Waiver Wire</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
+    {% load static %}
+    <link rel="shortcut icon" href="{% static 'da_wire/favicon.ico' %}"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <style>
@@ -16,10 +19,15 @@
           {% else %}
           --secondary: black;
            {% endif %}
+	   {% if ternary %}
+	   --ternary: {{ ternary }};
+	{% else %}
+	--ternary: white;
+	   {% endif %}
         }
         body{
             background-color: var(--primary);
-            color: #ffffff;
+            color: var(--ternary);
         }
         .r {
             height: 340px;
@@ -29,6 +37,9 @@
         .container {
             display: table;
             border-collapse:collapse
+        }
+	.container{
+            margin-bottom: 80px;
         }
         .col {
             display:table-row;
@@ -40,12 +51,15 @@
             color: var(--secondary);
         }
         .r {
-            background-color: #ffffff;
+            background-color: white;
             display: table-cell;
             border: 1px dashed var(--secondary);
             -webkit-box-sizing: border-box;
             -moz-box-sizing: border-box;
             box-sizing: border-box;
+	    {% if "FFFFFF" in primary %}
+	        background-color: var(--ternary);
+            {% endif %}
             color: var(--primary);
         }
         .r::-webkit-scrollbar {
@@ -57,20 +71,6 @@
           -ms-overflow-style: none;  /* IE and Edge */
           scrollbar-width: none;  /* Firefox */
         }
-        .container{
-            margin-bottom: 100px;
-        }
-        .carousel{
-            border: 10px solid white;
-            width: 50%;
-            margin: 50px auto;
-        }
-        .carousel-caption{
-            background-color: black;
-            opacity: .8;
-        }
-        
-        {% load static %}
         .up{
             background-image: url("{% static 'da_wire/up.png' %}");
         }
@@ -173,7 +173,6 @@
 </head>
 <body>
     {% include 'da_wire/header.html' %}
-    <br>
     <div class="container">
     {% for mlbaffiliate in mlbaffiliates %}
         {% with players|first as first_player %}
@@ -182,7 +181,7 @@
         {% endif %} {% endwith %} {% if forloop.counter != mlbaffiliates|length %} > {% endif %}
     {% endfor %}
     <h1>{% with players|first as first_player %}
-            {{ first_player.mlbaffiliate.location }} {{ first_player.mlbaffiliate.name }}
+	    <img src="{% static 'da_wire/'|add:first_player.mlbaffiliate.logo %}" style="width:150px;"> {{ first_player.mlbaffiliate.location }} {{ first_player.mlbaffiliate.name }}
         {% endwith %}</h1>
     
     <div class="row">
@@ -191,11 +190,41 @@
     <ul>
     {% for player in players %}
     
-        <li>{{player.position }} - <a href="{{player.bb_ref}}" target=_blank>{{ player.first_name }} {{ player.last_name }}</a>
-             <a href="{% url 'transaction' player.transaction.tid %}">&#129193;</a>
+        <li class="something" id="transaction_{{player.transaction.tid}}">
+                {% if request.user.is_authenticated %}
+                <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{player.votes}}</div>
+                <div class="arrows">
+                    <form id="transaction_upvote_{{player.transaction.tid}}" action="{% url 'transaction_upvote' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="tid" value="{{ player.transaction.tid }}">
+                    </form>
+                    <form id="transaction_downvote_{{player.transaction.tid}}" action="{% url 'transaction_downvote' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="tid" value="{{ player.transaction.tid }}">
+                    </form>
+                    <div class="up" onclick="ajax_submit_upvote('{{ player.transaction.tid }}')"></div>
+                    <div class="down" onclick="ajax_submit_downvote('{{ player.transaction.tid }}')"></div>
+                </div>
+                {% endif %}
+ {{player.position }} - <a href="{{player.bb_ref}}" target=_blank>{{ player.first_name }} {{ player.last_name }}</a>
+             <a href="{% url 'transaction' player.transaction.tid %}">&rarr;</a>
         </li>
     
     {% endfor %}
+{% if request.user.is_authenticated %}
+<script>
+          $(document).ready(function(){
+              {% for fa in players %}
+                  {% if fa.user_upvoted == 1 %}
+                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
+                  {% elif fa.user_upvoted == -1 %}       
+                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
+                  {% endif %}
+                  
+            {% endfor %}
+            });
+</script>
+{% endif %}
     </ul>
          </div>
     </div>
