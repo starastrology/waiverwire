@@ -17,7 +17,7 @@
                 {% endif %}
                 <b>{{dfa.date }}</b> - <a href="{{dfa.player.bb_ref}}" target=_blank>{{dfa.player.first_name }} {{ dfa.player.last_name }}</a>
                  - {{dfa.player.mlbaffiliate.location }} {{dfa.player.mlbaffiliate.name }}  
-                 <a href="{% url 'transaction' dfa.transaction.tid %}">&#129193;</a> 
+                 <a href="{% url 'transaction' dfa.transaction.tid %}">&rarr;</a> 
                  </li>
                  <hr>
 {% endfor %}

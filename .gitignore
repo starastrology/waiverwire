@@ -1,0 +1,4 @@
+*.sock
+error.log
+mysite_uwsgi.ini
+uwsgi_params

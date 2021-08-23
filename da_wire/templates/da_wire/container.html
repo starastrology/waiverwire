@@ -1,5 +1,4 @@
 {% load da_wire_extras %}
-<br>
 <div class="container">
     <!--form>
         Sort By:
@@ -9,8 +8,12 @@
             <option>Comments</option>
         </select>
     </form-->
-{% if position %}
-    <h1>{{position.position}}</h1>
+
+{% if level %}
+	<h1 style="text-align:center;">{{ level.level }}</h1>
+{% endif %}
+{# if position #}
+    <!--h1>{#position.position#}</h1>
     <div class="row">
         <div class="r col">
         <h2>Non-FA</h2>
@@ -37,8 +40,8 @@
                 </li>
             {% endfor %}
         </div>
-    </div>
-{% endif %}
+    </div-->
+{# endif #}
     <div class="row">
     {% if fas %}
         <div class="r col-sm-4">

@@ -21,7 +21,7 @@
         to {{team_to.location }} {{team_to.name }} ({{ option.to_level.level }}) from {{ option.from_level.level }} 
         {% get_affiliate option.from_level.level option.mlbteam as team %}
         <a href="{% url 'team' option.from_level.level team.name %}">{{ team.location }}</a>
-        <a href="{% url 'transaction' option.transaction.tid %}">&#129193;</a> 
+        <a href="{% url 'transaction' option.transaction.tid %}">&rarr;</a> 
         </li>
     <hr>
 {% endfor %}

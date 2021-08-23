@@ -21,7 +21,7 @@ urlpatterns = [
     path('commentdownvote', views.comment_downvote, name='comment_downvote'),
     path('login', views.login_view, name='login'),
     path('logout', views.logout_view, name='logout'),
-    path('position/<str:position>', views.position, name='position'),
+    #path('position/<str:position>', views.position, name='position'),
     path('<str:level>/<str:name>', views.team, name='team'),
     path('<str:level>', views.league, name='league')
 ]

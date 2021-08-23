@@ -6,5 +6,7 @@ register = template.Library()
 
 @register.simple_tag
 def get_affiliate(level, mlbteam):
-    return MLBAffiliate.objects.filter(level__level=level, mlbteam=mlbteam).first()
-
+    if level != "Rk":
+        return MLBAffiliate.objects.filter(level__level=level, mlbteam=mlbteam).first()
+    else:
+        return MLBAffiliate.objects.filter(level__level="MLB", mlbteam=mlbteam).first()

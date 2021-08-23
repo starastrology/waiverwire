@@ -1,5 +1,5 @@
 {% if request.user.is_authenticated %}
-<p> Whaddya think about this??? </p>
+<p> Post below... </p>
 {% else %}
 <p> Login to comment (and upvote)! </p>
 {% endif %}
@@ -11,11 +11,34 @@
     </select>
 </span>
 <hr>
+
+{% if request.user.is_authenticated %}
+<div>
+<form action="{% url 'comment' %}" method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="tid" value="{{tid}}" />
+    <textarea required placeholder="Comment here" name="comment" cols=100 rows=10>{{ too_long }}</textarea>
+    <hr>
+    <button class="btn btn-primary" style="float:right;">Submit</button>
+</form>
+<br style="break:float;">
+<br>
+{% if too_long %}
+<div id="messages">
+    <p>
+        Post submission may have been too long! (max 2000 chars)
+    </p>
+</div>
+{% endif %}
+</div>
+{% endif %}
+
 <div class="comments">
-    {% for comment in comments %}
-        <div class="comment">{{comment.user.username }} | {{ comment.datetime }}
-            <div class="text">{{ comment.text }}</div>
-            <div style="padding:10px;" id="comment_{{comment.id}}">
+	
+{% for comment in comments %}
+<div class="comment" style="min-height: 100px;"><div>{{comment.user.username }} | {{ comment.datetime }}</div>
+            <div class="text" style="float: left;">{{ comment.text }}</div>
+            <div style="display: inline;" id="comment_{{comment.id}}">
                 <div style="display:inline;" class="count">{{comment.votes}}</div>
                 <div class="arrows">
                     <form id="comment_upvote_{{comment.id}}" action="{% url 'transaction_upvote' %}" method="POST">
@@ -33,21 +56,4 @@
         </div>
     {% endfor %}
 </div>
-{% if request.user.is_authenticated %}
-<div>
-<form action="{% url 'comment' %}" method="POST">
-    {% csrf_token %}
-    <input type="hidden" name="tid" value="{{tid}}" />
-    <textarea required placeholder="Comment here" name="comment" cols=100 rows=10>{{ too_long }}</textarea>
-    <hr>
-    <button class="btn btn-primary" style="float:right;">Submit</button>
-</form>
-{% if too_long %}
-<div id="messages">
-    <p>
-        Post submission may have been too long! (max 2000 chars)
-    </p>
-</div>
-{% endif %}
-</div>
-{% endif %}
+

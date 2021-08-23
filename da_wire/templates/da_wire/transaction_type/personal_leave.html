@@ -16,7 +16,7 @@
                 </div>
                 {% endif %}
                 <b>{{personale.date}}</b> - <a href="{{personale.player.bb_ref}}">{{personale.player.first_name}} {{personale.player.last_name}}</a> for {{personale.length}} days
-                <a href="{% url 'transaction' personale.transaction.tid %}">&#129193;</a> 
+                <a href="{% url 'transaction' personale.transaction.tid %}">&rarr;</a> 
                 </li>
         <hr>
 {% endfor %}
