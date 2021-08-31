@@ -91,7 +91,7 @@ teams = [
             ["Vancouver", "Canadians", "A+", "Blue Jays"],
             ["West Michigan", "Whitecaps", "A+", "Tigers"],
             ["Wilmington", "Blue Rocks", "A+", "Nationals"],
-            ["Winston-Salem", "Dash", "A+", "White Sox"],
+            ["Winston-Salem", "Dash", "A+", "White Sox" ],
             ["Wisconsin", "Timber Rattlers", "A+", "Brewers"],
             ["Fredericksburg", "Nationals", "A", "Nationals"],
         ]
@@ -104,4 +104,20 @@ for team in teams:
     if not t:
         t = MLBAffiliate(mlbteam=mlbteam, level=level, location=team[0], name=team[1], logo=team[1].lower())
         t.save()
+"""
+import requests 
+from bs4 import BeautifulSoup 
+from selenium import webdriver
+from selenium.webdriver import FirefoxOptions
 
+opts = FirefoxOptions()
+opts.add_argument("--headless")
+
+URL = "http://www.milb.com/y2013/props_colors.jsp"
+driver = webdriver.Firefox(firefox_options=opts)
+driver.get(URL)
+page = driver.page_source 
+print(page)
+soup = BeautifulSoup(page, 'html5lib') 
+print(soup.findAll('table'))
+"""

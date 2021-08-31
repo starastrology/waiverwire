@@ -15,10 +15,12 @@
             <div class="down" onclick="ajax_submit_downvote('{{ dfa.transaction.tid }}')"></div>
                 </div>
                 {% endif %}
-                <b>{{dfa.date }}</b> - <a href="{{dfa.player.bb_ref}}" target=_blank>{{dfa.player.first_name }} {{ dfa.player.last_name }}</a>
-                 - {{dfa.player.mlbaffiliate.location }} {{dfa.player.mlbaffiliate.name }}  
-                 <a href="{% url 'transaction' dfa.transaction.tid %}">&rarr;</a> 
-                 </li>
+		
+                 <a href="{% url 'transaction' dfa.transaction.tid %}">&#8618;</a> 
+		<div class="display">
+			<b>{{dfa.date }}</b> - <a href="{% url 'transaction' dfa.player.transaction.tid %}">{{dfa.player.first_name }} {{ dfa.player.last_name }}</a> designated for assignment by {{ dfa.team_by.location }} {{ dfa.team_by.name }}
+		</div>         
+	</li>
                  <hr>
 {% endfor %}
 {% if request.user.is_authenticated %}

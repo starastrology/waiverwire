@@ -15,11 +15,14 @@
                     <div class="down" onclick="ajax_submit_downvote('{{ fa.transaction.tid }}')"></div>
                 </div>
                 {% endif %}
+
+                <a href="{% url 'transaction' fa.transaction.tid %}">&#8618;</a> 
+		<div class="display">
                 <span>
                 <b>{{fa.position}}</b>
-                - <a href="{{fa.bb_ref}}">{{fa.first_name}} {{fa.last_name}}</a>
-                <a href="{% url 'transaction' fa.transaction.tid %}">&rarr;</a> 
+		- <i>{{fa.first_name}} {{fa.last_name}}</i>
                 </span>
+		</div>
             </li>
             <hr>
 {% endfor %}

@@ -212,6 +212,7 @@
     </div>
     </div>
     <div class="row">
+	    {% if draft_signings %}
     <div class="r col-sm-6">
     <h1>Draft Signings</h1>
     <ul id="ul_draft_signing">
@@ -238,6 +239,8 @@
             </form>
             {% endif %}
     </div>
+    {% endif %}
+    {% if fa_signings %}
     <div class="r col-sm-6">
     <h1>FA Signings</h1>
     <ul id="ul_fa_signing">
@@ -264,6 +267,8 @@
             </form>
             {% endif %}
     </div>
+
+    {% endif %}
     </div>
     <div class="row">
     <div class="r col-sm-6">

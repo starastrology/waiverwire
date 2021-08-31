@@ -17,7 +17,7 @@
           {% if secondary %}
           --secondary: {{secondary}};
           {% else %}
-          --secondary: black;
+          --secondary: #D50032;
            {% endif %}
 	   {% if ternary %}
 	   --ternary: {{ ternary }};
@@ -175,21 +175,21 @@
     {% include 'da_wire/header.html' %}
     <div class="container">
     {% for mlbaffiliate in mlbaffiliates %}
-        {% with players|first as first_player %}
-        {% if mlbaffiliate == first_player.mlbaffiliate %} <b>{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</b> {% else %}
+        {% if mlbaffiliate == mlbaff %} <b>{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</b> {% else %}
         <a href="{% url 'team' mlbaffiliate.level.level mlbaffiliate.name %}">{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</a>
-        {% endif %} {% endwith %} {% if forloop.counter != mlbaffiliates|length %} > {% endif %}
+        {% endif %}  {% if forloop.counter != mlbaffiliates|length %} > {% endif %}
     {% endfor %}
-    <h1>{% with players|first as first_player %}
-	    <img src="{% static 'da_wire/'|add:first_player.mlbaffiliate.logo %}" style="width:150px;"> {{ first_player.mlbaffiliate.location }} {{ first_player.mlbaffiliate.name }}
-        {% endwith %}</h1>
+    <h1>
+	    <img src="{% static 'da_wire/'|add:mlbaff.logo %}" style="width:150px;"> {{ mlbaff.location }} {{ mlbaff.name }}
+       </h1>
     
     <div class="row">
     <div class="r col-sm-12">
     <h2>Roster</h2>
     <ul>
+	    <div class="row">
     {% for player in players %}
-    
+    <div class="col-sm-3">
         <li class="something" id="transaction_{{player.transaction.tid}}">
                 {% if request.user.is_authenticated %}
                 <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{player.votes}}</div>
@@ -206,11 +206,17 @@
                     <div class="down" onclick="ajax_submit_downvote('{{ player.transaction.tid }}')"></div>
                 </div>
                 {% endif %}
- {{player.position }} - <a href="{{player.bb_ref}}" target=_blank>{{ player.first_name }} {{ player.last_name }}</a>
-             <a href="{% url 'transaction' player.transaction.tid %}">&rarr;</a>
-        </li>
+
+             	<a href="{% url 'transaction' player.transaction.tid %}">&#8618;</a>
+		<div class="display">
+			<b>{{player.position }}</b> <a href="{% url 'transaction' player.transaction.tid %}">{{ player.first_name }} {{ player.last_name }}</a> <i>#{{player.number}}</i>
+    		<hr>
+		</div>
+	</li>
+    </div>
     
     {% endfor %}
+    </div>
 {% if request.user.is_authenticated %}
 <script>
           $(document).ready(function(){

@@ -16,13 +16,16 @@
             <div class="down" onclick="ajax_submit_downvote('{{ callup.transaction.tid }}')"></div>
                 </div>
                 {% endif %}
-                <b>{{callup.date }}</b> - <a href="{{callup.player.bb_ref}}" target=_blank>{{callup.player.first_name }} {{ callup.player.last_name }}</a> 
+
+        	<a style="display:inline;" href="{% url 'transaction' callup.transaction.tid %}">&#8618;</a> 
+		<div class="display">
+			<b>{{callup.date }}</b> - <a href="{% url 'transaction' callup.player.transaction.tid %}">{{callup.player.first_name }} {{ callup.player.last_name }}</a> 
         {% get_affiliate callup.to_level.level callup.mlbteam as team_to %}
-        to {{team_to.location }} {{team_to.name }} from {{callup.from_level.level }} 
+        to {{team_to.location }} {{team_to.name }} from 
         {% get_affiliate callup.from_level.level callup.mlbteam as team %}
-        <a href="{% url 'team' callup.from_level.level team.name %}">{{ team.location }}</a>
-        <a href="{% url 'transaction' callup.transaction.tid %}">&rarr;</a> 
-         </li>
+        <a href="{% url 'team' callup.from_level.level team.name %}">{{callup.from_level.level }} {{ team.location }}</a>
+		</div> 
+	</li>
     <hr>
 {% endfor %}
 {% if request.user.is_authenticated %}

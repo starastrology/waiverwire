@@ -7,6 +7,10 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import logout, login
 from django.http import HttpResponse
 
+def rookie(request, name):
+    return redirect(reverse('team', kwargs={"level": "MLB", "name": name}))
+ 
+
 def transaction_upvote(request):
     tid = request.POST["tid"]
     transaction = Transaction.objects.filter(tid=tid).first()
@@ -559,6 +563,12 @@ def register_page(request):
 def register(request):
     username = request.POST['username']
     password = request.POST['password']
+    if request.POST.get('username') and request.POST.get('password'):
+        username = request.POST['username']
+        password = request.POST['password']
+    else:
+        return redirect(reverse('register_page'))
+ 
     password_confirm = request.POST['confirm_password']
     email = request.POST['email']
     from django.contrib.auth.models import User
