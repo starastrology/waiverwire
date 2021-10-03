@@ -79,8 +79,6 @@ def comment_downvote(request):
 def transaction(request, tid):
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
-    leagues = Level.objects.all()
-    #list_of_positions = Position.objects.all().order_by("position")
     transaction = Transaction.objects.filter(tid=tid).first()
     tid = transaction.tid
     
@@ -102,11 +100,11 @@ def transaction(request, tid):
         down_votes = TransactionVote.objects.filter(transaction=transaction, is_up=0).count()
         votes = up_votes - down_votes
         user_transaction_vote = TransactionVote.objects.filter(transaction=transaction, user=request.user).first()
-        context = {'teams': mlbteams, 'leagues': leagues, \
+        context = {'teams': mlbteams, \
                        'tid': tid, 'comments': comments, 'votes': votes,
                        'user_transaction_vote': user_transaction_vote}
     else:
-        context = {'teams': mlbteams, 'leagues': leagues, \
+        context = {'teams': mlbteams,  \
                     'tid': tid, 'comments': comments}        
         
     fa = Player.objects.filter(transaction=transaction, is_FA=1).first()
@@ -179,8 +177,6 @@ per_page = 1
 def pick_page(request):
     index = int(request.POST['index']) - 1
     transaction_type = request.POST['transaction_type']
-    #level = Level.objects.filter(level=request.POST['level']).first()
-    #mlbaffiliate = MLBAffiliate.objects.filter(level=level, name=request.POST['team'])
     
     # need to check see if upper bound exists
     lower_bound = index * per_page
@@ -343,12 +339,169 @@ def pick_page(request):
         html = ""
     return HttpResponse(html)
 
+def pick_page_team(request):
+    mid = request.POST['mid']
+    mlbaffiliate = MLBAffiliate.objects.filter(id=mid).first()
+    index = int(request.POST['index']) - 1
+    transaction_type = request.POST['transaction_type']
+    
+    # need to check see if upper bound exists
+    lower_bound = index * per_page
+    upper_bound = (index + 1) * per_page
+    
+    context = {'request': request}
+    
+    level_obj = mlbaffiliate.level
+    
+    if transaction_type == 'callup':
+        callups = CallUp.objects.filter(Q(mlbteam=mlbaffiliate.mlbteam, from_level=level_obj) \
+                                    |Q(mlbteam=mlbaffiliate.mlbteam, to_level=level_obj)).order_by("-date")[lower_bound:upper_bound]
+        if request.user.is_authenticated:
+            for fa in callups:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['callups'] = callups
+        html = render_to_string('da_wire/transaction_type/callup.html', context)
+    elif transaction_type == 'option':
+        options = Option.objects.filter(Q(mlbteam=mlbaffiliate.mlbteam, from_level=level_obj, is_rehab_assignment=0) \
+                |Q(mlbteam=mlbaffiliate.mlbteam, to_level=level_obj, is_rehab_assignment=0)).order_by("-date")[lower_bound:upper_bound]
+        if request.user.is_authenticated:
+            for fa in options:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['options'] = options
+        html = render_to_string('da_wire/transaction_type/option.html', context)
+    elif transaction_type == 'dfa':
+        dfas = DFA.objects.filter(team_by=mlbaffiliate).order_by("-date")[lower_bound:upper_bound]
+        if request.user.is_authenticated:
+            for fa in dfas:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['dfas'] = dfas
+        html = render_to_string('da_wire/transaction_type/dfa.html', context)
+    elif transaction_type == 'trade':
+        trades = Trade.objects.filter(Q(players__team_to=mlbaffiliate)|Q(players__team_from=mlbaffiliate)).distinct().order_by("-date")[lower_bound:upper_bound]
+        if request.user.is_authenticated:
+            for fa in trades:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['trades'] = trades
+        html = render_to_string('da_wire/transaction_type/trade.html', context)
+    elif transaction_type == 'injured':
+        injured_list = InjuredList.objects.filter(team_for=mlbaffiliate).order_by("-date")[lower_bound:upper_bound]
+        if request.user.is_authenticated:
+            for fa in injured_list:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['injured_list'] = injured_list
+        html = render_to_string('da_wire/transaction_type/injured.html', context)
+    elif transaction_type == 'fa_signing': 
+        fa_signings = FASignings.objects.filter(team_to=mlbaffiliate, is_draftpick=0).order_by("-date")[lower_bound:upper_bound]
+        if request.user.is_authenticated:
+            for fa in fa_signings:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['fa_signings'] = fa_signings
+        html = render_to_string('da_wire/transaction_type/fa_signing.html', context)
+    elif transaction_type == 'draft_signing':    
+        draft_signings = FASignings.objects.filter(team_to=mlbaffiliate, is_draftpick=1).order_by("-date")[lower_bound:upper_bound]
+        if request.user.is_authenticated:
+            for fa in draft_signings:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['draft_signings'] = draft_signings
+        html = render_to_string('da_wire/transaction_type/draft_signing.html', context)
+    elif transaction_type == 'personal_leave':    
+        personal_leave = PersonalLeave.objects.filter(team_for=mlbaffiliate).order_by("-date")[lower_bound:upper_bound]
+        if request.user.is_authenticated:
+            for fa in personal_leave:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['personal_leave'] = personal_leave
+        html = render_to_string('da_wire/transaction_type/personal_leave.html', context)
+    elif transaction_type == 'rehab':
+        rehab_assignment = Option.objects.filter(Q(from_level=level_obj, mlbteam=mlbaffiliate.mlbteam, \
+                                is_rehab_assignment=1)|Q(to_level=level_obj, \
+                                mlbteam=mlbaffiliate.mlbteam, is_rehab_assignment=1)).order_by("-date")[lower_bound:upper_bound]
+        if request.user.is_authenticated:
+            for fa in rehab_assignment:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['rehab_assignment'] = rehab_assignment
+        html = render_to_string('da_wire/transaction_type/rehab_assignment.html', context)
+    else:
+        html = ""
+    return HttpResponse(html)
+
+
+
 def index(request):
     ############### For the header #######################
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
-    leagues = Level.objects.all()
-    #list_of_positions = Position.objects.all().order_by("position")
     ################################################
     
     # Free Agents
@@ -356,6 +509,8 @@ def index(request):
     fas_count = fas.count()
     fas = fas[0:per_page]
     upper = int(fas_count / per_page) + 1
+    if upper > 5:
+        upper = 6
     fas.range = range(2, upper)
     
     # Call Ups
@@ -363,6 +518,8 @@ def index(request):
     callups_count = callups.count()
     callups = callups[0:per_page]
     upper = int(callups_count / per_page) + 1
+    if upper > 10:
+        upper = 11
     callups.range = range(2, upper)
     
     # Options
@@ -370,6 +527,8 @@ def index(request):
     options_count = options.count()
     options = options[0:per_page]
     upper = int(options_count / per_page) + 1
+    if upper > 10:
+        upper = 11
     options.range = range(2, upper)
     
     # DFAs
@@ -377,6 +536,8 @@ def index(request):
     dfas_count = dfas.count()
     dfas = dfas[0:per_page]
     upper = int(dfas_count / per_page) + 1
+    if upper > 10:
+        upper = 11
     dfas.range = range(2, upper)
     
     # Trades
@@ -384,6 +545,8 @@ def index(request):
     trades_count = trades.count()
     trades = trades[0:per_page]
     upper = int(trades_count / per_page) + 1
+    if upper > 10:
+        upper = 11
     trades.range = range(2, upper)
     
     # IL
@@ -391,6 +554,8 @@ def index(request):
     injured_list_count = injured_list.count()
     injured_list = injured_list[0:per_page]
     upper = int(injured_list_count / per_page) + 1
+    if upper > 10:
+        upper = 11
     injured_list.range = range(2, upper)    
     
     # FA Signings
@@ -398,6 +563,8 @@ def index(request):
     fa_signings_count = fa_signings.count()
     fa_signings = fa_signings[0:per_page]
     upper = int(fa_signings_count / per_page) + 1
+    if upper > 10:
+        upper = 11
     fa_signings.range = range(2, upper)
     
     # Draft Signings
@@ -405,6 +572,8 @@ def index(request):
     draft_signings_count = draft_signings.count()
     draft_signings = draft_signings[0:per_page]
     upper = int(draft_signings_count / per_page) + 1
+    if upper > 10:
+        upper = 11
     draft_signings.range = range(2, upper)
     
     # Personal Leave
@@ -412,6 +581,8 @@ def index(request):
     personal_leave_count = personal_leave.count()
     personal_leave = personal_leave[0:per_page]
     upper = int(personal_leave_count / per_page) + 1
+    if upper > 10:
+        upper = 11
     personal_leave.range = range(2, upper)
     
     # Rehab Assignments
@@ -419,6 +590,8 @@ def index(request):
     rehab_assignment_count = rehab_assignment.count()
     rehab_assignment = rehab_assignment[0:per_page]
     upper = int(rehab_assignment_count / per_page) + 1
+    if upper > 10:
+        upper = 11
     rehab_assignment.range = range(2, upper)
     
     if request.user.is_authenticated:
@@ -523,7 +696,7 @@ def index(request):
             else:
                 fa.user_upvoted = 0
     
-    context = {'teams': mlbteams, 'leagues': leagues, 'options': options, 'fas': fas, \
+    context = {'teams': mlbteams, 'options': options, 'fas': fas, \
                'trades': trades, 'callups': callups, \
                    'injured_list': injured_list, 'fa_signings': fa_signings, \
                        'draft_signings': draft_signings, 'dfas': dfas, \
@@ -552,13 +725,17 @@ def logout_view(request):
 def register_page(request):
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
-    leagues = Level.objects.all()
-    #list_of_positions = Position.objects.all().order_by("position")
-    return render(request, 'da_wire/register.html', {'teams': mlbteams, 'leagues': leagues})
+    return render(request, 'da_wire/register.html', {'teams': mlbteams, })
 
 def register(request):
     username = request.POST['username']
     password = request.POST['password']
+    if request.POST.get('username') and request.POST.get('password'):
+        username = request.POST['username']
+        password = request.POST['password']
+    else:
+        return redirect(reverse('register_page'))
+ 
     password_confirm = request.POST['confirm_password']
     email = request.POST['email']
     from django.contrib.auth.models import User
@@ -596,18 +773,14 @@ def change_password(request):
     
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
-    leagues = Level.objects.all()
-    #list_of_positions = Position.objects.all().order_by("position")
-    return render(request, 'da_wire/user.html', {'message': "Successfully updated password", 'teams': mlbteams, 'leagues': leagues})
+    return render(request, 'da_wire/user.html', {'message': "Successfully updated password", 'teams': mlbteams})
     
 
 def user_page(request, id):
     if request.user.is_authenticated and request.user.id==id:
         mlb_level = Level.objects.filter(level="MLB").first()
         mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
-        leagues = Level.objects.all()
-        #list_of_positions = Position.objects.all().order_by("position")
-        return render(request, 'da_wire/user.html', {'teams': mlbteams, 'leagues': leagues})
+        return render(request, 'da_wire/user.html', {'teams': mlbteams})
     else:
         return redirect(reverse('index'))
     
@@ -619,336 +792,10 @@ def delete_account(request):
         User.objects.filter(username=username).first().delete()
     return redirect(reverse('index'))
     
-def league(request, level):
-    level = Level.objects.filter(level=level).first()
-    mlb_level = Level.objects.filter(level="MLB").first()
-    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
-    leagues = Level.objects.all()
-    #list_of_positions = Position.objects.all().order_by("position")
-    options = Option.objects.filter(Q(is_rehab_assignment=0, from_level=level)|Q(is_rehab_assignment=0, to_level=level))
-    callups = CallUp.objects.filter(Q(from_level=level)|Q(to_level=level)).order_by('-date')
-    fas = Player.objects.filter(is_FA=1).order_by("last_name")
-    from django.db import models
-    trade_players = PlayerTrade.objects.filter(Q(team_from__level=level)|Q(team_to__level=level))
-    trades = Trade.objects.filter(players__in=trade_players).order_by('-date')
-    injured_list = InjuredList.objects.filter(team_for__level=level).order_by("-date")
-    fa_signings = FASignings.objects.filter(is_draftpick=0, team_to__level=level).order_by('-date')
-    draft_signings = FASignings.objects.filter(is_draftpick=1, team_to__level=level).order_by('-date')
-    dfas = DFA.objects.filter(team_by__level=level).order_by('-date')
-    personal_leave = PersonalLeave.objects.filter(team_for__level=level).order_by('-date')
-    rehab_assignment = Option.objects.filter(Q(is_rehab_assignment=1, from_level=level)|Q(is_rehab_assignment=1, to_level=level)).order_by('-date')
-    
-    if request.user.is_authenticated:   
-        for fa in fas:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0                                                    
-        for fa in callups:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-        for fa in options:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-        for fa in dfas:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-        for fa in trades:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-        for fa in injured_list:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-        for fa in draft_signings:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-        for fa in fa_signings:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-        for fa in personal_leave:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-        for fa in rehab_assignment:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-    
-    context = {'teams': mlbteams, 'leagues': leagues, 'options': options, 'fas': fas, \
-               'trades': trades, 'callups': callups, \
-                   'injured_list': injured_list, 'fa_signings': fa_signings, \
-                       'draft_signings': draft_signings, 'dfas': dfas, \
-                       'personal_leave': personal_leave, 'level': level, 'rehab_assignment': rehab_assignment}
-    return render(request, 'da_wire/index.html', context)
-"""
-def position(request, position):
-    position = Position.objects.filter(position=position).first()
-    non_fas = Player.objects.filter(position=position, is_FA=0).order_by("last_name")
-    mlb_level = Level.objects.filter(level="MLB").first()
-    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
-    leagues = Level.objects.all()
-    #list_of_positions = Position.objects.all().order_by("position")
-    options = Option.objects.filter(is_rehab_assignment=0, player__position=position)
-    callups = CallUp.objects.filter(player__position=position)
-    fas = Player.objects.filter(is_FA=1, position=position).order_by("last_name")
-    trades = Trade.objects.filter(players__players__position=position).order_by("-date")
-    injured_list = InjuredList.objects.filter(player__position=position).order_by("-date")
-    fa_signings = FASignings.objects.filter(is_draftpick=0, player__position=position)
-    draft_signings = FASignings.objects.filter(is_draftpick=1, player__position=position)
-    dfas = DFA.objects.filter(player__position=position)
-    personal_leave = PersonalLeave.objects.filter(player__position=position)
-    rehab_assignment = Option.objects.filter(is_rehab_assignment=1, player__position=position)
-    
-    # Free Agents
-    fas_count = fas.count()
-    fas = fas[0:per_page]
-    upper = int(fas_count / per_page) + 1
-    fas.range = range(2, upper)
-    
-    # Call Ups
-    callups_count = callups.count()
-    callups = callups[0:per_page]
-    upper = int(callups_count / per_page) + 1
-    callups.range = range(2, upper)
-    
-    # Options
-    options_count = options.count()
-    options = options[0:per_page]
-    upper = int(options_count / per_page) + 1
-    options.range = range(2, upper)
-    
-    # DFAs
-    dfas_count = dfas.count()
-    dfas = dfas[0:per_page]
-    upper = int(dfas_count / per_page) + 1
-    dfas.range = range(2, upper)
-    
-    # Trades
-    trades_count = trades.count()
-    trades = trades[0:per_page]
-    upper = int(trades_count / per_page) + 1
-    trades.range = range(2, upper)
-    
-    # IL
-    injured_list_count = injured_list.count()
-    injured_list = injured_list[0:per_page]
-    upper = int(injured_list_count / per_page) + 1
-    injured_list.range = range(2, upper)    
-    
-    # FA Signings
-    fa_signings_count = fa_signings.count()
-    fa_signings = fa_signings[0:per_page]
-    upper = int(fa_signings_count / per_page) + 1
-    fa_signings.range = range(2, upper)
-    
-    # Draft Signings
-    draft_signings_count = draft_signings.count()
-    draft_signings = draft_signings[0:per_page]
-    upper = int(draft_signings_count / per_page) + 1
-    draft_signings.range = range(2, upper)
-    
-    # Personal Leave
-    personal_leave_count = personal_leave.count()
-    personal_leave = personal_leave[0:per_page]
-    upper = int(personal_leave_count / per_page) + 1
-    personal_leave.range = range(2, upper)
-    
-    # Rehab Assignments
-    rehab_assignment_count = rehab_assignment.count()
-    rehab_assignment = rehab_assignment[0:per_page]
-    upper = int(rehab_assignment_count / per_page) + 1
-    rehab_assignment.range = range(2, upper)
-    
-    if request.user.is_authenticated:  
-        for fa in non_fas:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0   
-        for fa in fas:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0                                                 
-        for fa in callups:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-        for fa in options:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-        for fa in dfas:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-        for fa in trades:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-        for fa in injured_list:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-        for fa in draft_signings:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-        for fa in fa_signings:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-        for fa in personal_leave:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-        for fa in rehab_assignment:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
-                else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0    
-    
-    context = {'position': position, 'non_fas': non_fas, 'teams': mlbteams, 'leagues': leagues, \
-               'options': options, 'fas': fas, \
-               'trades': trades, 'callups': callups, \
-                   'injured_list': injured_list, 'fa_signings': fa_signings, \
-                       'draft_signings': draft_signings, 'dfas': dfas, \
-                           'personal_leave': personal_leave, 'rehab_assignment': rehab_assignment}
-    return render(request, 'da_wire/index.html', context)
-"""
-
-def team(request, level, name):
-    level_obj = Level.objects.filter(level=level).first()
-    mlbaffiliate = MLBAffiliate.objects.filter(name=name, level=level_obj).first()
+def team(request, location, name):
+    import urllib.parse
+    location = urllib.parse.unquote(location)
+    mlbaffiliate = MLBAffiliate.objects.filter(name=name, location=location).first()
     colors = mlbaffiliate.colors
     if colors.all().count() > 0:
         primary = colors.all()[0]
@@ -964,28 +811,98 @@ def team(request, level, name):
         ternary = ""
     
 
-
+    level_obj = mlbaffiliate.level
     logo = mlbaffiliate.logo
     players = Player.objects.filter(mlbaffiliate=mlbaffiliate).order_by("last_name")
     mlbaffiliates = MLBAffiliate.objects.filter(mlbteam=mlbaffiliate.mlbteam).order_by("level")
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
-    leagues = Level.objects.all()
-    #list_of_positions = Position.objects.all().order_by("position")
     options = Option.objects.filter(Q(mlbteam=mlbaffiliate.mlbteam, from_level=level_obj, is_rehab_assignment=0) \
-                                    |Q(mlbteam=mlbaffiliate.mlbteam, to_level=level_obj, is_rehab_assignment=0))
+                                    |Q(mlbteam=mlbaffiliate.mlbteam, to_level=level_obj, is_rehab_assignment=0)).order_by("-date")
     callups = CallUp.objects.filter(Q(mlbteam=mlbaffiliate.mlbteam, from_level=level_obj) \
-                                    |Q(mlbteam=mlbaffiliate.mlbteam, to_level=level_obj))
-    trades = Trade.objects.filter(Q(players__team_to=mlbaffiliate)|Q(players__team_from=mlbaffiliate)).distinct().order_by("-date")
+                                    |Q(mlbteam=mlbaffiliate.mlbteam, to_level=level_obj)).order_by("-date")
+    trades = Trade.objects.filter(Q(players__team_to=mlbaffiliate)|Q(players__team_from=mlbaffiliate)).order_by("-date")
     injured_list = InjuredList.objects.filter(team_for=mlbaffiliate).order_by("-date")
-    fa_signings = FASignings.objects.filter(player__mlbaffiliate__level=level_obj, is_draftpick=0, player__mlbaffiliate=mlbaffiliate)
-    draft_signings = FASignings.objects.filter(player__mlbaffiliate__level=level_obj, is_draftpick=1, player__mlbaffiliate=mlbaffiliate)
-    dfas = DFA.objects.filter(team_by=mlbaffiliate)
-    personal_leave = PersonalLeave.objects.filter(team_for=mlbaffiliate)
-    rehab_assignment = Option.objects.filter(Q(player__mlbaffiliate__level=level_obj, player__mlbaffiliate=mlbaffiliate, \
-                                               is_rehab_assignment=1)|Q(from_level=mlbaffiliate.level, \
-                                                                        player__mlbaffiliate__mlbteam=mlbaffiliate.mlbteam, is_rehab_assignment=1))                                                 
+    fa_signings = FASignings.objects.filter(team_to=mlbaffiliate, is_draftpick=0).order_by("-date")
+    draft_signings = FASignings.objects.filter(team_to=mlbaffiliate, is_draftpick=1).order_by("-date")
+    dfas = DFA.objects.filter(team_by=mlbaffiliate).order_by("-date")
+    personal_leave = PersonalLeave.objects.filter(team_for=mlbaffiliate).order_by("-date")
+    rehab_assignment = Option.objects.filter(Q(from_level=level_obj, mlbteam=mlbaffiliate.mlbteam, \
+                                is_rehab_assignment=1)|Q(to_level=level_obj, \
+                                mlbteam=mlbaffiliate.mlbteam, is_rehab_assignment=1)).order_by("-date")
+
+    # Call Ups
+    callups_count = callups.count()
+    callups = callups[0:per_page]
+    upper = int(callups_count / per_page) + 1
+    if upper > 10:
+        upper = 11
+    callups.range = range(2, upper)
     
+    # Options
+    options_count = options.count()
+    options = options[0:per_page]
+    upper = int(options_count / per_page) + 1
+    if upper > 10:
+        upper = 11
+    options.range = range(2, upper)
+    
+    # DFAs
+    dfas_count = dfas.count()
+    dfas = dfas[0:per_page]
+    upper = int(dfas_count / per_page) + 1
+    if upper > 10:
+        upper = 11
+    dfas.range = range(2, upper)
+    
+    
+    # Trades
+    trades_count = trades.count()
+    trades = trades[0:per_page]
+    upper = int(trades_count / per_page) + 1
+    trades.range = range(2, upper)
+    
+    # IL
+    injured_list_count = injured_list.count()
+    injured_list = injured_list[0:per_page]
+    upper = int(injured_list_count / per_page) + 1
+    if upper > 10:
+        upper = 11
+    injured_list.range = range(2, upper)    
+    
+    # FA Signings
+    fa_signings_count = fa_signings.count()
+    fa_signings = fa_signings[0:per_page]
+    upper = int(fa_signings_count / per_page) + 1
+    if upper > 10:
+        upper = 11
+    fa_signings.range = range(2, upper)
+    
+    # Draft Signings
+    draft_signings_count = draft_signings.count()
+    draft_signings = draft_signings[0:per_page]
+    upper = int(draft_signings_count / per_page) + 1
+    if upper > 10:
+        upper = 11
+    draft_signings.range = range(2, upper)
+    
+    # Personal Leave
+    personal_leave_count = personal_leave.count()
+    personal_leave = personal_leave[0:per_page]
+    upper = int(personal_leave_count / per_page) + 1
+    if upper > 10:
+        upper = 11
+    personal_leave.range = range(2, upper)
+    
+    # Rehab Assignments
+    rehab_assignment_count = rehab_assignment.count()
+    rehab_assignment = rehab_assignment[0:per_page]
+    upper = int(rehab_assignment_count / per_page) + 1
+    if upper > 10:
+        upper = 11
+    rehab_assignment.range = range(2, upper)
+
+
     if request.user.is_authenticated:
         for fa in players:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
@@ -1090,8 +1007,8 @@ def team(request, level, name):
             else:
                 fa.user_upvoted = 0    
     context = {'players': players, 'mlbaffiliates': mlbaffiliates, \
-               'teams': mlbteams, 'leagues': leagues, 'options': options, \
-               'trades': trades, 'callups': callups, \
+               'teams': mlbteams, 'options': options, \
+               'trades': trades, 'callups': callups, 'mlbaff': mlbaffiliate, \
                    'injured_list': injured_list, 'fa_signings': fa_signings, \
                        'draft_signings': draft_signings, 'dfas': dfas, \
                            'personal_leave': personal_leave, 'rehab_assignment': rehab_assignment, \

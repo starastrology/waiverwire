@@ -15,14 +15,13 @@ urlpatterns = [
     path('search', views.search, name='search'),
     path('comment', views.comment, name='comment'),
     path('page', views.pick_page, name='pick_page'),
+    path('page_team', views.pick_page_team, name='pick_page_team'),
     path('transactionupvote', views.transaction_upvote, name='transaction_upvote'),
     path('transactiondownvote', views.transaction_downvote, name='transaction_downvote'),
     path('commentupvote', views.comment_upvote, name='comment_upvote'),
     path('commentdownvote', views.comment_downvote, name='comment_downvote'),
     path('login', views.login_view, name='login'),
     path('logout', views.logout_view, name='logout'),
-    #path('position/<str:position>', views.position, name='position'),
-    path('<str:level>/<str:name>', views.team, name='team'),
-    path('<str:level>', views.league, name='league')
+    path('<str:location>/<str:name>', views.team, name='team'),
 ]
 

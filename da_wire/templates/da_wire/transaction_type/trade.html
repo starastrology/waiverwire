@@ -15,14 +15,16 @@
             <div class="down" onclick="ajax_submit_downvote('{{ trade.transaction.tid }}')"></div>
                 </div>
                 {% endif %}
-                <b>{{ trade.date }}</b> - {% for players in trade.players.all %}{% with forloop.counter as cntr %} {% for player in players.players.all %} 
-        <a href="{{player.bb_ref}}" target=_blank>{{player.first_name}} {{player.last_name}}</a> 
+		
+        <a href="{% url 'transaction' trade.transaction.tid %}">&#8618;</a> 
+		<div class="display">
+		<b>{{ trade.date }}</b> - {% for players in trade.players.all %}{% with forloop.counter as cntr %} {% for player in players.players.all %} 
+		<a href="{% url 'transaction' player.transaction.tid %}">{{player.first_name}} {{player.last_name}}</a> 
         to {{players.team_to.mlbteam.name}} (from {{players.team_from.mlbteam.name}}){% if cntr != trade.players.all|length %}, 
         {% endif %} {% endfor %}{% endwith %} 
         {% endfor %} 
-        <a href="{% url 'transaction' trade.transaction.tid %}">&rarr;</a> 
-        </li>
-        <hr>
+	</div>
+	</li>
 {% endfor %}
 
 {% if request.user.is_authenticated %}

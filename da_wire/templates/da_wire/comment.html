@@ -1,15 +1,15 @@
 {% if request.user.is_authenticated %}
-<p> Post below... </p>
+<p style="text-align: center;"> Post below... </p>
 {% else %}
 <p> Login to comment (and upvote)! </p>
 {% endif %}
-<span>
+<!--span>
     Sort By:
     <select>
         <option>Date</option>
         <option>Approval</option>
     </select>
-</span>
+</span-->
 <hr>
 
 {% if request.user.is_authenticated %}

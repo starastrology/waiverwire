@@ -2,6 +2,9 @@
 <head>
     <title>Waiver Wire</title>
     <meta charset="UTF-8">
+    <meta name="description" content="Register your account to upvote, downvote transactions and comment.">
+    <meta name="keywords" content="register, signup, MLB, baseball, major league, minor leagues, majors, minors, transactions, trades, options, free agents, players, waivers, signings, signing">
+    <meta name="author" content="Dan Frecka">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% load static %}
     <link rel="shortcut icon" href="{% static 'da_wire/favicon.ico' %}"/>
@@ -17,37 +20,12 @@
             color: #ffffff;
         }
         .r {
-            height: 340px;
-            overflow-y: scroll;
-            padding: 10px;
-        }
-        .container {
-            display: table;
-            border-collapse:collapse
-        }
-        .col {
-            display:table-row;
+            padding: 4px;
         }
         .r {
             background-color: #ffffff;
-            display: table-cell;
             border: 1px dashed var(--red);
-            -webkit-box-sizing: border-box;
-            -moz-box-sizing: border-box;
-            box-sizing: border-box;
             color: var(--blue);
-        }
-        .r::-webkit-scrollbar {
-            display: none;
-        }
-
-        /* Hide scrollbar for IE, Edge and Firefox */
-        .r {
-          -ms-overflow-style: none;  /* IE and Edge */
-          scrollbar-width: none;  /* Firefox */
-        }
-        .container{
-            margin-bottom: 80px;
         }
         .upvoted{
             opacity: 1;
@@ -96,18 +74,17 @@
        <span id="messages">{{error_messages}}</span>
         <form action="{% url 'register' %}" method="POST">
             <label for="username">Username</label>
-            <input class="form-control" id="username" name="username" type="text" />
+            <input required class="form-control" id="username" name="username" type="text" />
             <label for="email">Email</label>
-            <input class="form-control" id="email" name="email" type="email" />
+            <input required class="form-control" id="email" name="email" type="email" />
             <label for="password">Password</label>
-            <input class="form-control" id="password" name="password" type="password" />
+            <input required class="form-control" id="password" name="password" type="password" />
             <label for="confirm_password">Confirm Password</label>
-            <input class="form-control" id="confirm_password" name="confirm_password" type="password" />
+            <input required class="form-control" id="confirm_password" name="confirm_password" type="password" />
             </br>
             {% csrf_token %}
             <button class="btn btn-primary" type=submit>Register</button>
         </form>       
     </div>
-    {% include 'da_wire/footer.html' %}
 </body>
 </html>

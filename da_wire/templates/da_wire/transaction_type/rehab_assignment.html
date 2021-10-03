@@ -16,16 +16,18 @@
             <div class="down" onclick="ajax_submit_downvote('{{ option.transaction.tid }}')"></div>
                 </div>
                 {% endif %}
-                <b>{{option.date}}</b> - <a href="{{option.player.bb_ref}}">{{option.player.first_name }} {{ option.player.last_name }}</a> to {{option.to_level}}
-		{% get_affiliate option.to_level.level option.player.mlbaffiliate.mlbteam as team_to %}
-        	<a href="{% url 'team' option.to_level.level team_to.name %}">{{ team_to.location }}</a>
+		
+        	<a href="{% url 'transaction' option.transaction.tid %}">&#8618;</a>
+		<div class="display">
+			<b>{{option.date}}</b> - <a href="{% url 'transaction' option.player.transaction.tid %}">{{option.player.first_name }} {{ option.player.last_name }}</a> to {{option.to_level.level}}
+		{% get_affiliate option.to_level.level option.mlbteam as team_to %}
+        	<a href="{% url 'team' team_to.location|replace_forward_slash team_to.name %}">{{ team_to.location }}</a>
         
 		from {{option.from_level.level }} 
-        {% get_affiliate option.from_level.level option.player.mlbaffiliate.mlbteam as team %}
-        <a href="{% url 'team' option.from_level.level team.name %}">{{ team.location }}</a>
-        <a href="{% url 'transaction' option.transaction.tid %}">&rarr;</a> 
-        </li>  
-<hr>
+        {% get_affiliate option.from_level.level option.mlbteam as team %}
+        <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{ team.location }}</a>
+        	</div>
+	</li>  
 {% endfor %}
 
 {% if request.user.is_authenticated %}
