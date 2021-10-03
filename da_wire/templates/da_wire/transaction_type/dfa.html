@@ -21,7 +21,6 @@
 			<b>{{dfa.date }}</b> - <a href="{% url 'transaction' dfa.player.transaction.tid %}">{{dfa.player.first_name }} {{ dfa.player.last_name }}</a> designated for assignment by {{ dfa.team_by.location }} {{ dfa.team_by.name }}
 		</div>         
 	</li>
-                 <hr>
 {% endfor %}
 {% if request.user.is_authenticated %}
 <script>

@@ -7,16 +7,6 @@
 	  	<a class="navbar-brand" href="{% url 'index' %}">Waiver Wire</a>
 	        <div class="collapse navbar-collapse mr-auto" id="navbarNavDropdown">	
 		<ul class="navbar-nav">
-        		<li class="nav-item dropdown">
-          			<a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            				Leagues
-          			</a>
-          			<ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-          {% for league in leagues %}
-              				<li><a class="dropdown-item" href="{% url 'league' league.level %}">{{ league.level }}</a></li>
-           {% endfor %}
-          			</ul>
-         		</li>
           		<li class="nav-item dropdown">
           			<a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             				AL
@@ -24,7 +14,7 @@
           			<ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
 					{% for team in teams %}
 						{% if not team.mlbteam.is_NL %}
-            				<li><a class="dropdown-item" href="{% url 'team' 'MLB' team.name %}">{{ team.location }} {{ team.name }}</a></li>
+            				<li><a class="dropdown-item" href="{% url 'team' team.location team.name %}">{{ team.location }} {{ team.name }}</a></li>
           					{% endif %}
 	    				{% endfor %}
 				</ul>
@@ -36,7 +26,7 @@
 				<ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
 			{% for team in teams %}
 				{% if team.mlbteam.is_NL %}
-            				<li><a class="dropdown-item" href="{% url 'team' 'MLB' team.name %}">{{ team.location }} {{ team.name }}</a></li>
+            				<li><a class="dropdown-item" href="{% url 'team' team.location team.name %}">{{ team.location }} {{ team.name }}</a></li>
           			{% endif %}
 	    		{% endfor %}
 				</ul>

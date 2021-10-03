@@ -23,10 +23,9 @@
         {% get_affiliate callup.to_level.level callup.mlbteam as team_to %}
         to {{team_to.location }} {{team_to.name }} from 
         {% get_affiliate callup.from_level.level callup.mlbteam as team %}
-        <a href="{% url 'team' callup.from_level.level team.name %}">{{callup.from_level.level }} {{ team.location }}</a>
+        <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{callup.from_level.level }} {{ team.location }}</a>
 		</div> 
 	</li>
-    <hr>
 {% endfor %}
 {% if request.user.is_authenticated %}
 <script>

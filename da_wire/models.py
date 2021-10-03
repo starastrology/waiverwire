@@ -13,10 +13,14 @@ class MLBTeam(models.Model):
     
 class Level(models.Model):
     level = models.CharField(max_length=20)
-    
+    rookie_level = models.IntegerField(default=0, blank=True)
+
     def __str__(self):
-        return self.level
-    
+        if self.rookie_level:
+            return self.level + str(self.rookie_level)
+        else:
+            return self.level
+
 class Color(models.Model):
     pkey = models.IntegerField(primary_key=True)
     color = models.CharField(max_length=10)
@@ -31,7 +35,9 @@ class MLBAffiliate(models.Model):
     mlbteam = models.ForeignKey(MLBTeam, on_delete=models.CASCADE)
     colors = models.ManyToManyField(Color, blank=True)
     logo = models.CharField(max_length=20, default="")
-    
+    abbreviation = models.CharField(max_length=10, default="")
+    roster_url = models.CharField(max_length=50, blank=True)
+
     def __str__(self):
         return self.location + " " + self.name
 
@@ -62,10 +68,12 @@ class Player(models.Model):
     mlbaffiliate = models.ForeignKey(MLBAffiliate, on_delete=models.CASCADE, blank=True)
     is_FA = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(1)])
     bb_ref = models.CharField(default="", max_length=300)
-    
+    first_name_unaccented = models.CharField(max_length=50)
+    last_name_unaccented = models.CharField(max_length=50)
+
     def __str__(self):
         return self.first_name + " " + self.last_name
-    
+
 class Option(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
     date = models.DateField()
@@ -74,7 +82,10 @@ class Option(models.Model):
     to_level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name="option_to_level")
     is_rehab_assignment = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(1)])
     mlbteam = models.ForeignKey(MLBTeam, on_delete=models.CASCADE)
-    
+
+    def __str__(self):
+        return str(self.date) + " " + self.player.first_name + " " + self.player.last_name
+
 class CallUp(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
     date = models.DateField()
@@ -82,12 +93,18 @@ class CallUp(models.Model):
     from_level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name="callup_from_level")
     to_level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name="callup_to_level")
     mlbteam = models.ForeignKey(MLBTeam, on_delete=models.CASCADE)
-    
+
+    def __str__(self):
+        return str(self.date) + " " + self.player.first_name + " " + self.player.last_name
+
 class DFA(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
     date = models.DateField()
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     team_by = models.ForeignKey(MLBAffiliate, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.date) + " " + self.player.first_name + " " + self.player.last_name
 
 class InjuredList(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
@@ -96,6 +113,9 @@ class InjuredList(models.Model):
     length = models.IntegerField(default=10)
     team_for = models.ForeignKey(MLBAffiliate, on_delete=models.CASCADE)
     
+    def __str__(self):
+        return str(self.date) + " " + self.player.first_name + " " + self.player.last_name
+
 class PersonalLeave(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
     date = models.DateField()
@@ -109,7 +129,10 @@ class FASignings(models.Model):
     is_draftpick = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(1)])
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     team_to = models.ForeignKey(MLBAffiliate, on_delete=models.CASCADE)
-    
+
+    def __str__(self):
+        return self.player.first_name + " " + self.player.last_name + " to " + self.team_to.name
+
 class PlayerTrade(models.Model):
     players = models.ManyToManyField(Player)
     team_from = models.ForeignKey(MLBAffiliate, on_delete=models.CASCADE, related_name="player_trade_team_from")
@@ -119,7 +142,11 @@ class Trade(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
     date = models.DateField()
     players = models.ManyToManyField(PlayerTrade)
-    
+   
+    def __str__(self):
+        return str(self.date) + " - involving " + self.players.all()[0].team_from.name
+
+
 class TransactionVote(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     is_up = models.IntegerField(default=1, validators=[MinValueValidator(0), MaxValueValidator(1)])

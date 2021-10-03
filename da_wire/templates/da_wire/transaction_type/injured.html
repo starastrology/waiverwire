@@ -15,10 +15,11 @@
             <div class="down" onclick="ajax_submit_downvote('{{ injured.transaction.tid }}')"></div>
                 </div>
                 {% endif %}
-                <b>{{injured.date}}</b> - <a href="{{injured.player.bb_ref}}" target=_blank>{{injured.player.first_name}} {{injured.player.last_name}}</a> - {{injured.length}}-day IL
-                <a href="{% url 'transaction' injured.transaction.tid %}">&rarr;</a> 
-                </li>
-    <hr>
+                <a href="{% url 'transaction' injured.transaction.tid %}">&#8618;</a> 
+		<div class="display">
+			<b>{{injured.date}}</b> - <a href="{% url 'transaction' injured.player.transaction.tid %}">{{injured.player.first_name}} {{injured.player.last_name}}</a> placed on {{injured.length}}-day IL
+        	</div>        
+	</li>
 {% endfor %}
 {% if request.user.is_authenticated %}
 <script>

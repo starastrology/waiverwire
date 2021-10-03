@@ -30,21 +30,23 @@ for location in locations:
                 if a:
                     a = a[0]
                     name = a.text.strip().split(' ')
-                    link = a['href']
-                    URL = "https://www.mlb.com" + link
-                    page = requests.get(URL)
-                    soup = BeautifulSoup(page.text, 'html5lib') 
-                    div = soup.find_all('div', class_="player-header--vitals")
-                    if div:
-                        li = div[0].ul.li.text
-                        position = Position.objects.filter(position=li).first()
-                    else:
-                        break
-                    last_name = name[len(name)-1]
-                    if last_name == "Jr." or last_name == "Sr.":
-                        last_name = name[len(name)-2] + " " + name[len(name)-1]
-                    p = Player.objects.filter(last_name=last_name, first_name=name[0], mlbaffiliate=mlbaffiliate, number=number).first()
+                    last_name = ""
+                    for i in range(1, len(name)):
+                        last_name += name[i] + " "
+                    last_name = last_name.strip() 
+                    p = Player.objects.filter(last_name=last_name, first_name=name[0], mlbaffiliate=mlbaffiliate).first()
                     if not p:
+                        print(name[0] + " " + last_name)
+                        link = a['href']
+                        URL = "https://www.mlb.com" + link
+                        page = requests.get(URL)
+                        soup = BeautifulSoup(page.text, 'html5lib') 
+                        div = soup.find_all('div', class_="player-header--vitals")
+                        if div:
+                            li = div[0].ul.li.text
+                            position = Position.objects.filter(position=li).first()
+                        else:
+                            break
                         t = Transaction()
                         t.save()
                         p = Player(last_name=last_name, first_name=name[0], mlbaffiliate=mlbaffiliate, position=position, number=number, bb_ref=URL, transaction=t)

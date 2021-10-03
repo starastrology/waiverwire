@@ -23,10 +23,9 @@
         {% get_affiliate option.to_level.level option.mlbteam as team_to %}
         to {{team_to.location }} {{team_to.name }} ({{ option.to_level.level }}) from {{ option.from_level.level }} 
         {% get_affiliate option.from_level.level option.mlbteam as team %}
-        <a href="{% url 'team' option.from_level.level team.name %}">{{ team.location }}</a>
+        <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{ team.location }}</a>
 		</div>
 	</li>
-    <hr>
 {% endfor %}
 {% if request.user.is_authenticated %}
 <script>

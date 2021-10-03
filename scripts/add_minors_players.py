@@ -1,6 +1,7 @@
 import requests 
 from bs4 import BeautifulSoup 
-remaining_locs = ["Scranton/Wilkes-Barre", "St. Lucie", "St. Paul"]
+#remaining_locs = ["Scranton/Wilkes-Barre", "St. Lucie", "St. Paul"]
+remaining_locs = ["Charlotte"]
 from da_wire.models import MLBAffiliate, Player, Position, Transaction
 locations = MLBAffiliate.objects.all().exclude(level__level="MLB")
 for location in locations:
@@ -13,6 +14,10 @@ for location in locations:
         URL = "https://www.milb.com/st-paul/roster"
     elif mlbaffiliate.location == "St. Lucie":
         URL = "https://www.milb.com/st-lucie/roster"
+    elif mlbaffiliate.location == "Carolina":
+        URL = "https://www.milb.com/carolina-mudcats/roster"
+    elif mlbaffiliate.location == "Charlotte":
+        URL = "https://www.milb.com/charlotte-knights/roster"
     else:
         URL = "https://www.milb.com/" + mlbaffiliate.location.replace(" ", "-").lower() + "/roster"
     print(URL)
@@ -36,21 +41,22 @@ for location in locations:
                 if a:
                     a = a[0]
                     name = a.text.strip().split(' ')
-                    link = a['href']
-                    URL = link
-                    page = requests.get(URL)
-                    soup = BeautifulSoup(page.text, 'html5lib') 
-                    div = soup.find_all('div', class_="player-header--vitals")
-                    if div:
-                        li = div[0].ul.li.text
-                        position = Position.objects.filter(position=li).first()
-                    else:
-                        break
-                    last_name = name[len(name)-1]
-                    if last_name == "Jr." or last_name == "Sr.":
-                        last_name = name[len(name)-2] + " " + name[len(name)-1]
-                    p = Player.objects.filter(last_name=last_name, first_name=name[0], mlbaffiliate=mlbaffiliate, number=number).first()
+                    last_name = ""
+                    for i in range(1, len(name)):
+                        last_name += name[i] + " "
+                    last_name = last_name.strip()  
+                    p = Player.objects.filter(last_name=last_name, first_name=name[0], mlbaffiliate=mlbaffiliate).first()
                     if not p:
+                        link = a['href']
+                        URL = link
+                        page = requests.get(URL)
+                        soup = BeautifulSoup(page.text, 'html5lib') 
+                        div = soup.find_all('div', class_="player-header--vitals")
+                        if div:
+                            li = div[0].ul.li.text
+                            position = Position.objects.filter(position=li).first()
+                        else:
+                            break
                         t = Transaction()
                         t.save()
                         p = Player(last_name=last_name, first_name=name[0], mlbaffiliate=mlbaffiliate, position=position, number=number, bb_ref=link, transaction=t)

@@ -3,58 +3,91 @@
     <!--form>
         Sort By:
         <select>
-            <option>Recent</option>
-            <option>Approval</option>
-            <option>Comments</option>
-        </select>
-    </form-->
+    <option>Recent</option>
+    <option>Approval</option>
+    <option>Comments</option>
+</select>
+</form-->
 
 {% if level %}
-	<h1 style="text-align:center;">{{ level.level }}</h1>
+<h1 style="text-align:center;">{{ level.level }}</h1>
 {% endif %}
-{# if position #}
-    <!--h1>{#position.position#}</h1>
+<div class="row">
+<div class="r col-sm-2" id="sidebar"><div style="max-width:150px;">
+		<h6>Transaction Types</h6>
+		<ul class="navbar-nav">
+		{% if fas %}
+		<li class="nav-item">
+			<a class="nav-link" href="#fas">Free Agents</a>
+		</li>
+		{% endif %}
+		<li class="nav-item">
+			<a class="nav-link" href="#callups">Callups</a>
+
+		</li>
+		<li class="nav-item">
+	<a class="nav-link" href="#options">Send Downs</a>
+		</li>
+		<li class="nav-item">
+
+	<a class="nav-link" href="#dfas">DFAs</a>
+		</li>
+		<li class="nav-item">
+
+	<a class="nav-link" href="#trades">Trades</a>
+		</li>
+	<li class="nav-item">
+
+	<a class="nav-link" href="#injured_list">Injured List</a>
+		</li>
+		<li class="nav-item">
+
+	<a class="nav-link" href="#fa_signings">FA Signings</a>
+		</li>
+		<!--li>
+
+	<a href="#draft_signings">Draft Signings</a>
+		</li-->
+		
+		<li class="nav-item">
+
+	<a  class="nav-link" href="#personal_leave">Personal Leave</a>
+		</li>
+		<li class="nav-item">
+
+	<a class="nav-link" href="#rehab">Rehab Assignment</a>
+		</li>
+{% if players %}
+		<li class="nav-item">
+			<a href="#roster" class="nav-link">Roster</a>
+		</li>
+			{% endif %}
+			
+	</ul>
+	</div>
+	</div>
     <div class="row">
-        <div class="r col">
-        <h2>Non-FA</h2>
-            {% for non_fa in non_fas %}
-                <li class="something" id="transaction_{{non_fa.transaction.tid}}">
-                    {% if request.user.is_authenticated %}
-                    <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{non_fa.votes}}</div>
-                    <div class="arrows">
-                        <form id="transaction_upvote_{{ non_fa.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
-                            {% csrf_token %}
-                            <input type="hidden" name="tid" value="{{ non_fa.transaction.tid }}">
-                        </form>
-                        <form id="transaction_downvote_{{ non_fa.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
-                           {% csrf_token %}
-                            <input type="hidden" name="tid" value="{{ non_fa.transaction.tid }}">
-                        </form>
-                        <div class="up" onclick="ajax_submit_upvote('{{ non_fa.transaction.tid }}')"></div>
-                        <div class="down" onclick="ajax_submit_downvote('{{ non_fa.transaction.tid }}')"></div>
-                    </div>
-                    {% endif %}
-                    <a href="{{non_fa.bb_ref}}" target=_blank>{{ non_fa.first_name }} {{non_fa.last_name }}</a> 
-                    - {{ non_fa.mlbaffiliate.location }} {{ non_fa.mlbaffiliate.name }}
-                    <a href="{% url 'transaction' non_fa.transaction.tid %}">&#129193;</a> 
-                </li>
-            {% endfor %}
-        </div>
-    </div-->
-{# endif #}
-    <div class="row">
+
+    <div class="col-sm-2"></div>
     {% if fas %}
-        <div class="r col-sm-4">
-            <h1>Free Agents</h1>
+        <div class="r col-sm-2">
+		<div id="fas">
+            <h1>FAs</h1>
             <ul id="ul_fa">
                 {% include 'da_wire/transaction_type/fa.html' %}
             </ul>
-            {% if request.resolver_match.view_name == 'index' %}
-            <form action="{% url 'pick_page' %}" method="POST" id="fa_form">
-                <input id="fa_index" type="hidden" name="index" value="1" />
+            <form {% if request.resolver_match.view_name == 'index' %} 
+			action="{% url 'pick_page' %}"
+			{%else %}
+			action="{% url 'pick_page_team' %}"
+			{%endif%} method="POST" id="fa_form">
+            {% if request.resolver_match.view_name == 'team' %}
+			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
+			{% endif %}    
+	
+		    <input id="fa_index" type="hidden" name="index" value="1" />
                 <input id="fa_transaction_type" name="transaction_type" type="hidden" value="fa" />
                 {% csrf_token %}
-                <hr>
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm">
                         <li class="page-item active" aria-current="page" id="fa_1">
@@ -68,20 +101,26 @@
                     </ul>
                 </nav>
             </form>
-            {% endif %}
         </div>
+	</div>
     {% endif %}
-   
-    <div class="r col-sm-4"> <h1>Callups</h1>
+	{% if callups %}   
+    <div class="r col-sm-4"><div id="callups"> <h1>Callups</h1>
     <ul id="ul_callup">
         {% include 'da_wire/transaction_type/callup.html' %}
     </ul>
-    {% if request.resolver_match.view_name == 'index' %}
-    <form action="{% url 'pick_page' %}" method="POST" id="callup_form">
-                <input id="callup_index" type="hidden" name="index" value="1" />
+    <form {% if request.resolver_match.view_name == 'index' %} 
+			action="{% url 'pick_page' %}"
+			{%else %}
+			action="{% url 'pick_page_team' %}"
+			{%endif%}  method="POST" id="callup_form">
+            {% if request.resolver_match.view_name == 'team' %}
+			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
+			{% endif %}    
+	
+	    <input id="callup_index" type="hidden" name="index" value="1" />
                 <input id="callup_transaction_type" name="transaction_type" type="hidden" value="callup" />
                 {% csrf_token %}
-                <hr>
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm">
                         <li class="page-item active" aria-current="page" id="callup_1">
@@ -95,20 +134,31 @@
                     </ul>
                 </nav>
             </form>
-            {% endif %}
     </div>
-    
-    
-     <div class="r {% if players %} col-sm-8 {% else %} col-sm-4 {% endif %}"><h1>Options</h1>
-    <ul id="ul_option">
-         {% include 'da_wire/transaction_type/option.html' %}
-    </ul>
-    {% if request.resolver_match.view_name == 'index' %}
-    <form action="{% url 'pick_page' %}" method="POST" id="option_form">
-                <input id="option_index" type="hidden" name="index" value="1" />
+    {% endif %}
+    </div>
+   
+	{% if options %}
+    <div class="r {% if players %} col-sm-6 {% else %} col-sm-4 {% endif %}">
+	    <div id="options">
+		<h1>Send Downs</h1>
+    		<ul id="ul_option">
+         		{% include 'da_wire/transaction_type/option.html' %}
+    		</ul>
+    		<form 
+		{% if request.resolver_match.view_name == 'index' %} 
+			action="{% url 'pick_page' %}"
+			{%else %}
+			action="{% url 'pick_page_team' %}"
+			{%endif%}
+			method="POST" id="option_form">
+            {% if request.resolver_match.view_name == 'team' %}
+			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
+			{% endif %}    
+	
+			<input id="option_index" type="hidden" name="index" value="1" />
                 <input id="option_transaction_type" name="transaction_type" type="hidden" value="option" />
                 {% csrf_token %}
-                <hr>
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm">
                         <li class="page-item active" aria-current="page" id="option_1">
@@ -122,22 +172,30 @@
                     </ul>
                 </nav>
             </form>
-            {% endif %}
     </div>
-
+    </div>
+    {% endif %}
     </div>
     <div class="row">
-    
-     <div class="r col-sm-4"><h1>DFA'd</h1>
-            <ul id="ul_dfa">
-                {% include 'da_wire/transaction_type/dfa.html' %}
-            </ul>
-            {% if request.resolver_match.view_name == 'index' %}
-            <form action="{% url 'pick_page' %}" method="POST" id="dfa_form">
-                <input id="dfa_index" type="hidden" name="index" value="1" />
+	    <div class="col-sm-2"></div>
+    	{% if dfas %}
+	    <div class="r col-sm-4">
+		    <div id="dfas"><h1>DFA'd</h1>
+            		<ul id="ul_dfa">
+                		{% include 'da_wire/transaction_type/dfa.html' %}
+            		</ul>
+            <form {% if request.resolver_match.view_name == 'index' %} 
+			action="{% url 'pick_page' %}"
+			{%else %}
+			action="{% url 'pick_page_team' %}"
+			{%endif%} method="POST" id="dfa_form">
+            {% if request.resolver_match.view_name == 'team' %}
+			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
+			{% endif %}    
+	
+		    <input id="dfa_index" type="hidden" name="index" value="1" />
                 <input id="dfa_transaction_type" name="transaction_type" type="hidden" value="dfa" />
                 {% csrf_token %}
-                <hr>
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm">
                         <li class="page-item active" aria-current="page" id="dfa_1">
@@ -151,23 +209,31 @@
                     </ul>
                 </nav>
             </form>
-            {% endif %}
-    </div>
+		    </div>
+	    </div>
     
-    <div class="r col-sm-4">
-    
+		    {% endif %}
+		    {% if trades %}
+    <div class="r col-sm-6">
+	    <div id="trades">
     <h1>Trades</h1>
     <ul id="ul_trade">
         {% include 'da_wire/transaction_type/trade.html' %}
     </ul>
-    {% if request.resolver_match.view_name == 'index' %}
-    <form action="{% url 'pick_page' %}" method="POST" id="trade_form">
-                <input id="trade_index" type="hidden" name="index" value="1" />
+    <form {% if request.resolver_match.view_name == 'index' %} 
+			action="{% url 'pick_page' %}"
+			{%else %}
+			action="{% url 'pick_page_team' %}"
+			{%endif%} method="POST" id="trade_form">
+            {% if request.resolver_match.view_name == 'team' %}
+			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
+			{% endif %}    
+	
+	    <input id="trade_index" type="hidden" name="index" value="1" />
                 <input id="trade_transaction_type" name="transaction_type" type="hidden" value="trade" />
                 <input id="trade_team" name="team" type="hidden" value="{{players.all.0.mlbaffiliate.name}}" />
                 <input id="trade_level" name="level" type="hidden" value="{{players.all.0.mlbaffiliate.level.level}}" />
                 {% csrf_token %}
-                <hr>
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm">
                         <li class="page-item active" aria-current="page" id="trade_1">
@@ -181,20 +247,30 @@
                     </ul>
                 </nav>
             </form>
-            {% endif %}
     </div>
-    
-    
-     <div class="r col-sm-4"><h1>Injured List</h1>
+    </div> 
+    {% endif %}
+    </div>
+    {% if injured_list %} 
+    <div class="row">
+
+	    <div class="col-sm-2"></div>
+    <div class="r col-sm-10"><div id="injured_list"><h1>Injured List</h1>
         <ul id="ul_injured">
         {% include 'da_wire/transaction_type/injured.html' %}
     </ul>
-    {% if request.resolver_match.view_name == 'index' %}
-    <form action="{% url 'pick_page' %}" method="POST" id="injured_form">
-                <input id="injured_index" type="hidden" name="index" value="1" />
+    <form {% if request.resolver_match.view_name == 'index' %} 
+			action="{% url 'pick_page' %}"
+			{%else %}
+			action="{% url 'pick_page_team' %}"
+			{%endif%} method="POST" id="injured_form">
+            {% if request.resolver_match.view_name == 'team' %}
+			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
+			{% endif %}    
+	
+	    <input id="injured_index" type="hidden" name="index" value="1" />
                 <input id="injured_transaction_type" name="transaction_type" type="hidden" value="injured" />
                 {% csrf_token %}
-                <hr>
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm">
                         <li class="page-item active" aria-current="page" id="injured_1">
@@ -208,50 +284,32 @@
                     </ul>
                 </nav>
             </form>
-            {% endif %}
     </div>
     </div>
-    <div class="row">
-	    {% if draft_signings %}
-    <div class="r col-sm-6">
-    <h1>Draft Signings</h1>
-    <ul id="ul_draft_signing">
-        {% include 'da_wire/transaction_type/draft_signing.html' %}
-    </ul>
-    {% if request.resolver_match.view_name == 'index' %}
-    <form action="{% url 'pick_page' %}" method="POST" id="draft_signing_form">
-                <input id="draft_signing_index" type="hidden" name="index" value="1" />
-                <input id="draft_signing_transaction_type" name="transaction_type" type="hidden" value="draft_signing" />
-                {% csrf_token %}
-                <hr>
-                <nav aria-label="...">
-                    <ul class="pagination pagination-sm">
-                        <li class="page-item active" aria-current="page" id="draft_signing_1">
-                          <span class="page-link" onclick="pick_page('1', 'draft_signing');">1</span>
-                        </li>
-                    {% for i in draft_signings.range %}
-                        <li class="page-item" id="draft_signing_{{i}}">
-                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'draft_signing');">{{i}}</span>
-                        </li>
-                    {% endfor %}
-                    </ul>
-                </nav>
-            </form>
-            {% endif %}
-    </div>
+  	</div>
     {% endif %}
+  
     {% if fa_signings %}
-    <div class="r col-sm-6">
-    <h1>FA Signings</h1>
+    <div class="row">
+
+	    <div class="col-sm-2"></div>
+    <div class="r col-sm-10">
+	    <div id="fa_signings">
+	    <h1>FA Signings</h1>
     <ul id="ul_fa_signing">
         {% include 'da_wire/transaction_type/fa_signing.html' %}
     </ul>
-    {% if request.resolver_match.view_name == 'index' %}
-    <form action="{% url 'pick_page' %}" method="POST" id="fa_signing_form">
-                <input id="fa_signing_index" type="hidden" name="index" value="1" />
+    <form {% if request.resolver_match.view_name == 'index' %} 
+			action="{% url 'pick_page' %}"
+			{%else %}
+			action="{% url 'pick_page_team' %}"
+			{%endif%} method="POST" id="fa_signing_form">
+            {% if request.resolver_match.view_name == 'team' %}
+			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
+			{% endif %}    
+	    <input id="fa_signing_index" type="hidden" name="index" value="1" />
                 <input id="fa_signing_transaction_type" name="transaction_type" type="hidden" value="fa_signing" />
                 {% csrf_token %}
-                <hr>
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm">
                         <li class="page-item active" aria-current="page" id="fa_signing_1">
@@ -265,23 +323,32 @@
                     </ul>
                 </nav>
             </form>
-            {% endif %}
     </div>
+    </div>
+    </div>
+    {%endif %}
 
-    {% endif %}
-    </div>
+	    {% if personal_leave %}
     <div class="row">
-    <div class="r col-sm-6">
-    <h1>Personal Leave</h1>
+
+	    <div class="col-sm-2"></div>
+    <div class="r col-sm-10">
+	    <div id="personal_leave">
+	    <h1>Personal Leave</h1>
     <ul id="ul_personal_leave">
         {% include 'da_wire/transaction_type/personal_leave.html' %}
     </ul>
-    {% if request.resolver_match.view_name == 'index' %}
-    <form action="{% url 'pick_page' %}" method="POST" id="personal_leave_form">
-                <input id="personal_leave_index" type="hidden" name="index" value="1" />
+    <form {% if request.resolver_match.view_name == 'index' %} 
+			action="{% url 'pick_page' %}"
+			{%else %}
+			action="{% url 'pick_page_team' %}"
+			{%endif%} method="POST" id="personal_leave_form">
+                {% if request.resolver_match.view_name == 'team' %}
+			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
+			{% endif %}
+	    	<input id="personal_leave_index" type="hidden" name="index" value="1" />
                 <input id="personal_leave_transaction_type" name="transaction_type" type="hidden" value="personal_leave" />
                 {% csrf_token %}
-                <hr>
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm">
                         <li class="page-item active" aria-current="page" id="personal_leave_1">
@@ -295,19 +362,32 @@
                     </ul>
                 </nav>
             </form>
-    {% endif %}
     </div>
-    <div class="r col-sm-6">
-    <h1>Rehab Assignment</h1>
+    </div>
+    </div>
+    
+    {% endif %}
+    {% if rehab_assignment %}
+    <div class="row">
+
+	    <div class="col-sm-2"></div>
+    <div class="r col-sm-10">
+	    <div id="rehab">
+	    <h1>Rehab Assignment</h1>
     <ul id="ul_rehab">
         {% include 'da_wire/transaction_type/rehab_assignment.html' %}
     </ul>
-    {% if request.resolver_match.view_name == 'index' %}
-    <form action="{% url 'pick_page' %}" method="POST" id="rehab_form">
-                <input id="rehab_index" type="hidden" name="index" value="1" />
+    <form {% if request.resolver_match.view_name == 'index' %} 
+			action="{% url 'pick_page' %}"
+			{%else %}
+			action="{% url 'pick_page_team' %}"
+			{%endif%} method="POST" id="rehab_form">
+          	{% if request.resolver_match.view_name == 'team' %}
+			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
+			{% endif %}
+	    	<input id="rehab_index" type="hidden" name="index" value="1" />
                 <input id="rehab_transaction_type" name="transaction_type" type="hidden" value="rehab" />
                 {% csrf_token %}
-                <hr>
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm">
                         <li class="page-item active" aria-current="page" id="rehab_1">
@@ -321,8 +401,8 @@
                     </ul>
                 </nav>
             </form>
-            {% endif %}
     </div>
     </div>
-    
+    </div>
+    {% endif %}
     </div>

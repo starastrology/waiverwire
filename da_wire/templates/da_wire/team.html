@@ -1,8 +1,13 @@
+
+{% load da_wire_extras %}
 <html lang="en">
 <head>
-    <title>Waiver Wire</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
+    <title>{{ mlbaff.location }} {{ mlbaff.name }}</title>
+    <meta name="description" content="Your favorite team's page of transactions.">
+    <meta name="keywords" content="Reds, Yankees, Red Sox, MLB, baseball, major league, minor leagues, majors, minors, transactions, trades, options, free agents, players, waivers, signings, signing">
+    <meta name="author" content="Dan Frecka">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     {% load static %}
     <link rel="shortcut icon" href="{% static 'da_wire/favicon.ico' %}"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
@@ -29,17 +34,24 @@
             background-color: var(--primary);
             color: var(--ternary);
         }
+
+	.r>div:hover{
+		cursor: pointer;
+		background-color: #eee;
+	}
         .r {
-            height: 340px;
-            overflow-y: scroll;
-            padding: 10px;
-        }
-        .container {
-            display: table;
-            border-collapse:collapse
-        }
-	.container{
-            margin-bottom: 80px;
+            padding: 4px;
+	}
+	.r > div{
+  	    margin: 2px;	   
+  	    padding: 14px;
+	    background-color: white;
+            display: table-cell;
+            border: 1px dashed var(--secondary);
+	    {% if "FFFFFF" in primary %}
+	        background-color: var(--ternary);
+            {% endif %}
+            color: var(--primary);
         }
         .col {
             display:table-row;
@@ -49,27 +61,6 @@
         }
         b{
             color: var(--secondary);
-        }
-        .r {
-            background-color: white;
-            display: table-cell;
-            border: 1px dashed var(--secondary);
-            -webkit-box-sizing: border-box;
-            -moz-box-sizing: border-box;
-            box-sizing: border-box;
-	    {% if "FFFFFF" in primary %}
-	        background-color: var(--ternary);
-            {% endif %}
-            color: var(--primary);
-        }
-        .r::-webkit-scrollbar {
-            display: none;
-        }
-
-        /* Hide scrollbar for IE, Edge and Firefox */
-        .r {
-          -ms-overflow-style: none;  /* IE and Edge */
-          scrollbar-width: none;  /* Firefox */
         }
         .up{
             background-image: url("{% static 'da_wire/up.png' %}");
@@ -104,6 +95,22 @@
         .page-item{
             cursor: pointer;
         }
+	#sidebar{
+		position: fixed;
+	}
+	
+	#sidebar ul{
+		font-size: 14px;
+		padding-bottom: 10px;
+	}
+	#sidebar .nav-item{
+		height:20px;
+	}
+	@media(max-width:900px){
+         	#sidebar{
+			display: none;
+		}
+	}
     </style>
     
     <script
@@ -170,22 +177,48 @@
             }
     </script>
     {% endif %}
+	<script>
+        function pick_page(index, transaction_type){
+            form = $('#' + transaction_type + '_form');
+            form.find('#' + transaction_type + '_index').val(index);
+            $.ajax({
+                    type: "POST",
+                    url: "{% url 'pick_page_team' %}",
+                    data: form.serialize(),
+                    success : function(data) {
+                         $('#ul_' + transaction_type).html(data);
+                         form.find('.active').removeClass('active');
+                         form.find('#' + transaction_type + '_' +index).addClass('active');
+                     }
+                });
+        }
+    </script>
+
 </head>
 <body>
     {% include 'da_wire/header.html' %}
-    <div class="container">
+    
+    <div class="container"><div class="row"><div class="col-sm-2"></div><div class="col-sm-10"><div style="text-align: center;">
     {% for mlbaffiliate in mlbaffiliates %}
         {% if mlbaffiliate == mlbaff %} <b>{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</b> {% else %}
-        <a href="{% url 'team' mlbaffiliate.level.level mlbaffiliate.name %}">{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</a>
+	<a href="{% url 'team' mlbaffiliate.location|replace_forward_slash mlbaffiliate.name %}">{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</a>
         {% endif %}  {% if forloop.counter != mlbaffiliates|length %} > {% endif %}
     {% endfor %}
-    <h1>
+	    </div>
+		    </div>
+	    </div>
+    <h1 style="text-align:center;">
 	    <img src="{% static 'da_wire/'|add:mlbaff.logo %}" style="width:150px;"> {{ mlbaff.location }} {{ mlbaff.name }}
        </h1>
     
+    
+    </div>
+    {% include 'da_wire/container.html' %}
+  <div class="container">
     <div class="row">
-    <div class="r col-sm-12">
-    <h2>Roster</h2>
+	    <div class="col-sm-2"></div>
+    <div class="r col-sm-10">
+	    <div id="roster"><h2>Roster</h2>
     <ul>
 	    <div class="row">
     {% for player in players %}
@@ -209,14 +242,14 @@
 
              	<a href="{% url 'transaction' player.transaction.tid %}">&#8618;</a>
 		<div class="display">
-			<b>{{player.position }}</b> <a href="{% url 'transaction' player.transaction.tid %}">{{ player.first_name }} {{ player.last_name }}</a> <i>#{{player.number}}</i>
-    		<hr>
+			<b>{{player.position }}</b> <a href="{% url 'transaction' player.transaction.tid %}">{{ player.first_name }} {{ player.last_name }}</a> {% if player.number %}<i>#{{player.number}}</i>{% endif %}
 		</div>
 	</li>
     </div>
     
     {% endfor %}
     </div>
+	    </div>
 {% if request.user.is_authenticated %}
 <script>
           $(document).ready(function(){
@@ -233,8 +266,8 @@
 {% endif %}
     </ul>
          </div>
-    </div>
-    {% include 'da_wire/container.html' %}
+    </div>  
+  </div>
     {% include 'da_wire/footer.html' %}
 </body>
 </html>
