@@ -40,7 +40,6 @@ def add_player_to_db(player, URL, mlbaffiliate):
     p.save() 
     return p
 
-
 import requests
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup 
@@ -48,9 +47,9 @@ locations = MLBAffiliate.objects.filter(level__level="MLB")
 for location in locations:
     mlbaffiliate = location
     if mlbaffiliate.name=="Diamondbacks":
-        URL = "https://www.mlb.com/dbacks/roster/transactions/2021/09"
+        URL = "https://www.mlb.com/dbacks/roster/transactions/2021/10"
     else:
-        URL = "https://www.mlb.com/" + mlbaffiliate.name.replace(" ", "-").lower() + "/roster/transactions/2021/09"
+        URL = "https://www.mlb.com/" + mlbaffiliate.name.replace(" ", "-").lower() + "/roster/transactions/2021/10"
     print(URL)
     page = requests.get(URL)
     soup = BeautifulSoup(page.text, 'html5lib') 
@@ -65,7 +64,10 @@ for location in locations:
                 past = datetime.strptime(date, "%m/%d/%y")
                 present = datetime.today() - timedelta(days=35)
                 if past.date() >= present.date():
-                    info = tds[1].text.split(" ")
+                    td = tds[1].text
+                    #td = td.replace("Player To Be Named Later", "")
+                    #td = td.replace("Future Considerations", "")
+                    info = td.split(" ")
                     # get team
                     team = ""
                     verb = ""
@@ -77,18 +79,19 @@ for location in locations:
                     team_to = ""
                     team_from = ""
                     days = ""
+                    cash = True
                     if "designated" in info:
                         for i in info:
                             if bln and i[0].isupper():
                                 team += i + " "
-                            elif pos_bool and i[0].isupper():
-                                pos = i
-                                pos_bool = False
-                            elif i[0].isupper():
-                                player += i + " "
                             elif bln:
                                 bln = False
                                 verb = i
+                            elif pos_bool and i[0].isupper():
+                                pos = i
+                                pos_bool = False
+                            elif i[0].isupper() or i != "for" or i != "assignment.":
+                                player += i + " "
                         if verb == "designated":
                             team = team.strip()
                             player = player.strip()
@@ -121,21 +124,25 @@ for location in locations:
                         for i in info:
                             if bln and i[0].isupper():
                                 team += i + " "
+                            elif bln:
+                                bln = False
+                                verb = i
                             elif pos_bool and i[0].isupper():
                                 pos = i
                                 pos_bool = False
                             elif i == "to":
                                 name_bln = False
-                            elif name_bln and i[0].isupper():
+                            elif name_bln and (i[0].isupper() or (i != "to" or i !="outright")):
                                 player += i + " "
                             elif not name_bln and i[0].isupper():
                                 team_to += i + " "
-                            elif bln:
-                                bln = False
-                                verb = i
+                            
                         if verb == "sent" or verb == "optioned":
                             team = team.strip()
-                            player = tds[1].find_all('a')[0].text
+                            if tds[1].find_all('a'):
+                                player = tds[1].find_all('a')[0].text
+                            else:
+                                continue
                             team_to = team_to.strip()
                             team_to = team_to[0:len(team_to)-1]
                             team = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
@@ -167,18 +174,19 @@ for location in locations:
                         for i in info:
                             if bln and i[0].isupper():
                                 team += i + " "
+                            elif bln:
+                                bln = False
+                                verb = i
                             elif pos_bool and i[0].isupper():
                                 pos = i
                                 pos_bool = False
                             elif i == "from":
                                 name_bln = False
-                            elif name_bln and i[0].isupper():
+                            elif name_bln and (i[0].isupper() or i != "from"):
                                 player += i + " "
                             elif not name_bln and i[0].isupper():
                                 team_from += i + " "
-                            elif bln:
-                                bln = False
-                                verb = i
+                            
                         if verb == "recalled" or verb == "selected":
                             team = team.strip()
                             player = tds[1].find_all('a')[0].text
@@ -210,14 +218,15 @@ for location in locations:
                         for i in info:
                             if bln and i[0].isupper():
                                 team += i + " "
-                            elif pos_bool and i[0].isupper():
-                                pos = i
-                                pos_bool = False
-                            elif i[0].isupper():
-                                player += i + " "
                             elif bln:
                                 bln = False
                                 verb = i
+                            elif pos_bool and i[0].isupper():
+                                pos = i
+                                pos_bool = False
+                            elif i[0].isupper() or i != "off" or i != "waivers" or i != "from":
+                                player += i + " "
+                            
                         if verb == "claimed" or verb=="signed":
                             print("Signing", team, player)
                             team = team.strip()
@@ -247,17 +256,18 @@ for location in locations:
                         for i in info:
                             if bln and i[0].isupper():
                                 team += i + " "
+                            elif bln:
+                                bln = False
+                                verb = i
                             elif pos_bool and i[0].isupper():
                                 pos = i
                                 pos_bool = False
-                            elif i[0].isupper():
+                            elif (i[0].isupper() or i !="on" or i != "the") and not i[0].isnumeric():
                                 player += i + " "
                             elif i[0].isnumeric():
                                 days = i.split("-")
                                 days = days[0]
-                            elif bln:
-                                bln = False
-                                verb = i
+                            
                         if verb == "placed":
                             team = team.strip()
                             player = player.strip()
@@ -286,14 +296,15 @@ for location in locations:
                         for i in info:
                             if bln and i[0].isupper():
                                 team += i + " "
+                            elif bln:
+                                bln = False
+                                verb = i
                             elif pos_bool and i[0].isupper():
                                 pos = i
                                 pos_bool = False
                             elif i[0].isupper():
                                 player += i + " "
-                            elif bln:
-                                bln = False
-                                verb = i
+                            
                         if verb == "placed":
                             team = team.strip()
                             player = player.strip()
@@ -322,18 +333,19 @@ for location in locations:
                         for i in info:
                             if bln and i[0].isupper():
                                 team += i + " "
+                            elif bln:
+                                bln = False
+                                verb = i
                             elif pos_bool and i[0].isupper():
                                 pos = i
                                 pos_bool = False
                             elif i == "to":
                                 name_bln = False
-                            elif name_bln and i[0].isupper():
+                            elif name_bln and (i[0].isupper() or i != "on" or i !="a" or i !="rehab" or i !="assignment" or i != "to"):
                                 player += i + " "
                             elif not name_bln and i[0].isupper():
                                 team_to += i + " "
-                            elif bln:
-                                bln = False
-                                verb = i
+                            
                         if verb == "sent":
                             team = team.strip()
                             player = tds[1].find_all('a')[0].text
@@ -362,3 +374,72 @@ for location in locations:
                                     player.mlbaffiliate = team_to
                                     player.save()
                                     print("Processing rehab assignment", player, team)
+                    """
+                    if "traded" in info:
+                        if not info[0][0].isupper():
+                            continue
+                        else:
+                            if "cash" in info or "cash." in info or ("Named" in info and "Player" in info) or ("Future" in info and "Considerations" in info) or "for" not in info:
+                                # one way trade (no player return) 
+                                for i in info:
+                                    if bln and i[0].isupper():
+                                        team += i + " "
+                                    elif pos_bool and i[0].isupper():
+                                        pos = i
+                                        temp = Position.objects.filter(position=pos).first()
+                                        if temp:
+                                            pos_bool = False
+                                        else:
+                                            team_to += i + " "
+                                            pos = ""
+                                    elif cash and i == "to":
+                                        name_bln = False
+                                    elif name_bln and i[0].isupper():
+                                        player += i + " "
+                                    elif i == "for":
+                                        name_bln = True
+                                    elif not name_bln and i[0].isupper():
+                                        team_to += i + " "
+                                    elif bln and team != "":
+                                        bln = False
+                                        verb = i
+                                    elif not bln and (i == "cash" or i=="Later"):
+                                        cash = False
+                                        name_bln = False 
+                                if player == "Player To Be Named Later" or player == "":
+                                    bln=True
+                                    name_bln=True
+                                    pos_bln=True
+                                    team_to = ""
+                                    team = ""
+                                    player = ""
+                                    for i in info:
+                                        if bln and i[0].isupper():
+                                            team += i + " "
+                                        elif pos_bool and i[0].isupper():
+                                            pos = i
+                                            pos_bool = False
+                                        elif cash and i == "to":
+                                            name_bln = False
+                                        elif name_bln and (i == "cash" or i == "Player"):
+                                            cash = False
+                                            name_bln = False
+                                        elif name_bln and i[0].isupper():
+                                            player += i + " "
+                                        elif i == "for":
+                                            name_bln = True
+                                        elif cash and not name_bln and i[0].isupper():
+                                            team_to += i + " "
+                                        elif bln and team != "":
+                                            bln = False
+                                            verb = i
+                                team_to = team_to.strip()
+                                player= player.strip()
+                                if player != "" and player[len(player)-1] == ".":
+                                    player = player[0:len(player)-1]
+                                if team_to != "" and team_to[len(team_to)-1] == ".":
+                                    team_to = team_to[0:len(team_to)-1]
+
+                                print("Team:", team, "Team_to:", team_to, "Player:", player)
+
+                    """

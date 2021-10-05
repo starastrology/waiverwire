@@ -1,5 +1,4 @@
 {% load da_wire_extras %}
-<div class="container">
     <!--form>
         Sort By:
         <select>
@@ -66,6 +65,7 @@
 	</ul>
 	</div>
 	</div>
+</div>
     <div class="row">
 
     <div class="col-sm-2"></div>
@@ -135,11 +135,11 @@
                 </nav>
             </form>
     </div>
-    {% endif %}
     </div>
    
+    {% endif %}
 	{% if options %}
-    <div class="r {% if players %} col-sm-6 {% else %} col-sm-4 {% endif %}">
+    <div class="r {% if players %} col-lg-6 {% else %} col-sm-4 {% endif %}">
 	    <div id="options">
 		<h1>Send Downs</h1>
     		<ul id="ul_option">
@@ -179,7 +179,7 @@
     <div class="row">
 	    <div class="col-sm-2"></div>
     	{% if dfas %}
-	    <div class="r col-sm-4">
+	    <div class="r col-lg-10">
 		    <div id="dfas"><h1>DFA'd</h1>
             		<ul id="ul_dfa">
                 		{% include 'da_wire/transaction_type/dfa.html' %}
@@ -213,8 +213,11 @@
 	    </div>
     
 		    {% endif %}
+    </div>
+    <div class="row">
+	    <div class="col-sm-2"></div>
 		    {% if trades %}
-    <div class="r col-sm-6">
+    <div class="r col-lg-10">
 	    <div id="trades">
     <h1>Trades</h1>
     <ul id="ul_trade">
@@ -405,4 +408,3 @@
     </div>
     </div>
     {% endif %}
-    </div>

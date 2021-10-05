@@ -83,8 +83,10 @@
 	#sidebar .nav-item{
 		height:20px;
 	}
-
-	@media(max-width:800px){
+	.pagination{
+		overflow: hidden;
+	}
+	@media(max-width:990px){
          	#sidebar{
 			display: none;
 		}
@@ -173,8 +175,9 @@
 </head>
 <body>
     {% include 'da_wire/header.html' %}
-	<h1 style="text-align:center;">Waiver Wire</h1>
+    <div class="container"><h1 style="text-align:center;">Waiver Wire</h1>
     {% include 'da_wire/container.html' %}
+    </div>
     {% include 'da_wire/footer.html' %}
 </body>
 </html>
