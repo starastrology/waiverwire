@@ -21,7 +21,7 @@
 		<div class="display">
 			<b>{{option.date }}</b> - <a href="{% url 'transaction' option.player.transaction.tid %}">{{option.player.first_name }} {{ option.player.last_name }}</a>
         {% get_affiliate option.to_level.level option.mlbteam as team_to %}
-        to {{team_to.location }} {{team_to.name }} ({{ option.to_level.level }}) from {{ option.from_level.level }} 
+	to <b style="color: {{team_to.colors.all.0}}; text-shadow: 1px 1px {{team_to.colors.all.1}};">{{team_to.location }} {{team_to.name }}</b> ({{ option.to_level.level }}) from {{ option.from_level.level }} 
         {% get_affiliate option.from_level.level option.mlbteam as team %}
         <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{ team.location }}</a>
 		</div>

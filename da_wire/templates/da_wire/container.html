@@ -11,6 +11,7 @@
 {% if level %}
 <h1 style="text-align:center;">{{ level.level }}</h1>
 {% endif %}
+{% if request.resolver_match.view_name != "transaction" %}
 <div class="row">
 <div class="r col-sm-2" id="sidebar"><div style="max-width:150px;">
 		<h6>Transaction Types</h6>
@@ -66,13 +67,14 @@
 	</div>
 	</div>
 </div>
+{% endif %}
     <div class="row">
 
     <div class="col-sm-2"></div>
     {% if fas %}
         <div class="r col-sm-2">
 		<div id="fas">
-            <h1>FAs</h1>
+			<h1 style="display:inline;">FAs</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_trades' mlbaff.location mlbaff.name %}{%else%}{% url 'fas' %}{%endif%}">view all</a></small>
             <ul id="ul_fa">
                 {% include 'da_wire/transaction_type/fa.html' %}
             </ul>
@@ -105,10 +107,12 @@
 	</div>
     {% endif %}
 	{% if callups %}   
-    <div class="r col-sm-4"><div id="callups"> <h1>Callups</h1>
-    <ul id="ul_callup">
+	<div class="r col-sm-4"><div id="callups"> <h1 style="display:inline;">Callups</h1> {% if request.resolver_match.view_name != 'transaction' %} <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_callups' mlbaff.location mlbaff.name %}{%else%}{% url 'callups' %}{%endif%}">view all</a></small>{%endif%}
+     <ul id="ul_callup">
         {% include 'da_wire/transaction_type/callup.html' %}
     </ul>
+    
+	{% if request.resolver_match.view_name != "transaction" %}
     <form {% if request.resolver_match.view_name == 'index' %} 
 			action="{% url 'pick_page' %}"
 			{%else %}
@@ -134,6 +138,7 @@
                     </ul>
                 </nav>
             </form>
+	    {% endif %}
     </div>
     </div>
    
@@ -141,10 +146,14 @@
 	{% if options %}
     <div class="r {% if players %} col-lg-6 {% else %} col-sm-4 {% endif %}">
 	    <div id="options">
-		<h1>Send Downs</h1>
+		<h1 style="display:inline;">Send Downs</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_options' mlbaff.location mlbaff.name %}{%else%}{% url 'options' %}{%endif%}">view all</a></small>
+  
+
     		<ul id="ul_option">
          		{% include 'da_wire/transaction_type/option.html' %}
     		</ul>
+
+	{% if request.resolver_match.view_name != "transaction" %}
     		<form 
 		{% if request.resolver_match.view_name == 'index' %} 
 			action="{% url 'pick_page' %}"
@@ -172,6 +181,7 @@
                     </ul>
                 </nav>
             </form>
+	    {% endif %}
     </div>
     </div>
     {% endif %}
@@ -180,10 +190,13 @@
 	    <div class="col-sm-2"></div>
     	{% if dfas %}
 	    <div class="r col-lg-10">
-		    <div id="dfas"><h1>DFA'd</h1>
+		    <div id="dfas"><h1 style="display:inline;">DFA'd</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_dfas' mlbaff.location mlbaff.name %}{%else%}{% url 'dfas' %}{%endif%}">view all</a></small>
+  
             		<ul id="ul_dfa">
                 		{% include 'da_wire/transaction_type/dfa.html' %}
             		</ul>
+
+	{% if request.resolver_match.view_name != "transaction" %}
             <form {% if request.resolver_match.view_name == 'index' %} 
 			action="{% url 'pick_page' %}"
 			{%else %}
@@ -209,6 +222,7 @@
                     </ul>
                 </nav>
             </form>
+	    {% endif %}
 		    </div>
 	    </div>
     
@@ -219,10 +233,12 @@
 		    {% if trades %}
     <div class="r col-lg-10">
 	    <div id="trades">
-    <h1>Trades</h1>
+		    <h1 style="display:inline;">Trades</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_trades' mlbaff.location mlbaff.name %}{%else%}{% url 'trades' %}{%endif%}">view all</a></small>
     <ul id="ul_trade">
         {% include 'da_wire/transaction_type/trade.html' %}
     </ul>
+
+	{% if request.resolver_match.view_name != "transaction" %}
     <form {% if request.resolver_match.view_name == 'index' %} 
 			action="{% url 'pick_page' %}"
 			{%else %}
@@ -250,6 +266,7 @@
                     </ul>
                 </nav>
             </form>
+	    {% endif %}
     </div>
     </div> 
     {% endif %}
@@ -258,10 +275,13 @@
     <div class="row">
 
 	    <div class="col-sm-2"></div>
-    <div class="r col-sm-10"><div id="injured_list"><h1>Injured List</h1>
+    <div class="r col-sm-10"><div id="injured_list"><h1 style="display:inline;">Injured List</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_il' mlbaff.location mlbaff.name %}{%else%}{% url 'il' %}{%endif%}">view all</a></small>
+  
         <ul id="ul_injured">
         {% include 'da_wire/transaction_type/injured.html' %}
     </ul>
+
+	{% if request.resolver_match.view_name != "transaction" %}
     <form {% if request.resolver_match.view_name == 'index' %} 
 			action="{% url 'pick_page' %}"
 			{%else %}
@@ -287,6 +307,7 @@
                     </ul>
                 </nav>
             </form>
+	    {% endif %}
     </div>
     </div>
   	</div>
@@ -298,10 +319,13 @@
 	    <div class="col-sm-2"></div>
     <div class="r col-sm-10">
 	    <div id="fa_signings">
-	    <h1>FA Signings</h1>
+		    <h1 style="display:inline;">FA Signings</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_fa_signings' mlbaff.location mlbaff.name %}{%else%}{% url 'fa_signings' %}{%endif%}">view all</a></small>
+  
     <ul id="ul_fa_signing">
         {% include 'da_wire/transaction_type/fa_signing.html' %}
     </ul>
+
+	{% if request.resolver_match.view_name != "transaction" %}
     <form {% if request.resolver_match.view_name == 'index' %} 
 			action="{% url 'pick_page' %}"
 			{%else %}
@@ -326,6 +350,7 @@
                     </ul>
                 </nav>
             </form>
+	    {% endif %}
     </div>
     </div>
     </div>
@@ -337,10 +362,13 @@
 	    <div class="col-sm-2"></div>
     <div class="r col-sm-10">
 	    <div id="personal_leave">
-	    <h1>Personal Leave</h1>
+	    <h1 style="display:inline;">Personal Leave</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_personal_leave' mlbaff.location mlbaff.name %}{%else%}{% url 'personal_leave' %}{%endif%}">view all</a></small>
+  
     <ul id="ul_personal_leave">
         {% include 'da_wire/transaction_type/personal_leave.html' %}
     </ul>
+
+	{% if request.resolver_match.view_name != "transaction" %}
     <form {% if request.resolver_match.view_name == 'index' %} 
 			action="{% url 'pick_page' %}"
 			{%else %}
@@ -365,6 +393,7 @@
                     </ul>
                 </nav>
             </form>
+	    {% endif %}
     </div>
     </div>
     </div>
@@ -376,10 +405,13 @@
 	    <div class="col-sm-2"></div>
     <div class="r col-sm-10">
 	    <div id="rehab">
-	    <h1>Rehab Assignment</h1>
+		    <h1 style="display:inline;">Rehab Assignment</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_rehab' mlbaff.location mlbaff.name %}{%else%}{% url 'rehab' %}{%endif%}">view all</a></small>
+  
     <ul id="ul_rehab">
         {% include 'da_wire/transaction_type/rehab_assignment.html' %}
     </ul>
+
+	{% if request.resolver_match.view_name != "transaction" %}
     <form {% if request.resolver_match.view_name == 'index' %} 
 			action="{% url 'pick_page' %}"
 			{%else %}
@@ -404,6 +436,7 @@
                     </ul>
                 </nav>
             </form>
+	    {% endif %}
     </div>
     </div>
     </div>

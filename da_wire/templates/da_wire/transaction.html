@@ -2,28 +2,28 @@
 <html lang="en">
 <head>
 	<title>
-		{% if callup %} 
-			{{callup.date }} - {{ callup.player }} called up 
-		{% elif option %}
-			{{option.date }} - {{option.player }} sent down
+		{% if callup_transaction %} 
+			{{callup_transaction.date }} - {{ callup_transaction.player }} called up 
+		{% elif option_transaction %}
+			{{option_transaction.date }} - {{option_transaction.player }} sent down
 		{% elif fa %}
 			Free Agent - {{ fa.first_name }} {{ fa.last_name }}
 		{% elif non_fa %}
 			#{{non_fa.number}} {{non_fa}}
-		{% elif rehab_assignment %}
-			{{ rehab_assignment.date }} - {{ rehab_assignment.player }} sent on rehab assignment
-		{% elif fa_signing %}
-			{{ fa_signing.date }} - {{fa_signing.player}} signed to {{fa_signing.team_to}}
-		{% elif draft_signing %}
-			{{ draft_signing.date }} - {{draft_signing}} signed to {{draft_signing.team_to}}
-		{% elif dfa %}
-			{{ dfa.date }} - {{dfa.player}} designated for assignment
-		{% elif injury %}
-			{{ injury.date }} - {{injury.player}} to {{injury.length}}-day IL
-		{% elif personal_leave %}
-			{{ personal_leave.date }} - {{ personal_leave.player }} on personal leave
-		{% elif trade %}
-		{{ trade.date }} - Trade involving {% for players in trade.players.all %}{% for player in players.players.all %}{{player}} {%endfor %}{%endfor%}
+		{% elif rehab_assignment_transaction %}
+			{{ rehab_assignment_transaction.date }} - {{ rehab_assignment_transaction.player }} sent on rehab assignment
+		{% elif fa_signing_transaction %}
+			{{ fa_signing_transaction.date }} - {{fa_signing_transaction.player}} signed to {{fa_signing_transaction.team_to}}
+		{% elif draft_signing_transaction %}
+			{{ draft_signing_transaction.date }} - {{draft_signing_transaction}} signed to {{draft_signing_transaction.team_to}}
+		{% elif dfa_transaction %}
+			{{ dfa_transaction.date }} - {{dfa_transaction.player}} designated for assignment
+		{% elif injury_transaction %}
+			{{ injury_transaction.date }} - {{injury_transaction.player}} to {{injury_transaction.length}}-day IL
+		{% elif personal_leave_transaction %}
+			{{ personal_leave_transaction.date }} - {{ personal_leave_transaction.player }} on personal leave
+		{% elif trade_transaction %}
+		{{ trade_transaction.date }} - Trade involving {% for players in trade_transaction.players.all %}{% for player in players.players.all %}{{player}} {%endfor %}{%endfor%}
 		{% endif %}
 
 	</title>
@@ -118,7 +118,6 @@
         }
         li.something{
             list-style-type: none;
-            height: 50px;
         }
         .comments .comment{
             border: 3px dashed white;
@@ -189,7 +188,7 @@
               {% endfor %}
           });
       
-          function ajax_submit_upvote(){
+          function ajax_submit_upvote_main(){
               form = $('#transaction_upvote');
                   $.ajax({
                     type: "POST",
@@ -213,7 +212,7 @@
                 });
             }
             
-            function ajax_submit_downvote(){
+            function ajax_submit_downvote_main(){
               form = $('#transaction_downvote');
                   $.ajax({
                     type: "POST",
@@ -284,6 +283,63 @@
                      }
                 });
             }
+
+	      let cookie = document.cookie
+              let csrfToken = cookie.substring(cookie.indexOf('=') + 1)
+              function ajax_submit_upvote(id){
+              form = $('#transaction_upvote_'+id);
+                  $.ajax({
+                    type: "POST",
+                    url: "{% url 'transaction_upvote' %}", 
+                    data: form.serialize(),
+                    headers: {
+                       'X-CSRFToken': csrfToken
+                    },
+                    success : function(data) {
+                         if (data === "upvote"){
+                             $("#transaction_" + id + " .up").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+1).toString())
+                         }
+                         else if(data === "undo"){
+                             $("#transaction_" + id + " .up").removeClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-1).toString())
+                         }
+                         else{
+                             $("#transaction_" + id + " .down").removeClass('upvoted');
+                             $("#transaction_" + id + " .up").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+2).toString())
+                         }
+                     }
+                });
+            }
+            
+            function ajax_submit_downvote(id){
+              form = $('#transaction_downvote_'+id);
+                  $.ajax({
+                    type: "POST",
+                    url: "{% url 'transaction_downvote' %}", 
+                    data: form.serialize(),
+                    headers: {
+                       'X-CSRFToken': csrfToken
+                    },
+                    success : function(data) {
+                         if (data === "downvote"){
+                             $("#transaction_" + id + " .down").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-1).toString())
+                         }
+                         else if(data === "undo"){
+                             $("#transaction_" + id + " .down").removeClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+1).toString())
+                         }
+                         else{
+                             $("#transaction_" + id + " .up").removeClass('upvoted');
+                             $("#transaction_" + id + " .down").addClass('upvoted');
+ 			     $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-2).toString())
+                         }
+                     }
+                });
+            }
+
       </script>
       {% endif %}
 </head>
@@ -291,7 +347,7 @@
 {% include 'da_wire/header.html' %}
 <div class="container">
 {% if fa %}
-    <h1>{{ fa.first_name }} {{ fa.last_name }} (Free Agent)</h1>
+<h1>{{ fa.first_name }} {{ fa.last_name }} <i>(FA)</i></h1>
     <div id="main">
         <div style="display:inline;" class="count">{{ votes }}</div>
         <div class="arrows">
@@ -303,8 +359,8 @@
                 {% csrf_token %}
                 <input type="hidden" name="tid" value="{{ fa.transaction.tid }}">
             </form>
-            <div class="up" onclick="ajax_submit_upvote()"></div>
-            <div class="down" onclick="ajax_submit_downvote()"></div>
+            <div class="up" onclick="ajax_submit_upvote_main()"></div>
+            <div class="down" onclick="ajax_submit_downvote_main()"></div>
         </div>
         <div>
             <h5>{{fa.position}}</h5>
@@ -323,8 +379,8 @@
                 {% csrf_token %}
                 <input type="hidden" name="tid" value="{{ non_fa.transaction.tid }}">
             </form>
-            <div class="up" onclick="ajax_submit_upvote()"></div>
-            <div class="down" onclick="ajax_submit_downvote()"></div>
+            <div class="up" onclick="ajax_submit_upvote_main()"></div>
+            <div class="down" onclick="ajax_submit_downvote_main()"></div>
         </div>
         <div class="display">
 
@@ -335,189 +391,189 @@
             	<a style="display:inline;" href="{{ non_fa.bb_ref }}" target=_blank>More info</a> </h3>
         </div>
     </div>
-{% elif dfa %}
+{% elif dfa_transaction %}
     <h1>{{type}}</h1>
     <div id="main">
         <div style="display:inline;" class="count">{{ votes }}</div>
         <div class="arrows">
             <form id="transaction_upvote" action="{% url 'transaction_upvote' %}" method="POST">
                 {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ dfa.transaction.tid }}">
+                <input type="hidden" name="tid" value="{{ dfa_transaction.transaction.tid }}">
             </form>
             <form id="transaction_downvote" action="{% url 'transaction_downvote' %}" method="POST">
                 {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ dfa.transaction.tid }}">
+                <input type="hidden" name="tid" value="{{ dfa_transaction.transaction.tid }}">
             </form>
-            <div class="up" onclick="ajax_submit_upvote()"></div>
-            <div class="down" onclick="ajax_submit_downvote()"></div>
+            <div class="up" onclick="ajax_submit_upvote_main()"></div>
+            <div class="down" onclick="ajax_submit_downvote_main()"></div>
         </div>
         <div>
-		<h4>{{ dfa.player.first_name }} {{ dfa.player.last_name }} DFA'd by <a href="{% url 'team' dfa.team_by.location|replace_forward_slash dfa.team_by.name %}">{{dfa.team_by}}</a> on <b>{{ dfa.date }}</b></h4>
+		<h4>{{ dfa_transaction.player.first_name }} {{ dfa_transaction.player.last_name }} DFA'd by <a href="{% url 'team' dfa_transaction.team_by.location|replace_forward_slash dfa_transaction.team_by.name %}">{{dfa_transaction.team_by}}</a> on <b>{{ dfa_transaction.date }}</b></h4>
 	    <div class="content">
-		    {% if dfa.player.number %} <h5>Number: #{{dfa.player.number}} </h5> {% endif %}
-            <h5>Position: {{dfa.player.position}}</h5>
-            <a href="{{ dfa.player.bb_ref }}" target=_blank>more info</a>
+		    {% if dfa_transaction.player.number %} <h5>Number: #{{dfa_transaction.player.number}} </h5> {% endif %}
+            <h5>Position: {{dfa_transaction.player.position}}</h5>
+            <a href="{{ dfa_transaction.player.bb_ref }}" target=_blank>more info</a>
 	    </a>
 	   </div>
     </div>
     </div>
-{% elif callup %}
+{% elif callup_transaction %}
     <h1>{{type}}</h1>
     <div id="main">
         <div style="display:inline;" class="count">{{ votes }}</div>
         <div class="arrows">
             <form id="transaction_upvote" action="{% url 'transaction_upvote' %}" method="POST">
                 {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ callup.transaction.tid }}">
+                <input type="hidden" name="tid" value="{{ callup_transaction.transaction.tid }}">
             </form>
             <form id="transaction_downvote" action="{% url 'transaction_downvote' %}" method="POST">
                 {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ callup.transaction.tid }}">
+                <input type="hidden" name="tid" value="{{ callup_transaction.transaction.tid }}">
             </form>
-            <div class="up" onclick="ajax_submit_upvote()"></div>
-            <div class="down" onclick="ajax_submit_downvote()"></div>
+            <div class="up" onclick="ajax_submit_upvote_main()"></div>
+            <div class="down" onclick="ajax_submit_downvote_main()"></div>
         </div>
         <div>
-<b>{{callup.date }}</b> - <a href="{% url 'transaction' callup.player.transaction.tid %}">{{callup.player.first_name }} {{ callup.player.last_name }}</a> 
-        {% get_affiliate callup.to_level.level callup.mlbteam as team_to %}
+<b>{{callup_transaction.date }}</b> - <a href="{% url 'transaction' callup_transaction.player.transaction.tid %}">{{callup_transaction.player.first_name }} {{ callup_transaction.player.last_name }}</a> 
+        {% get_affiliate callup_transaction.to_level.level callup_transaction.mlbteam as team_to %}
         to {{team_to.location }} {{team_to.name }} from 
-        {% get_affiliate callup.from_level.level callup.mlbteam as team %}
-        <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{callup.from_level.level }} {{ team.location }}</a>
+        {% get_affiliate callup_transaction.from_level.level callup_transaction.mlbteam as team %}
+        <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{callup_transaction.from_level.level }} {{ team.location }}</a>
 		
-	<h4>{{ callup.player.first_name }} {{ callup.player.last_name }} called up from {{callup.from_level}} to {{ callup.to_level }}</h4>
-	    <h5 style="display:inline;"><b>{{callup.player.position}}</b></h5>
-            <a style="display:inline;" href="{{ callup.player.bb_ref }}" target=_blank>More info</a>
+	<h4>{{ callup_transaction.player.first_name }} {{ callup_transaction.player.last_name }} called up from {{callup_transaction.from_level}} to {{ callup_transaction.to_level }}</h4>
+	    <h5 style="display:inline;"><b>{{callup_transaction.player.position}}</b></h5>
+            <a style="display:inline;" href="{{ callup_transaction.player.bb_ref }}" target=_blank>More info</a>
         </div>
     </div>
 
-{% elif option %}
+{% elif option_transaction %}
     <h1>{{type}}</h1>
     <div id="main">
         <div style="display:inline;" class="count">{{ votes }}</div>
         <div class="arrows">
             <form id="transaction_upvote" action="{% url 'transaction_upvote' %}" method="POST">
                 {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ option.transaction.tid }}">
+                <input type="hidden" name="tid" value="{{ option_transaction.transaction.tid }}">
             </form>
             <form id="transaction_downvote" action="{% url 'transaction_downvote' %}" method="POST">
                 {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ option.transaction.tid }}">
+                <input type="hidden" name="tid" value="{{ option_transaction.transaction.tid }}">
             </form>
-            <div class="up" onclick="ajax_submit_upvote()"></div>
-            <div class="down" onclick="ajax_submit_downvote()"></div>
+            <div class="up" onclick="ajax_submit_upvote_main()"></div>
+            <div class="down" onclick="ajax_submit_downvote_main()"></div>
         </div>
         <div class="display">
-		<b>{{option.date }}</b> - <a href="{% url 'transaction' option.player.transaction.tid %}">{{option.player.first_name }} {{ option.player.last_name }}</a>
-        {% get_affiliate option.to_level.level option.mlbteam as team_to %}
-        to {{team_to.location }} {{team_to.name }} ({{ option.to_level.level }}) from {{ option.from_level.level }} 
-        {% get_affiliate option.from_level.level option.mlbteam as team %}
+		<b>{{option_transaction.date }}</b> - <a href="{% url 'transaction' option_transaction.player.transaction.tid %}">{{option_transaction.player.first_name }} {{ option_transaction.player.last_name }}</a>
+        {% get_affiliate option_transaction.to_level.level option_transaction.mlbteam as team_to %}
+        to {{team_to.location }} {{team_to.name }} ({{ option_transaction.to_level.level }}) from {{ option_transaction.from_level.level }} 
+        {% get_affiliate option_transaction.from_level.level option_transaction.mlbteam as team %}
         <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{ team.location }}</a>
 		
 	
-            <h4>{{ option.player.first_name }} {{ option.player.last_name }} optioned by {{option.from_level}} to {{ option.to_level }}</h4>
-	    {% if option.player.number %}<h5>#{{option.player.number}} </h5>{% endif %}
-            <h5>{{option.player.position}}</h5>
-            <a href="{{ option.player.bb_ref }}" target=_blank>More info</a>
+            <h4>{{ option_transaction.player.first_name }} {{ option_transaction.player.last_name }} optioned by {{option_transaction.from_level}} to {{ option_transaction.to_level }}</h4>
+	    {% if option_transaction.player.number %}<h5>#{{option_transaction.player.number}} </h5>{% endif %}
+            <h5>{{option_transaction.player.position}}</h5>
+            <a href="{{ option_transaction.player.bb_ref }}" target=_blank>More info</a>
         </div>
     </div>
-{% elif rehab_assignment %}
+{% elif rehab_assignment_transaction %}
     <h1>{{type}}</h1>
     <div id="main">
         <div style="display:inline;" class="count">{{ votes }}</div>
         <div class="arrows">
             <form id="transaction_upvote" action="{% url 'transaction_upvote' %}" method="POST">
                 {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ rehab_assignment.transaction.tid }}">
+                <input type="hidden" name="tid" value="{{ rehab_assignment_transaction.transaction.tid }}">
             </form>
             <form id="transaction_downvote" action="{% url 'transaction_downvote' %}" method="POST">
                 {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ rehab_assignment.transaction.tid }}">
+                <input type="hidden" name="tid" value="{{ rehab_assignment_transaction.transaction.tid }}">
             </form>
-            <div class="up" onclick="ajax_submit_upvote()"></div>
-            <div class="down" onclick="ajax_submit_downvote()"></div>
+            <div class="up" onclick="ajax_submit_upvote_main()"></div>
+            <div class="down" onclick="ajax_submit_downvote_main()"></div>
         </div>
         <div>
-		<h4><a href="{% url 'transaction' rehab_assignment.player.transaction.tid %}">{{ rehab_assignment.player.first_name }} {{ rehab_assignment.player.last_name }}</a> assigned to {{rehab_assignment.to_level}} from {{ rehab_assignment.from_level }} for rehab</h4>
-		{% if rehab_assignment.player.number %} <h5>#{{rehab_assignment.player.number}} </h5> {% endif %}
-            <h5>{{rehab_assignment.player.position}}</h5>
-            <a href="{{ rehab_assignment.player.bb_ref }}" target=_blank>More info</a>
+		<h4><a href="{% url 'transaction' rehab_assignment_transaction.player.transaction.tid %}">{{ rehab_assignment_transaction.player.first_name }} {{ rehab_assignment_transaction.player.last_name }}</a> assigned to {{rehab_assignment_transaction.to_level}} from {{ rehab_assignment_transaction.from_level }} for rehab</h4>
+		{% if rehab_assignment_transaction.player.number %} <h5>#{{rehab_assignment_transaction.player.number}} </h5> {% endif %}
+            <h5>{{rehab_assignment_transaction.player.position}}</h5>
+            <a href="{{ rehab_assignment_transaction.player.bb_ref }}" target=_blank>More info</a>
         </div>
     </div>  
-{% elif trade %}
+{% elif trade_transaction %}
     <h1>{{type}}</h1>
     <div id="main">
         <div style="display:inline;" class="count">{{ votes }}</div>
         <div class="arrows">
             <form id="transaction_upvote" action="{% url 'transaction_upvote' %}" method="POST">
                 {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ trade.transaction.tid }}">
+                <input type="hidden" name="tid" value="{{ trade_transaction.transaction.tid }}">
             </form>
             <form id="transaction_downvote" action="{% url 'transaction_downvote' %}" method="POST">
                 {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ trade.transaction.tid }}">
+                <input type="hidden" name="tid" value="{{ trade_transaction.transaction.tid }}">
             </form>
-            <div class="up" onclick="ajax_submit_upvote()"></div>
-            <div class="down" onclick="ajax_submit_downvote()"></div>
+            <div class="up" onclick="ajax_submit_upvote_main()"></div>
+            <div class="down" onclick="ajax_submit_downvote_main()"></div>
         </div>
         <div class="display">
-		<b>{{ trade.date }}</b>
-			{% for players in trade.players.all %}{% with forloop.counter as cntr %} {% for player in players.players.all %} 
+		<b>{{ trade_transaction.date }}</b>
+			{% for players in trade_transaction.players.all %}{% with forloop.counter as cntr %} {% for player in players.players.all %} 
 			<div><a href="{% url 'transaction' player.transaction.tid %}">{{player.first_name}} {{player.last_name}}</a>
-	to {{players.team_to.mlbteam.name}} (from <a href="{% url 'team' players.team_from.location|replace_forward_slash players.team_from.name %}">{{players.team_from.mlbteam.name}}</a>){% if cntr != trade.players.all|length %} 
+	to {{players.team_to.mlbteam.name}} (from <a href="{% url 'team' players.team_from.location|replace_forward_slash players.team_from.name %}">{{players.team_from.mlbteam.name}}</a>){% if cntr != trade_transaction.players.all|length %} 
 	{% endif %}</div> {% endfor %}{% endwith %} 
         {% endfor %}
 
         </div>
     </div>
-{% elif injury %}
+{% elif injury_transaction %}
     <h1>{{type}}</h1>
     <div id="main">
         <div style="display:inline;" class="count">{{ votes }}</div>
         <div class="arrows">
             <form id="transaction_upvote" action="{% url 'transaction_upvote' %}" method="POST">
                 {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ injury.transaction.tid }}">
+                <input type="hidden" name="tid" value="{{ injury_transaction.transaction.tid }}">
             </form>
             <form id="transaction_downvote" action="{% url 'transaction_downvote' %}" method="POST">
                 {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ injury.transaction.tid }}">
+                <input type="hidden" name="tid" value="{{ injury_transaction.transaction.tid }}">
             </form>
-            <div class="up" onclick="ajax_submit_upvote()"></div>
-            <div class="down" onclick="ajax_submit_downvote()"></div>
+            <div class="up" onclick="ajax_submit_upvote_main()"></div>
+            <div class="down" onclick="ajax_submit_downvote_main()"></div>
         </div>
         <div>
-		<h2> {{injury.length}}-day IL</h2>
-		<h3><b>{{injury.date}}</b></h3>
-		<h4><a href="{% url 'transaction' injury.player.transaction.tid %}">{{injury.player.first_name}} {{injury.player.last_name}}</a> of the <a href="{% url 'team' injury.team_for.location|replace_forward_slash injury.team_for.name %}">{{ injury.team_for }}</a>
+		<h2> {{injury_transaction.length}}-day IL</h2>
+		<h3><b>{{injury_transaction.date}}</b></h3>
+		<h4><a href="{% url 'transaction' injury_transaction.player.transaction.tid %}">{{injury_transaction.player.first_name}} {{injury_transaction.player.last_name}}</a> of the <a href="{% url 'team' injury_transaction.team_for.location|replace_forward_slash injury_transaction.team_for.name %}">{{ injury_transaction.team_for }}</a>
 		</h4>
-			<a href="{{ injury.player.bb_ref }}">More info about player</a>
+			<a href="{{ injury_transaction.player.bb_ref }}">More info about player</a>
 		
 	</div>
     </div> 
-{% elif fa_signing %}
+{% elif fa_signing_transaction %}
     <h1>{{type}}</h1>
     <div id="main">
         <div style="display:inline;" class="count">{{ votes }}</div>
         <div class="arrows">
             <form id="transaction_upvote" action="{% url 'transaction_upvote' %}" method="POST">
                 {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ fa_signing.transaction.tid }}">
+                <input type="hidden" name="tid" value="{{ fa_signing_transaction.transaction.tid }}">
             </form>
             <form id="transaction_downvote" action="{% url 'transaction_downvote' %}" method="POST">
                 {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ fa_signing.transaction.tid }}">
+                <input type="hidden" name="tid" value="{{ fa_signing_transaction.transaction.tid }}">
             </form>
-            <div class="up" onclick="ajax_submit_upvote()"></div>
-            <div class="down" onclick="ajax_submit_downvote()"></div>
+            <div class="up" onclick="ajax_submit_upvote_main()"></div>
+            <div class="down" onclick="ajax_submit_downvote_main()"></div>
         </div>
         <div>
-		<h2>{{fa_signing.date}}</h2> 
-		<h3><a href="{% url 'transaction' fa_signing.player.transaction.tid %}">{{fa_signing.player.first_name}} {{fa_signing.player.last_name}}</a> to {{fa_signing.team_to.location}} {{fa_signing.team_to.name}}</h4>
+		<h2>{{fa_signing_transaction.date}}</h2> 
+		<h3><a href="{% url 'transaction' fa_signing_transaction.player.transaction.tid %}">{{fa_signing_transaction.player.first_name}} {{fa_signing_transaction.player.last_name}}</a> to {{fa_signing_transaction.team_to.location}} {{fa_signing_transaction.team_to.name}}</h4>
         	</h3>
 	</div>
     </div> 
-{% elif draft_signing %}
-    <h1>{{type}}</h1>
+{# elif draft_signing #}
+    <!--h1>{{type}}</h1>
     <div id="main">
         <div style="display:inline;" class="count">{{ votes }}</div>
         <div class="arrows">
@@ -535,29 +591,29 @@
         <div>
             <h4>{{draft_signing.date}} - <a href="{{draft_signing.player.bb_ref}}" target=_blank>{{draft_signing.player.first_name}} {{draft_signing.player.last_name}}</a> to {{draft_signing.team_to.location}} {{draft_signing.team_to.name}}</h4>
         </div>
-    </div> 
-{% elif personal_leave %}
+    </div--> 
+{% elif personal_leave_transaction %}
     <h1>{{type}}</h1>
     <div id="main">
         <div style="display:inline;" class="count">{{ votes }}</div>
         <div class="arrows">
             <form id="transaction_upvote" action="{% url 'transaction_upvote' %}" method="POST">
                 {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ personal_leave.transaction.tid }}">
+                <input type="hidden" name="tid" value="{{ personal_leave_transaction.transaction.tid }}">
             </form>
             <form id="transaction_downvote" action="{% url 'transaction_downvote' %}" method="POST">
                 {% csrf_token %}
-                <input type="hidden" name="tid" value="{{ personal_leave.transaction.tid }}">
+                <input type="hidden" name="tid" value="{{ personal_leave_transaction.transaction.tid }}">
             </form>
-            <div class="up" onclick="ajax_submit_upvote()"></div>
-            <div class="down" onclick="ajax_submit_downvote()"></div>
+            <div class="up" onclick="ajax_submit_upvote_main()"></div>
+            <div class="down" onclick="ajax_submit_downvote_main()"></div>
         </div>
         <div>
-            <h4>{{personal_leave.date}} - <a href="{{personal_leave.player.bb_ref}}">{{personal_leave.player.first_name}} {{personal_leave.player.last_name}}</a> for {{personal_leave.length}} days</h4>
+            <h4>{{personal_leave_transaction.date}} - <a href="{{personal_leave_transaction.player.bb_ref}}">{{personal_leave_transaction.player.first_name}} {{personal_leave_transaction.player.last_name}}</a> for {{personal_leave_transaction.length}} days</h4>
         </div>
     </div>              
 {% endif %}
-    
+{% include 'da_wire/container.html' %}
 
 {% include 'da_wire/comment.html' %}
 

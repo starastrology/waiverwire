@@ -109,6 +109,132 @@ def transaction(request, tid):
         
     fa = Player.objects.filter(transaction=transaction, is_FA=1).first()
     non_fa = Player.objects.filter(transaction=transaction, is_FA=0).first()
+    if non_fa:
+        callups = CallUp.objects.filter(player=non_fa).order_by('-date')
+        options = Option.objects.filter(player=non_fa, is_rehab_assignment=0).order_by('-date')
+        dfas = DFA.objects.filter(player=non_fa).order_by('-date')
+        fa_signings = FASignings.objects.filter(player=non_fa).order_by('-date')
+        injured_list = InjuredList.objects.filter(player=non_fa).order_by('-date')
+        personal_leave = PersonalLeave.objects.filter(player=non_fa).order_by('-date')
+        rehab_assignment = Option.objects.filter(player=non_fa, is_rehab_assignment=1).order_by('-date')
+        player_trade = PlayerTrade.objects.filter(players=non_fa) 
+        trades = Trade.objects.filter(players__in=player_trade).order_by('-date')
+    else:
+        callups = CallUp.objects.filter(player=fa).order_by('-date')
+        options = Option.objects.filter(player=fa, is_rehab_assignment=0).order_by('-date')
+        dfas = DFA.objects.filter(player=fa).order_by('-date')
+        fa_signings = FASignings.objects.filter(player=fa).order_by('-date')
+        injured_list = InjuredList.objects.filter(player=fa).order_by('-date')
+        personal_leave = PersonalLeave.objects.filter(player=fa).order_by('-date')
+        rehab_assignment = Option.objects.filter(player=fa, is_rehab_assignment=1).order_by('-date')
+        player_trade = PlayerTrade.objects.filter(players=fa) 
+        trades = Trade.objects.filter(players__in=player_trade).order_by('-date')
+
+    if request.user.is_authenticated:
+        for x in callups:
+            x.votes = TransactionVote.objects.filter(is_up=1, transaction=x.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=x.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=x.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    x.user_upvoted = 1
+                else:
+                    x.user_upvoted = -1
+            else:
+                x.user_upvoted = 0
+        for x in options:
+            x.votes = TransactionVote.objects.filter(is_up=1, transaction=x.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=x.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=x.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    x.user_upvoted = 1
+                else:
+                    x.user_upvoted = -1
+            else:
+                x.user_upvoted = 0
+        for x in dfas:
+            x.votes = TransactionVote.objects.filter(is_up=1, transaction=x.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=x.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=x.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    x.user_upvoted = 1
+                else:
+                    x.user_upvoted = -1
+            else:
+                x.user_upvoted = 0
+        for x in trades:
+            x.votes = TransactionVote.objects.filter(is_up=1, transaction=x.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=x.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=x.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    x.user_upvoted = 1
+                else:
+                    x.user_upvoted = -1
+            else:
+                x.user_upvoted = 0
+        for x in injured_list:
+            x.votes = TransactionVote.objects.filter(is_up=1, transaction=x.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=x.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=x.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    x.user_upvoted = 1
+                else:
+                    x.user_upvoted = -1
+            else:
+                x.user_upvoted = 0
+        """
+        for fa in draft_signings:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+        """
+        for x in fa_signings:
+            x.votes = TransactionVote.objects.filter(is_up=1, transaction=x.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=x.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=x.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    x.user_upvoted = 1
+                else:
+                    x.user_upvoted = -1
+            else:
+                x.user_upvoted = 0
+        for x in personal_leave:
+            x.votes = TransactionVote.objects.filter(is_up=1, transaction=x.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=x.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=x.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    x.user_upvoted = 1
+                else:
+                    x.user_upvoted = -1
+            else:
+                x.user_upvoted = 0
+        for x in rehab_assignment:
+            x.votes = TransactionVote.objects.filter(is_up=1, transaction=x.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=x.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=x.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    x.user_upvoted = 1
+                else:
+                    x.user_upvoted = -1
+            else:
+                x.user_upvoted = 0
+    
+    context['callups'] = callups
+    context['options'] = options
+    context['trades'] = trades
+    context['injured_list'] = injured_list
+    context['fa_signings'] = fa_signings
+    context['dfas'] = dfas
+    context['rehab_assignment'] = rehab_assignment
+    context['personal_leave'] = personal_leave
+
+
+
     dfa = DFA.objects.filter(transaction=transaction).first()
     option = Option.objects.filter(transaction=transaction).first()
     callup = CallUp.objects.filter(transaction=transaction).first()
@@ -124,40 +250,56 @@ def transaction(request, tid):
         context['non_fa'] = non_fa
     elif dfa:
         transaction_type = 'DFA'
-        context['dfa'] = dfa
+        context['dfa_transaction'] = dfa
     elif option:
         if option.is_rehab_assignment:
             transaction_type = 'Rehab Assignment'
-            context['rehab_assignment'] = option
+            context['rehab_assignment_transaction'] = option
         else:
             transaction_type = 'Option'
-            context['option'] =  option
+            context['option_transaction'] =  option
     elif callup:
         transaction_type = 'Call Up'
-        context['callup'] = callup
+        context['callup_transaction'] = callup
     elif trade:
         transaction_type = 'Trade'
-        context['trade'] = trade
+        context['trade_transaction'] = trade
     elif injury:
         transaction_type = 'Injury'
-        context['injury'] = injury
+        context['injury_transaction'] = injury
     elif fa_signing:
         if fa_signing.is_draftpick:
             transaction_type = 'Draft Signing'
-            context['draft_signing'] = fa_signing
+            context['draft_signing_transaction'] = fa_signing
         else:
             transaction_type = 'Free Agent Signing'
-            context['fa_signing'] = fa_signing
+            context['fa_signing_transaction'] = fa_signing
     
     elif personal_leave:
         transaction_type = 'Personal Leave'
-        context['personal_leave'] = personal_leave
+        context['personal_leave_transaction'] = personal_leave
     else:
         context = {}
     context['type'] = transaction_type
     if request.POST.get('comment'):
         context['too_long'] = request.POST['comment']
     return render(request, 'da_wire/transaction.html', context)
+ 
+def privacy(request):
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    context = {'teams': mlbteams}
+    return render(request, 'da_wire/privacy.html', context)
+def about(request):
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    context = {'teams': mlbteams}
+    return render(request, 'da_wire/about.html', context)
+def contact(request):
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    context = {'teams': mlbteams}
+    return render(request, 'da_wire/contact.html', context)
 
 def comment(request):
     comment = request.POST["comment"]
@@ -401,7 +543,19 @@ def pick_page_team(request):
         context['dfas'] = dfas
         html = render_to_string('da_wire/transaction_type/dfa.html', context)
     elif transaction_type == 'trade':
-        trades = Trade.objects.filter(Q(players__team_to=mlbaffiliate)|Q(players__team_from=mlbaffiliate)).distinct().order_by("-date")[lower_bound:upper_bound]
+        trades = Trade.objects.filter(Q(players__team_to=mlbaffiliate)|Q(players__team_from=mlbaffiliate)).order_by("-date", 'players__players')
+        from itertools import chain
+        ct1 = 0
+        while ct1 < len(trades):
+            ct2 = 0
+            while ct2 < len(trades):
+                if trades[ct1] == trades[ct2] and ct1 != ct2:
+                    trades = list(chain(trades[0:ct2], trades[ct2+1:]))
+                    ct1 -= 1
+                    break
+                ct2 += 1
+            ct1 += 1
+        trades = trades[lower_bound:upper_bound]
         if request.user.is_authenticated:
             for fa in trades:
                 fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
@@ -568,6 +722,7 @@ def index(request):
     fa_signings.range = range(2, upper)
     
     # Draft Signings
+    """
     draft_signings = FASignings.objects.filter(is_draftpick=1).order_by('-date')
     draft_signings_count = draft_signings.count()
     draft_signings = draft_signings[0:per_page]
@@ -575,7 +730,8 @@ def index(request):
     if upper > 10:
         upper = 11
     draft_signings.range = range(2, upper)
-    
+    """
+
     # Personal Leave
     personal_leave = PersonalLeave.objects.all().order_by('-date')
     personal_leave_count = personal_leave.count()
@@ -655,6 +811,7 @@ def index(request):
                     fa.user_upvoted = -1
             else:
                 fa.user_upvoted = 0
+        """
         for fa in draft_signings:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
             user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
@@ -665,6 +822,7 @@ def index(request):
                     fa.user_upvoted = -1
             else:
                 fa.user_upvoted = 0
+        """
         for fa in fa_signings:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
             user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
@@ -699,7 +857,7 @@ def index(request):
     context = {'teams': mlbteams, 'options': options, 'fas': fas, \
                'trades': trades, 'callups': callups, \
                    'injured_list': injured_list, 'fa_signings': fa_signings, \
-                       'draft_signings': draft_signings, 'dfas': dfas, \
+                        'dfas': dfas, \
                            'personal_leave': personal_leave, 'rehab_assignment': rehab_assignment}
     return render(request, 'da_wire/index.html', context)
 
@@ -791,7 +949,552 @@ def delete_account(request):
         from django.contrib.auth.models import User
         User.objects.filter(username=username).first().delete()
     return redirect(reverse('index'))
+
+def team_trades(request, location, name):
+    import urllib.parse
+    location = urllib.parse.unquote(location)
+    mlbaffiliate = MLBAffiliate.objects.filter(name=name, location=location).first()
+    colors = mlbaffiliate.colors
+    if colors.all().count() > 0:
+        primary = colors.all()[0]
+    else:
+        primary = ""
+    if colors.all().count() > 1:
+        secondary = colors.all()[1]
+    else:
+        secondary = ""
+    if colors.all().count() > 2:
+        ternary = colors.all()[2]
+    else:
+        ternary = ""
     
+
+    level_obj = mlbaffiliate.level
+    logo = mlbaffiliate.logo
+    mlbaffiliates = MLBAffiliate.objects.filter(mlbteam=mlbaffiliate.mlbteam).order_by("level")
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    trades = Trade.objects.filter(Q(players__team_to=mlbaffiliate)|Q(players__team_from=mlbaffiliate)).order_by("-date").distinct()
+    from itertools import chain
+    ct1 = 0
+    while ct1 < len(trades):
+        ct2 = 0
+        while ct2 < len(trades):
+            if trades[ct1] == trades[ct2] and ct1 != ct2:
+                trades = list(chain(trades[0:ct2], trades[ct2+1:]))
+                ct1 -= 1
+                break
+            ct2 += 1
+        ct1 += 1
+        
+    if request.user.is_authenticated:
+        for fa in trades:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'mlbaffiliates': mlbaffiliates, \
+               'teams': mlbteams,  \
+               'trades': trades, 'mlbaff': mlbaffiliate, \
+                'primary': primary, 'secondary': secondary, 'ternary': ternary, 'logo' : logo}
+    return render(request, 'da_wire/all/trades.html', context)
+
+
+def team_callups(request, location, name):
+    import urllib.parse
+    location = urllib.parse.unquote(location)
+    mlbaffiliate = MLBAffiliate.objects.filter(name=name, location=location).first()
+    colors = mlbaffiliate.colors
+    if colors.all().count() > 0:
+        primary = colors.all()[0]
+    else:
+        primary = ""
+    if colors.all().count() > 1:
+        secondary = colors.all()[1]
+    else:
+        secondary = ""
+    if colors.all().count() > 2:
+        ternary = colors.all()[2]
+    else:
+        ternary = ""
+    
+
+    level_obj = mlbaffiliate.level
+    logo = mlbaffiliate.logo
+    mlbaffiliates = MLBAffiliate.objects.filter(mlbteam=mlbaffiliate.mlbteam).order_by("level")
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    callups = CallUp.objects.filter(Q(mlbteam=mlbaffiliate.mlbteam, from_level=level_obj) \
+                                    |Q(mlbteam=mlbaffiliate.mlbteam, to_level=level_obj)).order_by("-date")
+ 
+    if request.user.is_authenticated:
+        for fa in callups:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'mlbaffiliates': mlbaffiliates, \
+               'teams': mlbteams,  \
+               'callups': callups, 'mlbaff': mlbaffiliate, \
+                'primary': primary, 'secondary': secondary, 'ternary': ternary, 'logo' : logo}
+    return render(request, 'da_wire/all/callups.html', context)
+
+
+def team_options(request, location, name):
+    import urllib.parse
+    location = urllib.parse.unquote(location)
+    mlbaffiliate = MLBAffiliate.objects.filter(name=name, location=location).first()
+    colors = mlbaffiliate.colors
+    if colors.all().count() > 0:
+        primary = colors.all()[0]
+    else:
+        primary = ""
+    if colors.all().count() > 1:
+        secondary = colors.all()[1]
+    else:
+        secondary = ""
+    if colors.all().count() > 2:
+        ternary = colors.all()[2]
+    else:
+        ternary = ""
+    
+
+    level_obj = mlbaffiliate.level
+    logo = mlbaffiliate.logo
+    mlbaffiliates = MLBAffiliate.objects.filter(mlbteam=mlbaffiliate.mlbteam).order_by("level")
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    options = Option.objects.filter(Q(mlbteam=mlbaffiliate.mlbteam, from_level=level_obj, is_rehab_assignment=0) \
+                                    |Q(mlbteam=mlbaffiliate.mlbteam, to_level=level_obj, is_rehab_assignment=0)).order_by("-date") 
+
+    if request.user.is_authenticated:
+        for fa in options:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'mlbaffiliates': mlbaffiliates, \
+               'teams': mlbteams,  \
+               'options': options, 'mlbaff': mlbaffiliate, \
+                'primary': primary, 'secondary': secondary, 'ternary': ternary, 'logo' : logo}
+    return render(request, 'da_wire/all/options.html', context)
+
+
+def team_dfas(request, location, name):
+    import urllib.parse
+    location = urllib.parse.unquote(location)
+    mlbaffiliate = MLBAffiliate.objects.filter(name=name, location=location).first()
+    colors = mlbaffiliate.colors
+    if colors.all().count() > 0:
+        primary = colors.all()[0]
+    else:
+        primary = ""
+    if colors.all().count() > 1:
+        secondary = colors.all()[1]
+    else:
+        secondary = ""
+    if colors.all().count() > 2:
+        ternary = colors.all()[2]
+    else:
+        ternary = ""
+    
+
+    level_obj = mlbaffiliate.level
+    logo = mlbaffiliate.logo
+    mlbaffiliates = MLBAffiliate.objects.filter(mlbteam=mlbaffiliate.mlbteam).order_by("level")
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    callups = CallUp.objects.filter(Q(mlbteam=mlbaffiliate.mlbteam, from_level=level_obj) \
+                                    |Q(mlbteam=mlbaffiliate.mlbteam, to_level=level_obj)).order_by("-date")
+    dfas = DFA.objects.filter(team_by=mlbaffiliate).order_by("-date") 
+
+    if request.user.is_authenticated:
+        for fa in dfas:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'mlbaffiliates': mlbaffiliates, \
+               'teams': mlbteams,  \
+               'dfas': dfas, 'mlbaff': mlbaffiliate, \
+                'primary': primary, 'secondary': secondary, 'ternary': ternary, 'logo' : logo}
+    return render(request, 'da_wire/all/dfas.html', context)
+
+def team_il(request, location, name):
+    import urllib.parse
+    location = urllib.parse.unquote(location)
+    mlbaffiliate = MLBAffiliate.objects.filter(name=name, location=location).first()
+    colors = mlbaffiliate.colors
+    if colors.all().count() > 0:
+        primary = colors.all()[0]
+    else:
+        primary = ""
+    if colors.all().count() > 1:
+        secondary = colors.all()[1]
+    else:
+        secondary = ""
+    if colors.all().count() > 2:
+        ternary = colors.all()[2]
+    else:
+        ternary = ""
+    
+
+    level_obj = mlbaffiliate.level
+    logo = mlbaffiliate.logo
+    mlbaffiliates = MLBAffiliate.objects.filter(mlbteam=mlbaffiliate.mlbteam).order_by("level")
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    injured_list = InjuredList.objects.filter(team_for=mlbaffiliate).order_by("-date") 
+
+    if request.user.is_authenticated:
+        for fa in injured_list:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'mlbaffiliates': mlbaffiliates, \
+               'teams': mlbteams,  \
+               'injured_list': injured_list, 'mlbaff': mlbaffiliate, \
+                'primary': primary, 'secondary': secondary, 'ternary': ternary, 'logo' : logo}
+    return render(request, 'da_wire/all/il.html', context)
+
+def team_fa_signings(request, location, name):
+    import urllib.parse
+    location = urllib.parse.unquote(location)
+    mlbaffiliate = MLBAffiliate.objects.filter(name=name, location=location).first()
+    colors = mlbaffiliate.colors
+    if colors.all().count() > 0:
+        primary = colors.all()[0]
+    else:
+        primary = ""
+    if colors.all().count() > 1:
+        secondary = colors.all()[1]
+    else:
+        secondary = ""
+    if colors.all().count() > 2:
+        ternary = colors.all()[2]
+    else:
+        ternary = ""
+    
+
+    level_obj = mlbaffiliate.level
+    logo = mlbaffiliate.logo
+    mlbaffiliates = MLBAffiliate.objects.filter(mlbteam=mlbaffiliate.mlbteam).order_by("level")
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    fa_signings = FASignings.objects.filter(team_to=mlbaffiliate, is_draftpick=0).order_by("-date") 
+
+    if request.user.is_authenticated:
+        for fa in fa_signings:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'mlbaffiliates': mlbaffiliates, \
+               'teams': mlbteams,  \
+               'fa_signings': fa_signings, 'mlbaff': mlbaffiliate, \
+                'primary': primary, 'secondary': secondary, 'ternary': ternary, 'logo' : logo}
+    return render(request, 'da_wire/all/fa_signings.html', context)
+
+def team_personal_leave(request, location, name):
+    import urllib.parse
+    location = urllib.parse.unquote(location)
+    mlbaffiliate = MLBAffiliate.objects.filter(name=name, location=location).first()
+    colors = mlbaffiliate.colors
+    if colors.all().count() > 0:
+        primary = colors.all()[0]
+    else:
+        primary = ""
+    if colors.all().count() > 1:
+        secondary = colors.all()[1]
+    else:
+        secondary = ""
+    if colors.all().count() > 2:
+        ternary = colors.all()[2]
+    else:
+        ternary = ""
+    
+
+    level_obj = mlbaffiliate.level
+    logo = mlbaffiliate.logo
+    mlbaffiliates = MLBAffiliate.objects.filter(mlbteam=mlbaffiliate.mlbteam).order_by("level")
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    personal_leave = PersonalLeave.objects.filter(team_for=mlbaffiliate).order_by("-date") 
+
+    if request.user.is_authenticated:
+        for fa in personal_leave:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'mlbaffiliates': mlbaffiliates, \
+               'teams': mlbteams,  \
+               'personal_leave': personal_leave, 'mlbaff': mlbaffiliate, \
+                'primary': primary, 'secondary': secondary, 'ternary': ternary, 'logo' : logo}
+    return render(request, 'da_wire/all/personal_leave.html', context)
+
+def team_rehab(request, location, name):
+    import urllib.parse
+    location = urllib.parse.unquote(location)
+    mlbaffiliate = MLBAffiliate.objects.filter(name=name, location=location).first()
+    colors = mlbaffiliate.colors
+    if colors.all().count() > 0:
+        primary = colors.all()[0]
+    else:
+        primary = ""
+    if colors.all().count() > 1:
+        secondary = colors.all()[1]
+    else:
+        secondary = ""
+    if colors.all().count() > 2:
+        ternary = colors.all()[2]
+    else:
+        ternary = ""
+    
+
+    level_obj = mlbaffiliate.level
+    logo = mlbaffiliate.logo
+    mlbaffiliates = MLBAffiliate.objects.filter(mlbteam=mlbaffiliate.mlbteam).order_by("level")
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    rehab_assignment = Option.objects.filter(Q(from_level=level_obj, mlbteam=mlbaffiliate.mlbteam, \
+                                is_rehab_assignment=1)|Q(to_level=level_obj, \
+                                mlbteam=mlbaffiliate.mlbteam, is_rehab_assignment=1)).order_by("-date")
+    
+    if request.user.is_authenticated:
+        for fa in rehab_assignment:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'mlbaffiliates': mlbaffiliates, \
+               'teams': mlbteams,  \
+               'rehab_assignment': rehab_assignment, 'mlbaff': mlbaffiliate, \
+                'primary': primary, 'secondary': secondary, 'ternary': ternary, 'logo' : logo}
+    return render(request, 'da_wire/all/rehab.html', context)
+
+
+def fas(request):
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    fas = Player.objects.filter(is_FA=1).order_by("last_name")
+
+    if request.user.is_authenticated:
+        for fa in fas:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'teams': mlbteams, 'fas': fas }
+    return render(request, 'da_wire/all/fas.html', context)
+
+def callups(request):
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    callups = CallUp.objects.all().order_by('-date')
+
+    if request.user.is_authenticated:
+        for fa in callups:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'teams': mlbteams, 'callups': callups }
+    return render(request, 'da_wire/all/callups.html', context)
+
+def options(request):
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    options = Option.objects.filter(is_rehab_assignment=0).order_by('-date')
+
+    if request.user.is_authenticated:
+        for fa in options:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'teams': mlbteams, 'options': options }
+    return render(request, 'da_wire/all/options.html', context)
+
+def dfas(request):
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    dfas = DFA.objects.all().order_by('-date')
+    
+    if request.user.is_authenticated:
+        for fa in dfas:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'teams': mlbteams, 'dfas': dfas }
+    return render(request, 'da_wire/all/dfas.html', context)
+
+def trades(request):
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    trades = Trade.objects.all().order_by("-date")
+
+    if request.user.is_authenticated:
+        for fa in trades:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'teams': mlbteams, 'trades': trades }
+    return render(request, 'da_wire/all/trades.html', context)
+
+def il(request):
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    injured_list = InjuredList.objects.all().order_by("-date")
+
+    if request.user.is_authenticated:
+        for fa in injured_list:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'teams': mlbteams, 'injured_list': injured_list }
+    return render(request, 'da_wire/all/il.html', context)
+
+def personal_leave(request):
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    personal_leave = PersonalLeave.objects.all().order_by('-date')
+
+    if request.user.is_authenticated:
+        for fa in personal_leave:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'teams': mlbteams, 'personal_leave': personal_leave }
+    return render(request, 'da_wire/all/personal_leave.html', context)
+
+def fa_signings(request):
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    fa_signings = FASignings.objects.filter(is_draftpick=0).order_by('-date')
+
+    if request.user.is_authenticated:
+        for fa in fa_signings:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'teams': mlbteams, 'fa_signings': fa_signings }
+    return render(request, 'da_wire/all/fa_signings.html', context)
+
+
+def rehab(request):
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    rehab_assignment = Option.objects.filter(is_rehab_assignment=1).order_by('-date')
+
+    if request.user.is_authenticated:
+        for fa in rehab_assignment:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'teams': mlbteams, 'rehab_assignment': rehab_assignment }
+    return render(request, 'da_wire/all/rehab.html', context)
+
+
+
+
+
+
+
+
+
 def team(request, location, name):
     import urllib.parse
     location = urllib.parse.unquote(location)
@@ -824,7 +1527,7 @@ def team(request, location, name):
     trades = Trade.objects.filter(Q(players__team_to=mlbaffiliate)|Q(players__team_from=mlbaffiliate)).order_by("-date")
     injured_list = InjuredList.objects.filter(team_for=mlbaffiliate).order_by("-date")
     fa_signings = FASignings.objects.filter(team_to=mlbaffiliate, is_draftpick=0).order_by("-date")
-    draft_signings = FASignings.objects.filter(team_to=mlbaffiliate, is_draftpick=1).order_by("-date")
+    #draft_signings = FASignings.objects.filter(team_to=mlbaffiliate, is_draftpick=1).order_by("-date")
     dfas = DFA.objects.filter(team_by=mlbaffiliate).order_by("-date")
     personal_leave = PersonalLeave.objects.filter(team_for=mlbaffiliate).order_by("-date")
     rehab_assignment = Option.objects.filter(Q(from_level=level_obj, mlbteam=mlbaffiliate.mlbteam, \
@@ -879,13 +1582,15 @@ def team(request, location, name):
     fa_signings.range = range(2, upper)
     
     # Draft Signings
+    """
     draft_signings_count = draft_signings.count()
     draft_signings = draft_signings[0:per_page]
     upper = int(draft_signings_count / per_page) + 1
     if upper > 10:
         upper = 11
     draft_signings.range = range(2, upper)
-    
+    """
+
     # Personal Leave
     personal_leave_count = personal_leave.count()
     personal_leave = personal_leave[0:per_page]
@@ -966,6 +1671,7 @@ def team(request, location, name):
                     fa.user_upvoted = -1
             else:
                 fa.user_upvoted = 0
+        """
         for fa in draft_signings:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
             user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
@@ -976,6 +1682,7 @@ def team(request, location, name):
                     fa.user_upvoted = -1
             else:
                 fa.user_upvoted = 0
+        """
         for fa in fa_signings:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
             user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
@@ -1010,7 +1717,7 @@ def team(request, location, name):
                'teams': mlbteams, 'options': options, \
                'trades': trades, 'callups': callups, 'mlbaff': mlbaffiliate, \
                    'injured_list': injured_list, 'fa_signings': fa_signings, \
-                       'draft_signings': draft_signings, 'dfas': dfas, \
+                       'dfas': dfas, \
                            'personal_leave': personal_leave, 'rehab_assignment': rehab_assignment, \
                            'primary': primary, 'secondary': secondary, 'ternary': ternary, 'logo' : logo}
     return render(request, 'da_wire/team.html', context)

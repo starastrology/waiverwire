@@ -1,0 +1,209 @@
+
+{% load da_wire_extras %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ mlbaff.location }} {{ mlbaff.name }} Signings</title>
+    <meta name="description" content="Your favorite team's page of transactions.">
+    <meta name="keywords" content="Reds, Yankees, Red Sox, MLB, baseball, major league, minor leagues, majors, minors, transactions, trades, options, free agents, players, waivers, signings, signing">
+    <meta name="author" content="Dan Frecka">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% load static %}
+    <link rel="shortcut icon" href="{% static 'da_wire/favicon.ico' %}"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <style>
+       :root {
+           {% if primary %}
+          --primary: {{primary}};
+          {% else %}
+          --primary: #002D72;
+           {% endif %}          
+          {% if secondary %}
+          --secondary: {{secondary}};
+          {% else %}
+          --secondary: #D50032;
+           {% endif %}
+	   {% if ternary %}
+	   --ternary: {{ ternary }};
+	{% else %}
+	--ternary: white;
+	   {% endif %}
+        }
+        body{
+            background-color: var(--primary);
+            color: var(--ternary);
+        }
+
+	.r>div:hover{
+		cursor: pointer;
+		background-color: #eee;
+	}
+        .r {
+            padding: 4px;
+	}
+	.r > div{
+  	    margin: 2px;	   
+  	    padding: 14px;
+	    background-color: white;
+            border: 1px dashed var(--secondary);
+	    {% if "FFFFFF" in primary %}
+	        background-color: var(--ternary);
+            {% endif %}
+            color: var(--primary);
+        }
+        .col {
+            display:table-row;
+        }
+        a{
+            color: var(--secondary);
+        }
+        b{
+            color: var(--secondary);
+        }
+        .up{
+            background-image: url("{% static 'da_wire/up.png' %}");
+        }
+        .down{
+            background-image: url("{% static 'da_wire/down.png' %}");
+        }
+        .up, .down{
+            background-repeat: no-repeat;
+            background-size: 18px;
+            width: 20px;
+            height: 20px;
+            margin: 2px 0;
+            opacity: .35;
+        }
+        .up:hover, .down:hover{
+            opacity: 1;
+            cursor: pointer;
+        }
+        .arrows{
+            display: inline;
+            float: left;
+            margin-top: -23px;
+        }
+        li.something{
+            list-style-type: none;
+            min-height: 50px;
+        }
+        .upvoted{
+            opacity: 1;
+        }
+        .page-item{
+            cursor: pointer;
+        }
+	#sidebar{
+		position: fixed;
+	}
+	
+	#sidebar ul{
+		font-size: 14px;
+		padding-bottom: 10px;
+	}
+	#sidebar .nav-item{
+		height:20px;
+	}
+	.pagination{
+		overflow: hidden;
+	}
+	@media(max-width:990px){
+         	#sidebar{
+			display: none;
+		}
+	}
+    </style>
+    
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+          integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"></script>
+      {% if request.user.is_authenticated %}
+    <script>
+    
+        let cookie = document.cookie
+          let csrfToken = cookie.substring(cookie.indexOf('=') + 1)
+        function ajax_submit_upvote(id){
+              form = $('#transaction_upvote_'+id);
+                  $.ajax({
+                    type: "POST",
+                    url: "{% url 'transaction_upvote' %}", 
+                    data: form.serialize(),
+                    headers: {
+                       'X-CSRFToken': csrfToken
+                    },
+                    success : function(data) {
+                         if (data === "upvote"){
+                             $("#transaction_" + id + " .up").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+1).toString())
+                         }
+                         else if(data === "undo"){
+                             $("#transaction_" + id + " .up").removeClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-1).toString())
+                         }
+                         else{
+                             $("#transaction_" + id + " .down").removeClass('upvoted');
+                             $("#transaction_" + id + " .up").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+2).toString())
+                         }
+                     }
+                });
+            }
+            
+            function ajax_submit_downvote(id){
+              form = $('#transaction_downvote_'+id);
+                  $.ajax({
+                    type: "POST",
+                    url: "{% url 'transaction_downvote' %}", 
+                    data: form.serialize(),
+                    headers: {
+                       'X-CSRFToken': csrfToken
+                    },
+                    success : function(data) {
+                         if (data === "downvote"){
+                             $("#transaction_" + id + " .down").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-1).toString())
+                         }
+                         else if(data === "undo"){
+                             $("#transaction_" + id + " .down").removeClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+1).toString())
+                         }
+                         else{
+                             $("#transaction_" + id + " .up").removeClass('upvoted');
+                             $("#transaction_" + id + " .down").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-2).toString())
+                         }
+                     }
+                });
+            }
+    </script>
+    {% endif %}
+</head>
+<body>
+    {% include 'da_wire/header.html' %}
+    
+    <div class="container">{% if mlbaffiliates %}<div class="row"><div class="col-sm-2"></div><div class="col-sm-10"><div style="text-align: center;">
+    {% for mlbaffiliate in mlbaffiliates %}
+        {% if mlbaffiliate == mlbaff %} <b>{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</b> {% else %}
+	<a href="{% url 'team' mlbaffiliate.location|replace_forward_slash mlbaffiliate.name %}">{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</a>
+        {% endif %}  {% if forloop.counter != mlbaffiliates|length %} > {% endif %}
+    {% endfor %}
+	    </div>
+		    </div>
+	    </div>
+	    <a href="{% url 'team' mlbaff.location mlbaff.name %}" style="text-decoration: none;"><h1 style="text-align:center;">
+	    <img src="{% static 'da_wire/'|add:mlbaff.logo %}" style="width:150px;"> {{ mlbaff.location }} {{ mlbaff.name }}
+    </h1></a>
+       {% endif %}
+	<h2>Signings</h2>
+	<div class="row"><div class="r col-sm-12"><div>
+    {% include 'da_wire/transaction_type/fa_signing.html' %}
+		</div>
+		</div>
+	</div>
+    </div>
+
+    {% include 'da_wire/footer.html' %}
+</body>
+</html>

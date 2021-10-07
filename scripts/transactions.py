@@ -1,6 +1,6 @@
 import unicodedata
 
-from da_wire.models import MLBAffiliate, Player, Position, Transaction, DFA, Option, CallUp, FASignings, InjuredList, PersonalLeave
+from da_wire.models import MLBAffiliate, Player, Position, Transaction, DFA, Option, CallUp, FASignings, InjuredList, PersonalLeave, Trade, PlayerTrade
 
 def strip_accents(text):
     try:
@@ -61,12 +61,16 @@ for location in locations:
             tds = tr.find_all('td')
             if tds and tds[0].text != "Date":
                 date = tds[0].text
+                if date == '':
+                    continue
                 past = datetime.strptime(date, "%m/%d/%y")
-                present = datetime.today() - timedelta(days=35)
+                present = datetime.today() - timedelta(days=2)
                 if past.date() >= present.date():
                     td = tds[1].text
-                    #td = td.replace("Player To Be Named Later", "")
-                    #td = td.replace("Future Considerations", "")
+                    td = td.replace("Player To Be Named Later", "omfggg")
+                    td = td.replace("Future Considerations", "omfggg")
+                    td = td.replace("cash", "omfggg")
+                    td = td.replace("$0", "omfggg")
                     info = td.split(" ")
                     # get team
                     team = ""
@@ -79,6 +83,7 @@ for location in locations:
                     team_to = ""
                     team_from = ""
                     days = ""
+                    players = []
                     cash = True
                     if "designated" in info:
                         for i in info:
@@ -87,7 +92,7 @@ for location in locations:
                             elif bln:
                                 bln = False
                                 verb = i
-                            elif pos_bool and i[0].isupper():
+                            elif pos_bool and (i[0].isupper() or i[0].isnumeric()):
                                 pos = i
                                 pos_bool = False
                             elif i[0].isupper() or i != "for" or i != "assignment.":
@@ -127,7 +132,7 @@ for location in locations:
                             elif bln:
                                 bln = False
                                 verb = i
-                            elif pos_bool and i[0].isupper():
+                            elif pos_bool and (i[0].isupper() or i[0].isnumeric()):
                                 pos = i
                                 pos_bool = False
                             elif i == "to":
@@ -177,7 +182,7 @@ for location in locations:
                             elif bln:
                                 bln = False
                                 verb = i
-                            elif pos_bool and i[0].isupper():
+                            elif pos_bool and (i[0].isupper() or i[0].isnumeric()):
                                 pos = i
                                 pos_bool = False
                             elif i == "from":
@@ -221,7 +226,7 @@ for location in locations:
                             elif bln:
                                 bln = False
                                 verb = i
-                            elif pos_bool and i[0].isupper():
+                            elif pos_bool and (i[0].isupper() or i[0].isnumeric()):
                                 pos = i
                                 pos_bool = False
                             elif i[0].isupper() or i != "off" or i != "waivers" or i != "from":
@@ -230,7 +235,10 @@ for location in locations:
                         if verb == "claimed" or verb=="signed":
                             print("Signing", team, player)
                             team = team.strip()
-                            player = tds[1].find_all('a')[0].text
+                            if tds[1].find_all('a'):
+                                player = tds[1].find_all('a')[0].text
+                            else:
+                                continue
                             team = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
                             player = Player.objects.filter(first_name_unaccented__startswith=player.split(" ")[0], last_name_unaccented__endswith=player.split(" ")[len(player.split(" "))-1]).first()
                             
@@ -259,7 +267,7 @@ for location in locations:
                             elif bln:
                                 bln = False
                                 verb = i
-                            elif pos_bool and i[0].isupper():
+                            elif pos_bool and (i[0].isupper() or i[0].isnumeric()):
                                 pos = i
                                 pos_bool = False
                             elif (i[0].isupper() or i !="on" or i != "the") and not i[0].isnumeric():
@@ -299,7 +307,7 @@ for location in locations:
                             elif bln:
                                 bln = False
                                 verb = i
-                            elif pos_bool and i[0].isupper():
+                            elif pos_bool and (i[0].isupper() or i[0].isnumeric()):
                                 pos = i
                                 pos_bool = False
                             elif i[0].isupper():
@@ -336,7 +344,7 @@ for location in locations:
                             elif bln:
                                 bln = False
                                 verb = i
-                            elif pos_bool and i[0].isupper():
+                            elif pos_bool and (i[0].isupper() or i[0].isnumeric()):
                                 pos = i
                                 pos_bool = False
                             elif i == "to":
@@ -374,17 +382,16 @@ for location in locations:
                                     player.mlbaffiliate = team_to
                                     player.save()
                                     print("Processing rehab assignment", player, team)
-                    """
-                    if "traded" in info:
+                    elif "traded" in info:
                         if not info[0][0].isupper():
                             continue
-                        else:
-                            if "cash" in info or "cash." in info or ("Named" in info and "Player" in info) or ("Future" in info and "Considerations" in info) or "for" not in info:
+                        elif not "," in td and not "and" in info and not ";" in info:
+                            if 1: #"omfggg and omfggg." in td or "for omfggg." in td or not "for" in info:
                                 # one way trade (no player return) 
                                 for i in info:
                                     if bln and i[0].isupper():
                                         team += i + " "
-                                    elif pos_bool and i[0].isupper():
+                                    elif pos_bool and (i[0].isupper() or i[0].isnumeric()):
                                         pos = i
                                         temp = Position.objects.filter(position=pos).first()
                                         if temp:
@@ -394,52 +401,120 @@ for location in locations:
                                             pos = ""
                                     elif cash and i == "to":
                                         name_bln = False
+                                        if player != "":
+                                            players.append(player.strip())
+                                            player = ""
+                                        else:
+                                            players.append("omfggg")
                                     elif name_bln and i[0].isupper():
                                         player += i + " "
                                     elif i == "for":
+                                        pos_bool = True
                                         name_bln = True
                                     elif not name_bln and i[0].isupper():
                                         team_to += i + " "
                                     elif bln and team != "":
                                         bln = False
                                         verb = i
-                                    elif not bln and (i == "cash" or i=="Later"):
+                                    elif not bln and i=="omfggg":
                                         cash = False
-                                        name_bln = False 
-                                if player == "Player To Be Named Later" or player == "":
-                                    bln=True
-                                    name_bln=True
-                                    pos_bln=True
-                                    team_to = ""
-                                    team = ""
-                                    player = ""
-                                    for i in info:
-                                        if bln and i[0].isupper():
-                                            team += i + " "
-                                        elif pos_bool and i[0].isupper():
-                                            pos = i
-                                            pos_bool = False
-                                        elif cash and i == "to":
-                                            name_bln = False
-                                        elif name_bln and (i == "cash" or i == "Player"):
-                                            cash = False
-                                            name_bln = False
-                                        elif name_bln and i[0].isupper():
-                                            player += i + " "
-                                        elif i == "for":
-                                            name_bln = True
-                                        elif cash and not name_bln and i[0].isupper():
-                                            team_to += i + " "
-                                        elif bln and team != "":
-                                            bln = False
-                                            verb = i
-                                team_to = team_to.strip()
-                                player= player.strip()
-                                if player != "" and player[len(player)-1] == ".":
-                                    player = player[0:len(player)-1]
-                                if team_to != "" and team_to[len(team_to)-1] == ".":
-                                    team_to = team_to[0:len(team_to)-1]
-
-                                print("Team:", team, "Team_to:", team_to, "Player:", player)
-
-                    """
+                                        name_bln = False
+                                    if "omfggg." == i:
+                                        break
+                                if player != "":
+                                    players.append(player[0:len(player)-2])
+                            team_to = team_to.strip()
+                            if team_to != "" and team_to[len(team_to)-1] == ".":
+                                team_to = team_to[0:len(team_to)-1]
+                    
+                            print(td)
+                            print("Team:", team, "Team_to:", team_to, "Player:", players)
+                            team_from = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
+                            team_to = MLBAffiliate.objects.filter(location__startswith=team_to.split(" ")[0], name__endswith=team_to.split(" ")[len(team_to.split(" "))-1]).first()
+                            if (len(players)==2 and players[1] == "omfggg") or len(players)==1:
+                                name = players[0].split(" ")
+                                end = name[len(name)-1]
+                                start = name[0]
+                                player = Player.objects.filter(first_name_unaccented__startswith=start \
+                                        , last_name_unaccented__endswith=end)
+                                if player:
+                                    pt = PlayerTrade.objects.filter(players=player.first(), team_to=team_to, team_from=team_from).first()
+                                    if not pt: 
+                                        t = Transaction()
+                                        t.save()
+                                        pt = PlayerTrade(team_to=team_to, team_from=team_from)
+                                        pt.save()
+                                        pt.players.set(player)
+                                        trade = Trade(transaction=t, date=past.date())
+                                        trade.save()
+                                        try:
+                                            trade.players.set(PlayerTrade.objects.filter(team_to=pt.team_to, team_from=pt.team_from, players=player.first()))
+                                            print("Processing trade..................................", trade)
+                                        except Exception as e: 
+                                            print(e) 
+                            elif (len(players)==2 and players[0] == "omfggg"):
+                                name = players[0].split(" ")
+                                temp = team_to
+                                team_to = team_from
+                                team_from = temp
+                                end = name[len(name)-1]
+                                start = name[0]
+                                player = Player.objects.filter(first_name_unaccented__startswith=start \
+                                        , last_name_unaccented__endswith=end)
+                                if player:
+                                    pt = PlayerTrade.objects.filter(players=player.first(), team_to=team_to, team_from=team_from).first()
+                                    if not pt: 
+                                        t = Transaction()
+                                        t.save()
+                                        pt = PlayerTrade(team_to=team_to, team_from=team_from)
+                                        pt.save()
+                                        pt.players.set(player)
+                                        trade = Trade(transaction=t, date=past.date())
+                                        trade.save()
+                                        try:
+                                            trade.players.set(PlayerTrade.objects.filter(team_to=pt.team_to, team_from=pt.team_from, players=player.first()))
+                                            print("Processing trade..................................", trade)
+                                        except Exception as e: 
+                                            print(e) 
+                            elif len(players)==2:
+                                name = players[0].split(" ")
+                                end = name[len(name)-1]
+                                start = name[0]
+                                pt = None
+                                player = Player.objects.filter(first_name_unaccented__startswith=start, last_name_unaccented__endswith=end)
+                                if player:
+                                    pt = PlayerTrade.objects.filter(players=player.first(), team_to=team_to, team_from=team_from).first()
+                                    if not pt: 
+                                        t = Transaction()
+                                        t.save()
+                                        pt = PlayerTrade(team_to=team_to, team_from=team_from)
+                                        pt.save()
+                                        pt.players.set(player)
+                                        trade = Trade(transaction=t, date=past.date())
+                                        trade.save()
+                                        try:
+                                            trade.players.set(PlayerTrade.objects.filter(team_to=pt.team_to, team_from=pt.team_from, players=player.first()))
+                                            print("processing trade..................................", trade)
+                                        except Exception as e: 
+                                            print(e) 
+                                
+                                name = players[1].split(" ")
+                                end = name[len(name)-1]
+                                start = name[0]
+                                temp = team_to
+                                team_to = team_from
+                                team_from = temp
+                                player = Player.objects.filter(first_name_unaccented__startswith=start \
+                                        , last_name_unaccented__endswith=end)
+                                if player:
+                                    pt2 = PlayerTrade.objects.filter(players=player.first(), team_to=team_to, team_from=team_from).first()
+                                    if not pt2: 
+                                        pt2 = PlayerTrade(team_to=team_to, team_from=team_from)
+                                        pt2.save()
+                                        pt2.players.set(player)
+                                        trade = Trade.objects.filter(date=past.date(), players=pt).first()
+                                        try:
+                                            trade.players.add(PlayerTrade.objects.filter(team_to=pt2.team_to, team_from=pt2.team_from, players=player.first()).first())
+                                            print("processing trade..................................", trade)
+                                        except Exception as e: 
+                                            print(e) 

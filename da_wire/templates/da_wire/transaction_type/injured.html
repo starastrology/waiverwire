@@ -17,7 +17,7 @@
                 {% endif %}
                 <a href="{% url 'transaction' injured.transaction.tid %}">&#8618;</a> 
 		<div class="display">
-			<b>{{injured.date}}</b> - <a href="{% url 'transaction' injured.player.transaction.tid %}">{{injured.player.first_name}} {{injured.player.last_name}}</a> placed on {{injured.length}}-day IL
+			<b>{{injured.date}}</b> - {{ injured.team_for }} placed <a href="{% url 'transaction' injured.player.transaction.tid %}">{{injured.player.first_name}} {{injured.player.last_name}}</a> placed on {{injured.length}}-day IL
         	</div>        
 	</li>
 {% endfor %}

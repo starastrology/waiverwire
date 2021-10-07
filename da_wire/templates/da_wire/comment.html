@@ -19,7 +19,7 @@
     <input type="hidden" name="tid" value="{{tid}}" />
     <textarea required placeholder="Comment here" name="comment" cols=100 rows=10>{{ too_long }}</textarea>
     <hr>
-    <button class="btn btn-primary" style="float:right;">Submit</button>
+    <button class="btn btn-primary" style="width:100%;">Submit</button>
 </form>
 <br style="break:float;">
 <br>
@@ -36,7 +36,7 @@
 <div class="comments">
 	
 {% for comment in comments %}
-<div class="comment" style="min-height: 100px;"><div>{{comment.user.username }} | {{ comment.datetime }}</div>
+<div class="comment" style="min-height: 100px;"><div>{{comment.user.username }} | {{ comment.datetime|timesince }} ago</div>
             <div class="text" style="float: left;">{{ comment.text }}</div>
             <div style="display: inline;" id="comment_{{comment.id}}">
                 <div style="display:inline;" class="count">{{comment.votes}}</div>
