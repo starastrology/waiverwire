@@ -20,9 +20,9 @@
         	<a style="display:inline;" href="{% url 'transaction' callup.transaction.tid %}">&#8618;</a> 
 		<div class="display">
 			<b>{{callup.date }}</b> - <a href="{% url 'transaction' callup.player.transaction.tid %}">{{callup.player.first_name }} {{ callup.player.last_name }}</a> 
-        {% get_affiliate callup.to_level.level callup.mlbteam as team_to %}
-        to {{team_to.location }} {{team_to.name }} from 
-        {% get_affiliate callup.from_level.level callup.mlbteam as team %}
+        {% get_affiliate callup.to_level callup.mlbteam as team_to %}
+	to <b style="color: {{team_to.colors.all.0}}; text-shadow: 1px 1px {{team_to.colors.all.1}};">{{team_to.location }} {{team_to.name }}</b> from 
+        {% get_affiliate callup.from_level callup.mlbteam as team %}
         <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{callup.from_level.level }} {{ team.location }}</a>
 		</div> 
 	</li>

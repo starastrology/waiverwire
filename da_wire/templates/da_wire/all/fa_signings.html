@@ -1,45 +1,66 @@
-{% load static %}
+
+{% load da_wire_extras %}
 <html lang="en">
 <head>
-    <title>Waiver Wire</title>
-    <meta charset="UTF-8" />
-    <meta name="description" content="A website dedicated to major and minor league baseball transactions.">
-    <meta name="keywords" content="MLB, baseball, major league, minor leagues, majors, minors, transactions, trades, options, free agents, players, waivers, signings, signing">
+    <meta charset="UTF-8">
+    <title>{{ mlbaff.location }} {{ mlbaff.name }} Signings</title>
+    <meta name="description" content="Your favorite team's page of transactions.">
+    <meta name="keywords" content="Reds, Yankees, Red Sox, MLB, baseball, major league, minor leagues, majors, minors, transactions, trades, options, free agents, players, waivers, signings, signing">
     <meta name="author" content="Dan Frecka">
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% load static %}
     <link rel="shortcut icon" href="{% static 'da_wire/favicon.ico' %}"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <style>
-        :root {
-          --blue: #002D72;
-          --red: #D50032;
-	  --ternary: var(--red);
+       :root {
+           {% if primary %}
+          --primary: {{primary}};
+          {% else %}
+          --primary: #002D72;
+           {% endif %}          
+          {% if secondary %}
+          --secondary: {{secondary}};
+          {% else %}
+          --secondary: #D50032;
+           {% endif %}
+	   {% if ternary %}
+	   --ternary: {{ ternary }};
+	{% else %}
+	--ternary: white;
+	   {% endif %}
         }
         body{
-            background-color: var(--blue);
-            color: #ffffff;
+            background-color: var(--primary);
+            color: var(--ternary);
         }
-        .r {
-		padding: 4px;
-	}
+
 	.r>div:hover{
 		cursor: pointer;
 		background-color: #eee;
 	}
-	.r>div {
-  	    margin: 2px;	   
-  	    padding: 4px;
-            background-color: #ffffff;
-            border: 1px dashed var(--red);
+        .r {
+            padding: 4px;
 	}
-	    .r{
-            color: var(--blue);
+	.r > div{
+  	    margin: 2px;	   
+  	    padding: 14px;
+	    background-color: white;
+            border: 1px dashed var(--secondary);
+	    {% if "FFFFFF" in primary %}
+	        background-color: var(--ternary);
+            {% endif %}
+            color: var(--primary);
         }
-        .upvoted{
-            opacity: 1;
+        .col {
+            display:table-row;
         }
-        {% load static %}
+        a{
+            color: var(--secondary);
+        }
+        b{
+            color: var(--secondary);
+        }
         .up{
             background-image: url("{% static 'da_wire/up.png' %}");
         }
@@ -71,31 +92,39 @@
             opacity: 1;
         }
         .page-item{
-         	cursor: pointer;
+            cursor: pointer;
         }
+	#sidebar{
+		position: fixed;
+	}
+	
+	#sidebar ul{
+		font-size: 14px;
+		padding-bottom: 10px;
+	}
+	#sidebar .nav-item{
+		height:20px;
+	}
 	.pagination{
 		overflow: hidden;
 	}
-	#sidebar{
-		position:fixed;
-		text-align: center;
-	}
-	@media(max-width: 977px){
-		#sidebar{
+	@media(max-width:990px){
+         	#sidebar{
 			display: none;
 		}
 	}
     </style>
+    
     <script
       src="https://code.jquery.com/jquery-3.6.0.min.js"
           integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
       crossorigin="anonymous"></script>
-     {% if request.user.is_authenticated %}
+      {% if request.user.is_authenticated %}
     <script>
-          
-          let cookie = document.cookie
+    
+        let cookie = document.cookie
           let csrfToken = cookie.substring(cookie.indexOf('=') + 1)
-          function ajax_submit_upvote(id){
+        function ajax_submit_upvote(id){
               form = $('#transaction_upvote_'+id);
                   $.ajax({
                     type: "POST",
@@ -150,13 +179,13 @@
             }
     </script>
     {% endif %}
-    <script>
+	<script>
         function pick_page(index, transaction_type){
             form = $('#' + transaction_type + '_form');
             form.find('#' + transaction_type + '_index').val(index);
             $.ajax({
                     type: "POST",
-                    url: "{% url 'pick_page' %}",
+                    url: form.prop('action'),
                     data: form.serialize(),
                     success : function(data) {
                          $('#ul_' + transaction_type).html(data);
@@ -169,9 +198,63 @@
 </head>
 <body>
     {% include 'da_wire/header.html' %}
-    <div class="container"><h1 style="text-align:center;">Waiver Wire</h1>
-    {% include 'da_wire/container.html' %}
+    
+    <div class="container">{% if mlbaffiliates %}<div class="row"><div class="col-sm-2"></div><div class="col-sm-10"><div style="text-align: center;">
+    {% for mlbaffiliate in mlbaffiliates %}
+        {% if mlbaffiliate == mlbaff %} <b>{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</b> {% else %}
+	<a href="{% url 'team' mlbaffiliate.location|replace_forward_slash mlbaffiliate.name %}">{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</a>
+        {% endif %}  {% if forloop.counter != mlbaffiliates|length %} > {% endif %}
+    {% endfor %}
+	    </div>
+		    </div>
+	    </div>
+	    <a href="{% url 'team' mlbaff.location mlbaff.name %}" style="text-decoration: none;"><h1 style="text-align:center;">
+	    <img src="{% static 'da_wire/'|add:mlbaff.logo %}" style="width:150px;"> {{ mlbaff.location }} {{ mlbaff.name }}
+    </h1></a>
+       {% endif %}
+	<h2>Signings</h2>
+	<div class="row"><div class="r col-sm-12"><div>
+<ul id="ul_fa_signing">
+        {% include 'da_wire/transaction_type/fa_signing.html' %}
+    </ul>
+
+	{% if request.resolver_match.view_name != "transaction" %}
+    <form {% if not mlbaff %} 
+			action="{% url 'pick_page' %}"
+			{%else %}
+			action="{% url 'pick_page_team' %}"
+			{%endif%} method="POST" id="fa_signing_form">
+            {% if request.resolver_match.view_name == 'team' %}
+			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
+			{% endif %}    
+	    <input id="fa_signing_index" type="hidden" name="index" value="1" />
+                <input id="fa_signing_transaction_type" name="transaction_type" type="hidden" value="fa_signing" />
+                {% csrf_token %}
+                <nav aria-label="...">
+                    <ul class="pagination pagination-sm flex-wrap">
+                        <li class="page-item active" aria-current="page" id="fa_signing_1">
+                          <span class="page-link" onclick="pick_page('1', 'fa_signing');">1</span>
+                        </li>
+                    {% for i in fa_signings.range %}
+                        <li class="page-item" id="fa_signing_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'fa_signing');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
+		{% if mlbaff %}
+		<input type=hidden name="mid" value="{{mlbaff.id}}" />
+		{% endif %}
+		<input type=hidden name=bool value=1 />
+
+    </form>
+	    {% endif %}
+
+		</div>
+		</div>
+	</div>
     </div>
+
     {% include 'da_wire/footer.html' %}
 </body>
 </html>

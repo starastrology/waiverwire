@@ -14,6 +14,7 @@ class MLBTeam(models.Model):
 class Level(models.Model):
     level = models.CharField(max_length=20)
     rookie_level = models.IntegerField(default=0, blank=True)
+    value = models.IntegerField(default=1, blank=True)
 
     def __str__(self):
         if self.rookie_level:
@@ -86,6 +87,22 @@ class Option(models.Model):
     def __str__(self):
         return str(self.date) + " " + self.player.first_name + " " + self.player.last_name
 
+class OptionProposal(models.Model):
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
+    date = models.DateField()
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    from_level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name="option_proposal_from_level")
+    to_level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name="option_proposal_to_level")
+    is_rehab_assignment = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(1)])
+    mlbteam = models.ForeignKey(MLBTeam, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
+
+    def __str__(self):
+        return str(self.date) + " " + self.player.first_name + " " + self.player.last_name
+
+
+
+
 class CallUp(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
     date = models.DateField()
@@ -93,6 +110,18 @@ class CallUp(models.Model):
     from_level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name="callup_from_level")
     to_level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name="callup_to_level")
     mlbteam = models.ForeignKey(MLBTeam, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.date) + " " + self.player.first_name + " " + self.player.last_name
+
+class CallUpProposal(models.Model):
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
+    date = models.DateField()
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    from_level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name="callup_proposal_from_level")
+    to_level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name="callup_proposal_to_level")
+    mlbteam = models.ForeignKey(MLBTeam, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
 
     def __str__(self):
         return str(self.date) + " " + self.player.first_name + " " + self.player.last_name
@@ -138,6 +167,11 @@ class PlayerTrade(models.Model):
     team_from = models.ForeignKey(MLBAffiliate, on_delete=models.CASCADE, related_name="player_trade_team_from")
     team_to = models.ForeignKey(MLBAffiliate, on_delete=models.CASCADE, related_name="player_trade_team_to")
     
+class PlayerTradeProposal(models.Model):
+    players = models.ManyToManyField(Player)
+    team_from = models.ForeignKey(MLBAffiliate, on_delete=models.CASCADE, related_name="player_trade_proposal_team_from")
+    team_to = models.ForeignKey(MLBAffiliate, on_delete=models.CASCADE, related_name="player_trade_proposal_team_to")
+
 class Trade(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
     date = models.DateField()
@@ -145,6 +179,16 @@ class Trade(models.Model):
    
     def __str__(self):
         return str(self.date) + " - involving " + self.players.all()[0].team_from.name
+
+class TradeProposal(models.Model):
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
+    date = models.DateField()
+    players = models.ManyToManyField(PlayerTradeProposal)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
+
+    def __str__(self):
+        return str(self.date) + " - involving " + self.players.all()[0].team_from.name
+
 
 
 class TransactionVote(models.Model):

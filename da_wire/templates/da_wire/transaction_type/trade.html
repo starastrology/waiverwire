@@ -20,7 +20,7 @@
 		<div class="display">
 		<b>{{ trade.date }}</b> - {% for players in trade.players.all %}{% with forloop.counter as cntr %} {% for player in players.players.all %} 
 		<a href="{% url 'transaction' player.transaction.tid %}">{{player.first_name}} {{player.last_name}}</a> 
-        to {{players.team_to.mlbteam.name}} (from {{players.team_from.mlbteam.name}}){% if cntr != trade.players.all|length %}, 
+		to <b style="color: {{players.team_to.colors.all.0}}; text-shadow: 1px 1px {{players.team_to.colors.all.1}};">{{players.team_to.mlbteam.name}}</b> (from <b style="color: {{players.team_from.colors.all.0}}; text-shadow: 1px 1px {{players.team_from.colors.all.1}};">{{players.team_from.mlbteam.name}}</b>){% if cntr != trade.players.all|length %}, 
         {% endif %} {% endfor %}{% endwith %} 
         {% endfor %} 
 	</div>
