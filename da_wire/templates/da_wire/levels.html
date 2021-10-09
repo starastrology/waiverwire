@@ -1,0 +1,15 @@
+{% load da_wire_extras %}
+<select name="level">
+{% for level in levels %}
+	{% get_affiliate level mlbaff.mlbteam as team_to %}
+	{% if request.resolver_match.view_name == 'create_callup_proposal' %}
+		{% if team_to and level.value < mlbaff.level.value %}
+			<option value="{{ level.value }}">{{level.level}}{% if level.rookie_level %}{% endif %} - {{team_to}}</option>
+		{% endif %}
+	{% else %}
+		{% if team_to and level.value > mlbaff.level.value %}
+			<option value="{{ level.value }}">{{level.level}}{% if level.rookie_level %}{% endif %} - {{team_to}}</option>
+		{% endif %}
+	{% endif %}
+{% endfor %}
+</select>

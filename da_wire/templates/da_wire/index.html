@@ -14,6 +14,7 @@
         :root {
           --blue: #002D72;
           --red: #D50032;
+	  --ternary: var(--red);
         }
         body{
             background-color: var(--blue);
@@ -33,7 +34,6 @@
             border: 1px dashed var(--red);
 	}
 	    .r{
-	    display: table-cell;
             color: var(--blue);
         }
         .upvoted{
@@ -73,21 +73,15 @@
         .page-item{
          	cursor: pointer;
         }
-	#sidebar{
-		position: fixed;
-	}
-	#sidebar ul{
-		font-size: 14px;
-		padding-bottom: 10px;
-	}
-	#sidebar .nav-item{
-		height:20px;
-	}
 	.pagination{
 		overflow: hidden;
 	}
-	@media(max-width:990px){
-         	#sidebar{
+	#sidebar{
+		position:fixed;
+		text-align: center;
+	}
+	@media(max-width: 977px){
+		#sidebar{
 			display: none;
 		}
 	}

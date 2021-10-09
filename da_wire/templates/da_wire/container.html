@@ -13,50 +13,65 @@
 {% endif %}
 {% if request.resolver_match.view_name != "transaction" %}
 <div class="row">
-<div class="r col-sm-2" id="sidebar"><div style="max-width:150px;">
-		<h6>Transaction Types</h6>
+<div class="r col-sm-2" id="sidebar">
+		<h6 style="color: var(--ternary);">Transaction Types</h6>
 		<ul class="navbar-nav">
 		{% if fas %}
 		<li class="nav-item">
 			<a class="nav-link" href="#fas">Free Agents</a>
 		</li>
 		{% endif %}
+		{% if callups %}
 		<li class="nav-item">
 			<a class="nav-link" href="#callups">Callups</a>
 
 		</li>
+		{% endif %}
+		{% if options %}
 		<li class="nav-item">
 	<a class="nav-link" href="#options">Send Downs</a>
 		</li>
+		{% endif %}
+		{% if dfas %}
 		<li class="nav-item">
 
 	<a class="nav-link" href="#dfas">DFAs</a>
 		</li>
+		{% endif %}
+		{% if trades %}
 		<li class="nav-item">
 
 	<a class="nav-link" href="#trades">Trades</a>
 		</li>
+		{% endif %}
+		{% if injured_list %}
 	<li class="nav-item">
 
 	<a class="nav-link" href="#injured_list">Injured List</a>
 		</li>
+		{% endif %}
+		{% if fa_signings %}
 		<li class="nav-item">
 
 	<a class="nav-link" href="#fa_signings">FA Signings</a>
 		</li>
+		{% endif %}
 		<!--li>
 
 	<a href="#draft_signings">Draft Signings</a>
 		</li-->
-		
+		{% if personal_leave %}
 		<li class="nav-item">
 
 	<a  class="nav-link" href="#personal_leave">Personal Leave</a>
 		</li>
+		{% endif %}
+		{% if rehab_assignment %}
 		<li class="nav-item">
 
 	<a class="nav-link" href="#rehab">Rehab Assignment</a>
 		</li>
+		{% endif %}
 {% if players %}
 		<li class="nav-item">
 			<a href="#roster" class="nav-link">Roster</a>
@@ -64,7 +79,6 @@
 			{% endif %}
 			
 	</ul>
-	</div>
 	</div>
 </div>
 {% endif %}
@@ -91,7 +105,7 @@
                 <input id="fa_transaction_type" name="transaction_type" type="hidden" value="fa" />
                 {% csrf_token %}
                 <nav aria-label="...">
-                    <ul class="pagination pagination-sm">
+                    <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="fa_1">
                           <span class="page-link" onclick="pick_page('1', 'fa');">1</span>
                         </li>
@@ -126,7 +140,7 @@
                 <input id="callup_transaction_type" name="transaction_type" type="hidden" value="callup" />
                 {% csrf_token %}
                 <nav aria-label="...">
-                    <ul class="pagination pagination-sm">
+                    <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="callup_1">
                           <span class="page-link" onclick="pick_page('1', 'callup');">1</span>
                         </li>
@@ -169,7 +183,7 @@
                 <input id="option_transaction_type" name="transaction_type" type="hidden" value="option" />
                 {% csrf_token %}
                 <nav aria-label="...">
-                    <ul class="pagination pagination-sm">
+                    <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="option_1">
                           <span class="page-link" onclick="pick_page('1', 'option');">1</span>
                         </li>
@@ -210,7 +224,7 @@
                 <input id="dfa_transaction_type" name="transaction_type" type="hidden" value="dfa" />
                 {% csrf_token %}
                 <nav aria-label="...">
-                    <ul class="pagination pagination-sm">
+                    <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="dfa_1">
                           <span class="page-link" onclick="pick_page('1', 'dfa');">1</span>
                         </li>
@@ -254,7 +268,7 @@
                 <input id="trade_level" name="level" type="hidden" value="{{players.all.0.mlbaffiliate.level.level}}" />
                 {% csrf_token %}
                 <nav aria-label="...">
-                    <ul class="pagination pagination-sm">
+                    <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="trade_1">
                           <span class="page-link" onclick="pick_page('1', 'trade');">1</span>
                         </li>
@@ -295,7 +309,7 @@
                 <input id="injured_transaction_type" name="transaction_type" type="hidden" value="injured" />
                 {% csrf_token %}
                 <nav aria-label="...">
-                    <ul class="pagination pagination-sm">
+                    <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="injured_1">
                           <span class="page-link" onclick="pick_page('1', 'injured');">1</span>
                         </li>
@@ -338,7 +352,7 @@
                 <input id="fa_signing_transaction_type" name="transaction_type" type="hidden" value="fa_signing" />
                 {% csrf_token %}
                 <nav aria-label="...">
-                    <ul class="pagination pagination-sm">
+                    <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="fa_signing_1">
                           <span class="page-link" onclick="pick_page('1', 'fa_signing');">1</span>
                         </li>
@@ -381,11 +395,11 @@
                 <input id="personal_leave_transaction_type" name="transaction_type" type="hidden" value="personal_leave" />
                 {% csrf_token %}
                 <nav aria-label="...">
-                    <ul class="pagination pagination-sm">
+                    <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="personal_leave_1">
                           <span class="page-link" onclick="pick_page('1', 'personal_leave');">1</span>
                         </li>
-                    {% for i in fas.range %}
+                    {% for i in personal_leave.range %}
                         <li class="page-item" id="personal_leave_{{i}}">
                             <span class="page-link" href="#" onclick="pick_page('{{i}}', 'personal_leave');">{{i}}</span>
                         </li>
@@ -424,7 +438,7 @@
                 <input id="rehab_transaction_type" name="transaction_type" type="hidden" value="rehab" />
                 {% csrf_token %}
                 <nav aria-label="...">
-                    <ul class="pagination pagination-sm">
+                    <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="rehab_1">
                           <span class="page-link" onclick="pick_page('1', 'rehab');">1</span>
                         </li>

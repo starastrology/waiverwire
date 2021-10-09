@@ -1,7 +1,8 @@
 from django.contrib import admin
 from .models import MLBTeam, MLBAffiliate, Level, Salary, Position, Player, \
 DFA, InjuredList, PersonalLeave, Option, FASignings, Trade, PlayerTrade, CallUp, \
-    Color, Transaction, Comment, TransactionVote, CommentVote
+    Color, Transaction, Comment, TransactionVote, CommentVote, TradeProposal, PlayerTradeProposal, \
+    CallUpProposal, OptionProposal
 
 
 class PlayerAdmin(admin.ModelAdmin):
@@ -26,4 +27,7 @@ admin.site.register(Transaction)
 admin.site.register(Comment)
 admin.site.register(CommentVote)
 admin.site.register(TransactionVote)
-
+admin.site.register(TradeProposal)
+admin.site.register(PlayerTradeProposal)
+admin.site.register(CallUpProposal)
+admin.site.register(OptionProposal)

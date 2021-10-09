@@ -95,22 +95,15 @@
         .page-item{
             cursor: pointer;
         }
-	#sidebar{
-		position: fixed;
-	}
-	
-	#sidebar ul{
-		font-size: 14px;
-		padding-bottom: 10px;
-	}
-	#sidebar .nav-item{
-		height:20px;
-	}
 	.pagination{
 		overflow: hidden;
 	}
-	@media(max-width:990px){
-         	#sidebar{
+	#sidebar{
+		position:fixed;
+		text-align: center;
+	}
+	@media(max-width: 977px){
+		#sidebar{
 			display: none;
 		}
 	}

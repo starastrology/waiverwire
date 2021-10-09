@@ -346,7 +346,97 @@
 <body>
 {% include 'da_wire/header.html' %}
 <div class="container">
-{% if fa %}
+	{% if trade_proposal %}
+<h1>{{type}}</h1>
+<h3>@{{trade_proposal.user.username}}</h3>
+    <div id="main">
+        <div style="display:inline;" class="count">{{ votes }}</div>
+        <div class="arrows">
+            <form id="transaction_upvote" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ trade_proposal.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ trade_proposal.transaction.tid }}">
+            </form>
+            <div class="up" onclick="ajax_submit_upvote_main()"></div>
+            <div class="down" onclick="ajax_submit_downvote_main()"></div>
+        </div>
+        <div class="display">
+		<b>{{ trade_proposal.date }}</b>
+			{% for players in trade_proposal.players.all %}{% with forloop.counter as cntr %} {% for player in players.players.all %} 
+			<div><a href="{% url 'transaction' player.transaction.tid %}">{{player.first_name}} {{player.last_name}}</a>
+	to {{players.team_to.mlbteam.name}} (from <a href="{% url 'team' players.team_from.location|replace_forward_slash players.team_from.name %}">{{players.team_from.mlbteam.name}}</a>){% if cntr != trade_proposal.players.all|length %} 
+	{% endif %}</div> {% endfor %}{% endwith %} 
+        {% endfor %}
+
+        </div>
+    </div>
+{% elif callup_proposal %}
+    <h1>{{type}}</h1>
+	<h3>@{{callup_proposal.user.username}}</h3>
+    <div id="main">
+        <div style="display:inline;" class="count">{{ votes }}</div>
+        <div class="arrows">
+            <form id="transaction_upvote" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ callup_proposal.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ callup_proposal.transaction.tid }}">
+            </form>
+            <div class="up" onclick="ajax_submit_upvote_main()"></div>
+            <div class="down" onclick="ajax_submit_downvote_main()"></div>
+        </div>
+        <div>
+<b>{{callup_proposal.date }}</b> - <a href="{% url 'transaction' callup_proposal.player.transaction.tid %}">{{callup_proposal.player.first_name }} {{ callup_proposal.player.last_name }}</a> 
+        {% get_affiliate callup_proposal.to_level callup_proposal.mlbteam as team_to %}
+        to {{team_to.location }} {{team_to.name }} from 
+        {% get_affiliate callup_proposal.from_level callup_proposal.mlbteam as team %}
+        <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{callup_proposal.from_level.level }} {{ team.location }}</a>
+		
+	<h4>{{ callup_proposal.player.first_name }} {{ callup_proposal.player.last_name }} <i>should be</i> called up from {{callup_proposal.from_level}} to {{ callup_proposal.to_level }}</h4>
+	    <h5 style="display:inline;"><b>{{callup_proposal.player.position}}</b></h5>
+            <a style="display:inline;" href="{{ callup_proposal.player.bb_ref }}" target=_blank>More info</a>
+        </div>
+    </div>
+{% elif option_proposal %}
+    <h1>{{type}}</h1>
+    <h3>@{{option_proposal.user.username}}</h3>
+    <div id="main">
+        <div style="display:inline;" class="count">{{ votes }}</div>
+        <div class="arrows">
+            <form id="transaction_upvote" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ option_proposal.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ option_proposal.transaction.tid }}">
+            </form>
+            <div class="up" onclick="ajax_submit_upvote_main()"></div>
+            <div class="down" onclick="ajax_submit_downvote_main()"></div>
+        </div>
+        <div class="display">
+		<b>{{option_proposal.date }}</b> - <a href="{% url 'transaction' option_proposal.player.transaction.tid %}">{{option_proposal.player.first_name }} {{ option_proposal.player.last_name }}</a> <i>should be</i> optioned
+        {% get_affiliate option_proposal.to_level option_proposal.mlbteam as team_to %}
+        to {{team_to.location }} {{team_to.name }} ({{ option_proposal.to_level.level }}) from {{ option_proposal.from_level.level }} 
+        {% get_affiliate option_proposal.from_level option_proposal.mlbteam as team %}
+        <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{ team.location }}</a>
+		
+	
+	    <h4>@{{ option_proposal.user.username }} is proposing that {{ option_proposal.player.first_name }} {{ option_proposal.player.last_name }} be optioned from {{option_proposal.from_level}} to {{ option_proposal.to_level }}</h4>
+	    {% if option_proposal.player.number %}<h5>#{{option_proposal.player.number}} </h5>{% endif %}
+            <h5>{{option_proposal.player.position}}</h5>
+            <a href="{{ option_proposal.player.bb_ref }}" target=_blank>More info</a>
+        </div>
+    </div>
+
+
+
+{% elif fa %}
 <h1>{{ fa.first_name }} {{ fa.last_name }} <i>(FA)</i></h1>
     <div id="main">
         <div style="display:inline;" class="count">{{ votes }}</div>
@@ -435,9 +525,9 @@
         </div>
         <div>
 <b>{{callup_transaction.date }}</b> - <a href="{% url 'transaction' callup_transaction.player.transaction.tid %}">{{callup_transaction.player.first_name }} {{ callup_transaction.player.last_name }}</a> 
-        {% get_affiliate callup_transaction.to_level.level callup_transaction.mlbteam as team_to %}
+        {% get_affiliate callup_transaction.to_level callup_transaction.mlbteam as team_to %}
         to {{team_to.location }} {{team_to.name }} from 
-        {% get_affiliate callup_transaction.from_level.level callup_transaction.mlbteam as team %}
+        {% get_affiliate callup_transaction.from_level callup_transaction.mlbteam as team %}
         <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{callup_transaction.from_level.level }} {{ team.location }}</a>
 		
 	<h4>{{ callup_transaction.player.first_name }} {{ callup_transaction.player.last_name }} called up from {{callup_transaction.from_level}} to {{ callup_transaction.to_level }}</h4>
@@ -464,9 +554,9 @@
         </div>
         <div class="display">
 		<b>{{option_transaction.date }}</b> - <a href="{% url 'transaction' option_transaction.player.transaction.tid %}">{{option_transaction.player.first_name }} {{ option_transaction.player.last_name }}</a>
-        {% get_affiliate option_transaction.to_level.level option_transaction.mlbteam as team_to %}
+        {% get_affiliate option_transaction.to_level option_transaction.mlbteam as team_to %}
         to {{team_to.location }} {{team_to.name }} ({{ option_transaction.to_level.level }}) from {{ option_transaction.from_level.level }} 
-        {% get_affiliate option_transaction.from_level.level option_transaction.mlbteam as team %}
+        {% get_affiliate option_transaction.from_level option_transaction.mlbteam as team %}
         <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{ team.location }}</a>
 		
 	

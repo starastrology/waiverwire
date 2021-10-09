@@ -7,7 +7,7 @@ register = template.Library()
 
 @register.simple_tag
 def get_affiliate(level, mlbteam):
-    return MLBAffiliate.objects.filter(level__level=level, mlbteam=mlbteam).first()
+    return MLBAffiliate.objects.filter(level=level, mlbteam=mlbteam).first()
 
 @register.filter
 def replace_forward_slash(value):

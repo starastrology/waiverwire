@@ -1,3 +1,4 @@
+{% load da_wire_extras %}
 <html lang="en">
 <head>
     <title>Waiver Wire</title>
@@ -19,9 +20,19 @@
             background-color: var(--blue);
             color: #ffffff;
         }
-        .r {
-            padding: 4px;
-        }
+	.r {
+		padding: 4px;
+	}
+	.r>div:hover{
+		cursor: pointer;
+		background-color: #eee;
+	}
+	.r>div {
+  	    margin: 2px;	   
+  	    padding: 4px;
+            background-color: #ffffff;
+            border: 1px dashed var(--red);
+	}
         .r {
             background-color: #ffffff;
             display: table-cell;
@@ -92,11 +103,91 @@
             <button class="btn btn-primary" type=submit>Save Changes</button>
         </form>
 	{% if not request.user.is_superuser %}
-        <form onsubmit="return confirm('Are you sure you want to close your account? All your comments and votes will be deleted permanently.');" action="{% url 'deleteaccount' %}" method="POST">
+        <form onsubmit="return confirm('Are you sure you want to close your account? All your comments and votes will be deleted permanently. If you have upgraded your account, you cannot recover it.');" action="{% url 'deleteaccount' %}" method="POST">
             <button class="btn btn-danger" type=submit>Delete Account</button>
             {% csrf_token %}
         </form>
-	{% endif %}
+	<form action="" method="POST">
+		<button class="btn btn-warning">Upgrade to Pro for just $4.99</button>  
+	</form>
+
+	<p style="font-size: 25px;">
+		With Pro, you gain the ability to view, upvote/downvote, and create transaction proposals including trades! Play GM with this all new feature. But that's not all! Choose your favorite teams and customize your feed. Plus, see top-rated posts and transactions by the Waiver Wire community. One time fee. No returns.
+	</p>
+		{% endif %}
+	</hr>
+
+	{% if trade_proposals %}
+	<h1>Your Trade Proposals</h1>
+    	<div class="row"> <div class="r col-sm-12">
+	{% for trade_proposal in trade_proposals %}
+	<h3 style="display:inline;">@{{trade_proposal.user.username}}</h3> &middot; <span>{{ trade_proposal.votes }} upvotes</span> 
+	<div>
+		<b style="display:inline;">{{ trade_proposal.date }}</b><a href="{% url 'transaction' trade_proposal.transaction.tid %}">&#8618;</a>
+			{% for players in trade_proposal.players.all %}{% with forloop.counter as cntr %} {% for player in players.players.all %} 
+			<div><a href="{% url 'transaction' player.transaction.tid %}">{{player.first_name}} {{player.last_name}}</a>
+	to {{players.team_to.mlbteam.name}} (from <a href="{% url 'team' players.team_from.location|replace_forward_slash players.team_from.name %}">{{players.team_from.mlbteam.name}}</a>){% if cntr != trade_proposal.players.all|length %} 
+	{% endif %}</div> {% endfor %}{% endwith %} 
+        {% endfor %}
+
     </div>
+    {%endfor %}
+</div>
+    </div>
+	
+	{% endif %}
+
+
+	{% if callup_proposals %}
+
+		<h1>Your Callup Proposals</h1>
+<div class="row"><div class="r col-sm-12">
+		{% for callup_proposal in callup_proposals %}
+
+	<h3 style="display:inline;">@{{callup_proposal.user.username}}</h3> &middot; <span>{{ callup_proposal.votes }} upvotes</span> 
+        <div>
+<b>{{callup_proposal.date }}</b> - <a href="{% url 'transaction' callup_proposal.player.transaction.tid %}">{{callup_proposal.player.first_name }} {{ callup_proposal.player.last_name }}</a> 
+        {% get_affiliate callup_proposal.to_level callup_proposal.mlbteam as team_to %}
+        to {{team_to.location }} {{team_to.name }} from 
+        {% get_affiliate callup_proposal.from_level callup_proposal.mlbteam as team %}
+        <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{callup_proposal.from_level.level }} {{ team.location }}</a>
+		
+	<h4>{{ callup_proposal.player.first_name }} {{ callup_proposal.player.last_name }} <i>should be</i> called up from {{callup_proposal.from_level}} to {{ callup_proposal.to_level }}</h4>
+	    <h5 style="display:inline;"><b>{{callup_proposal.player.position}}</b></h5>
+            <a style="display:inline;" href="{{ callup_proposal.player.bb_ref }}" target=_blank>More info</a>
+        </div>
+	{% endfor %}
+
+</div>
+</div>
+	{% endif %}
+
+{% if option_proposals %}
+    <h1>Your Option Proposals</h1>
+    <div class="row"><div class="r col-sm-12">
+		{% for option_proposal in option_proposals %}
+
+	<h3 style="display:inline;">@{{option_proposal.user.username}}</h3> &middot; <span>{{ option_proposal.votes }} upvotes</span> 
+        <div>
+		<b>{{option_proposal.date }}</b> - <a href="{% url 'transaction' option_proposal.player.transaction.tid %}">{{option_proposal.player.first_name }} {{ option_proposal.player.last_name }}</a> <i>should be</i> optioned
+        {% get_affiliate option_proposal.to_level option_proposal.mlbteam as team_to %}
+        to {{team_to.location }} {{team_to.name }} ({{ option_proposal.to_level.level }}) from {{ option_proposal.from_level.level }} 
+        {% get_affiliate option_proposal.from_level option_proposal.mlbteam as team %}
+        <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{ team.location }}</a>
+		
+	
+	    <h4>@{{ option_proposal.user.username }} is proposing that {{ option_proposal.player.first_name }} {{ option_proposal.player.last_name }} be optioned from {{option_proposal.from_level}} to {{ option_proposal.to_level }}</h4>
+	    {% if option_proposal.player.number %}<h5>#{{option_proposal.player.number}} </h5>{% endif %}
+            <h5>{{option_proposal.player.position}}</h5>
+            <a href="{{ option_proposal.player.bb_ref }}" target=_blank>More info</a>
+        </div>
+	{% endfor %}
+    </div>
+    </div>
+
+    {% endif %}
+
+    </div>
+    {% include 'da_wire/footer.html' %}
 </body>
 </html>

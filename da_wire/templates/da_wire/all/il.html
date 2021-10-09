@@ -179,6 +179,22 @@
             }
     </script>
     {% endif %}
+	<script>
+        function pick_page(index, transaction_type){
+            form = $('#' + transaction_type + '_form');
+            form.find('#' + transaction_type + '_index').val(index);
+            $.ajax({
+                    type: "POST",
+                    url: form.prop('action'),
+                    data: form.serialize(),
+                    success : function(data) {
+                         $('#ul_' + transaction_type).html(data);
+                         form.find('.active').removeClass('active');
+                         form.find('#' + transaction_type + '_' +index).addClass('active');
+                     }
+                });
+        }
+    </script>
 </head>
 <body>
     {% include 'da_wire/header.html' %}
@@ -198,8 +214,44 @@
        {% endif %}
 	<h2>Injured Lists</h2>
 	<div class="row"><div class="r col-sm-12"><div>
-    {% include 'da_wire/transaction_type/injured.html' %}
-		</div>
+<ul id="ul_injured">
+        {% include 'da_wire/transaction_type/injured.html' %}
+    </ul>
+
+	{% if request.resolver_match.view_name != "transaction" %}
+    <form {% if not mlbaff %} 
+			action="{% url 'pick_page' %}"
+			{%else %}
+			action="{% url 'pick_page_team' %}"
+			{%endif%} method="POST" id="injured_form">
+            {% if request.resolver_match.view_name == 'team' %}
+			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
+			{% endif %}    
+	
+	    <input id="injured_index" type="hidden" name="index" value="1" />
+                <input id="injured_transaction_type" name="transaction_type" type="hidden" value="injured" />
+                {% csrf_token %}
+                <nav aria-label="...">
+                    <ul class="pagination pagination-sm flex-wrap">
+                        <li class="page-item active" aria-current="page" id="injured_1">
+                          <span class="page-link" onclick="pick_page('1', 'injured');">1</span>
+                        </li>
+                    {% for i in injured_list.range %}
+                        <li class="page-item" id="injured_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'injured');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
+		{% if mlbaff %}
+		<input type=hidden name="mid" value="{{mlbaff.id}}" />
+		{% endif %}
+		<input type=hidden name=bool value=1 />
+
+    </form>
+	    {% endif %}
+
+			</div>
 		</div>
 	</div>
     </div>
