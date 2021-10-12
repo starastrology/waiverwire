@@ -112,7 +112,7 @@
 	</form>
 
 	<p style="font-size: 25px;">
-		With Pro, you gain the ability to view, upvote/downvote, and create transaction proposals including trades! Play GM with this all new feature. But that's not all! Choose your favorite teams and customize your feed. Plus, see top-rated posts and transactions by the Waiver Wire community. One time fee. No returns.
+		With Pro, you gain the ability to view, upvote/downvote, and create transaction proposals including trades, options, and callups! Play GM with this all new feature. Plus, you can post comments for discussion of transactions and players! One time fee. No returns.
 	</p>
 		{% endif %}
 	</hr>
@@ -121,7 +121,12 @@
 	<h1>Your Trade Proposals</h1>
     	<div class="row"> <div class="r col-sm-12">
 	{% for trade_proposal in trade_proposals %}
-	<h3 style="display:inline;">@{{trade_proposal.user.username}}</h3> &middot; <span>{{ trade_proposal.votes }} upvotes</span> 
+	<h3 style="display:inline;">@{{trade_proposal.user.username}}</h3> &middot; <span>{{ trade_proposal.votes }} upvotes</span> <a href="{% url 'transaction' trade_proposal.transaction.tid %}">&#8618;</a> 
+       	<form  style="float:right;" onsubmit="return confirm('Are you sure you want to delete your proposal?');" action="{% url 'delete_transaction' %}" method="POST">
+            <button class="btn btn-danger" type=submit>Delete Proposal</button>
+	    <input type=hidden name="tid" value="{{ trade_proposal.transaction.tid }}" />
+            {% csrf_token %}
+        </form> 
 	<div>
 		<b style="display:inline;">{{ trade_proposal.date }}</b><a href="{% url 'transaction' trade_proposal.transaction.tid %}">&#8618;</a>
 			{% for players in trade_proposal.players.all %}{% with forloop.counter as cntr %} {% for player in players.players.all %} 
@@ -144,7 +149,12 @@
 <div class="row"><div class="r col-sm-12">
 		{% for callup_proposal in callup_proposals %}
 
-	<h3 style="display:inline;">@{{callup_proposal.user.username}}</h3> &middot; <span>{{ callup_proposal.votes }} upvotes</span> 
+	<h3 style="display:inline;">@{{callup_proposal.user.username}}</h3> &middot; <span>{{ callup_proposal.votes }} upvotes</span> <a href="{% url 'transaction' callup_proposal.transaction.tid %}">&#8618;</a> 
+       	<form  style="float:right;" onsubmit="return confirm('Are you sure you want to delete your proposal?');" action="{% url 'delete_transaction' %}" method="POST">
+            <button class="btn btn-danger" type=submit>Delete Proposal</button>
+	    <input type=hidden name="tid" value="{{ callup_proposal.transaction.tid }}" />
+            {% csrf_token %}
+        </form> 
         <div>
 <b>{{callup_proposal.date }}</b> - <a href="{% url 'transaction' callup_proposal.player.transaction.tid %}">{{callup_proposal.player.first_name }} {{ callup_proposal.player.last_name }}</a> 
         {% get_affiliate callup_proposal.to_level callup_proposal.mlbteam as team_to %}
@@ -167,8 +177,13 @@
     <div class="row"><div class="r col-sm-12">
 		{% for option_proposal in option_proposals %}
 
-	<h3 style="display:inline;">@{{option_proposal.user.username}}</h3> &middot; <span>{{ option_proposal.votes }} upvotes</span> 
-        <div>
+		<h3 style="display:inline;">@{{option_proposal.user.username}}</h3> &middot; <span>{{ option_proposal.votes }} upvotes</span> <a href="{% url 'transaction' option_proposal.transaction.tid %}">&#8618;</a> 
+       	<form  style="float:right;" onsubmit="return confirm('Are you sure you want to delete your proposal?');" action="{% url 'delete_transaction' %}" method="POST">
+            <button class="btn btn-danger" type=submit>Delete Proposal</button>
+	    <input type=hidden name="tid" value="{{ option_proposal.transaction.tid }}" />
+            {% csrf_token %}
+        </form>
+	<div>
 		<b>{{option_proposal.date }}</b> - <a href="{% url 'transaction' option_proposal.player.transaction.tid %}">{{option_proposal.player.first_name }} {{ option_proposal.player.last_name }}</a> <i>should be</i> optioned
         {% get_affiliate option_proposal.to_level option_proposal.mlbteam as team_to %}
         to {{team_to.location }} {{team_to.name }} ({{ option_proposal.to_level.level }}) from {{ option_proposal.from_level.level }} 
@@ -180,7 +195,10 @@
 	    {% if option_proposal.player.number %}<h5>#{{option_proposal.player.number}} </h5>{% endif %}
             <h5>{{option_proposal.player.position}}</h5>
             <a href="{{ option_proposal.player.bb_ref }}" target=_blank>More info</a>
-        </div>
+       
+	
+	</div>
+	
 	{% endfor %}
     </div>
     </div>

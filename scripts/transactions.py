@@ -19,7 +19,7 @@ def add_player_to_db(player, URL, mlbaffiliate):
     try:
         page = requests.get(URL)
     except requests.exceptions.ConnectionError as e:
-        print(e)
+        #print(e)
         return 0
     soup = BeautifulSoup(page.text, 'html5lib') 
     div = soup.find_all('div', class_="player-header--vitals")
@@ -28,7 +28,7 @@ def add_player_to_db(player, URL, mlbaffiliate):
     for i in range(1, len(name)):
         last_name += name[i] + " "
     last_name = last_name.strip() 
-    print(name[0] + " " + last_name)
+    print("created player:", name[0] + " " + last_name)
     span = soup.find_all('span', class_="player-header--vitals-number")
     number = span.text[1:]
     if div:
@@ -47,9 +47,9 @@ locations = MLBAffiliate.objects.filter(level__level="MLB")
 for location in locations:
     mlbaffiliate = location
     if mlbaffiliate.name=="Diamondbacks":
-        URL = "https://www.mlb.com/dbacks/roster/transactions/2021/10"
+        URL = "https://www.mlb.com/dbacks/roster/transactions/2021/07"
     else:
-        URL = "https://www.mlb.com/" + mlbaffiliate.name.replace(" ", "-").lower() + "/roster/transactions/2021/10"
+        URL = "https://www.mlb.com/" + mlbaffiliate.name.replace(" ", "").lower() + "/roster/transactions/2021/07"
     print(URL)
     page = requests.get(URL)
     soup = BeautifulSoup(page.text, 'html5lib') 
@@ -64,7 +64,7 @@ for location in locations:
                 if date == '':
                     continue
                 past = datetime.strptime(date, "%m/%d/%y")
-                present = datetime.today() - timedelta(days=2)
+                present = datetime.today() - timedelta(days=10)
                 if past.date() >= present.date():
                     td = tds[1].text
                     td = td.replace("Player To Be Named Later", "omfggg")
@@ -169,11 +169,9 @@ for location in locations:
                                     option = Option(transaction=t, is_rehab_assignment=0, date=past.date(), player=player, from_level=team.level, to_level=team_to.level, mlbteam=mlbaffiliate.mlbteam)
                                     option.save()
                                     #assign player to new team
-                                    print(team_to)
                                     player.mlbaffiliate = team_to
                                     player.is_FA = 0
                                     player.save()
-                                    print(player.mlbaffiliate)
                                     print("Processing player option", player, team)
                     elif "recalled" in info or "selected" in info:
                         for i in info:
@@ -233,7 +231,6 @@ for location in locations:
                                 player += i + " "
                             
                         if verb == "claimed" or verb=="signed":
-                            print("Signing", team, player)
                             team = team.strip()
                             if tds[1].find_all('a'):
                                 player = tds[1].find_all('a')[0].text
@@ -427,8 +424,7 @@ for location in locations:
                             if team_to != "" and team_to[len(team_to)-1] == ".":
                                 team_to = team_to[0:len(team_to)-1]
                     
-                            print(td)
-                            print("Team:", team, "Team_to:", team_to, "Player:", players)
+                            #print("Team:", team, "Team_to:", team_to, "Player:", players)
                             team_from = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
                             team_to = MLBAffiliate.objects.filter(location__startswith=team_to.split(" ")[0], name__endswith=team_to.split(" ")[len(team_to.split(" "))-1]).first()
                             if (len(players)==2 and players[1] == "omfggg") or len(players)==1:
@@ -518,3 +514,5 @@ for location in locations:
                                             print("processing trade..................................", trade)
                                         except Exception as e: 
                                             print(e) 
+                        else:
+                            print("need to manually add:", td[0], td[1])

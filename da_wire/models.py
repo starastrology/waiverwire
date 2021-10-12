@@ -3,6 +3,10 @@ from django.core.validators import MaxValueValidator, MinValueValidator, \
     MaxLengthValidator, MinLengthValidator
 from django.contrib.auth.models import User
 
+class ProUser(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    #is_pro = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(1)])
+
 class MLBTeam(models.Model):
     location = models.CharField(max_length=50)
     name = models.CharField(max_length=50)

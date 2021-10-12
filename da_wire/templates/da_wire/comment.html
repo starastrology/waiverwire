@@ -1,7 +1,10 @@
-{% if request.user.is_authenticated %}
+{% load da_wire_extras %}
+<hr>
+{% is_pro request.user as tf %}
+{% if request.user.is_authenticated and tf %}
 <p style="text-align: center;"> Post below... </p>
 {% else %}
-<p> Login to comment (and upvote)! </p>
+<p> Login to upvote, and <a href="{% url 'register_page' %}">upgrade to Pro</a> to comment! </p>
 {% endif %}
 <!--span>
     Sort By:
