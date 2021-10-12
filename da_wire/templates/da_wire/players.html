@@ -1,4 +1,4 @@
-<select {% if request.resolver_match.view_name == 'create_trade_proposal' %}multiple{%endif%} name="players{{number}}">
+<select {{multiple}} name="players{{number}}">
 	{% for player in players %}
 		<option>{{ player }}</option>
 	{% endfor %}

@@ -7,16 +7,21 @@
 	  	<a class="navbar-brand" href="{% url 'index' %}">Waiver Wire</a>
 	        <div class="collapse navbar-collapse mr-auto" id="navbarNavDropdown">	
 		<ul class="navbar-nav">
+			{% load da_wire_extras %}
+			{% is_pro request.user as tf %}
+			{% if tf %}
           		<li class="nav-item dropdown">
           			<a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             				Proposals
           			</a>
           			<ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-            				<li><a class="dropdown-item" href="{% url 'create_trade_proposal' %}">Trade Proposal</a></li>
-            				<li><a class="dropdown-item" href="{% url 'create_callup_proposal' %}">Callup Proposal</a></li>
-            				<li><a class="dropdown-item" href="{% url 'create_option_proposal' %}">Option Proposal</a></li>
+					<li><a class="dropdown-item" href="{% url 'proposals' %}">View Proposals</a></li>
+            				<li><a class="dropdown-item" href="{% url 'create_trade_proposal' %}">Create Trade Proposal</a></li>
+            				<li><a class="dropdown-item" href="{% url 'create_callup_proposal' %}">Create Callup Proposal</a></li>
+            				<li><a class="dropdown-item" href="{% url 'create_option_proposal' %}">Create Option Proposal</a></li>
 				</ul>
           		</li>
+			{% endif %}
 			<li class="nav-item dropdown">
           			<a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             				AL
@@ -65,7 +70,11 @@
 		</form>	
       			
       {% endif %}
-			
+      		&nbsp;
+		<form class="d-flex float-right" method="GET" action="{% url 'player_search' %}">
+			<input class="form-control me-2" type="search" name="search" placeholder="Player Search" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+		</form>				
 		</div>	
     	</div>
 	</div>

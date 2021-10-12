@@ -12,3 +12,16 @@ def get_affiliate(level, mlbteam):
 @register.filter
 def replace_forward_slash(value):
     return urllib.parse.quote(value, safe='')
+
+@register.simple_tag
+def is_pro(user):
+    if user.is_authenticated:
+        try:
+            if user.prouser:
+                return True
+            else:
+                return False
+        except:
+            return False
+    else:
+        return False

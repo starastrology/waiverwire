@@ -1,0 +1,52 @@
+{% load da_wire_extras %}
+{% for callup_proposal in callup_proposals %}
+
+       	<li class="something" id="transaction_{{callup_proposal.transaction.tid}}" >
+	<h3 style="display:inline;">@{{callup_proposal.user.username}}</h3> &middot; <span class="count">{{ callup_proposal.votes }} upvotes</span> <a href="{% url 'transaction' callup_proposal.transaction.tid %}">&#8618;</a> 
+                <div class="arrows">
+                    <form id="transaction_upvote_{{ callup_proposal.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ callup_proposal.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote_{{ callup_proposal.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ callup_proposal.transaction.tid }}">
+            </form>
+                    <div class="up" onclick="ajax_submit_upvote('{{ callup_proposal.transaction.tid }}')"></div>
+            <div class="down" onclick="ajax_submit_downvote('{{ callup_proposal.transaction.tid }}')"></div>
+                </div>
+	</li>
+	{% if callup_proposal.user.id == request.user.id %}
+	<form  style="float:right;" onsubmit="return confirm('Are you sure you want to delete your proposal?');" action="{% url 'delete_transaction' %}" method="POST">
+            <button class="btn btn-danger" type=submit>Delete Proposal</button>
+	    <input type=hidden name="tid" value="{{ callup_proposal.transaction.tid }}" />
+            {% csrf_token %}
+        </form> 
+	{% endif %}
+        <div>
+<b>{{callup_proposal.date }}</b> - <a href="{% url 'transaction' callup_proposal.player.transaction.tid %}">{{callup_proposal.player.first_name }} {{ callup_proposal.player.last_name }}</a> 
+        {% get_affiliate callup_proposal.to_level callup_proposal.mlbteam as team_to %}
+        to {{team_to.location }} {{team_to.name }} from 
+        {% get_affiliate callup_proposal.from_level callup_proposal.mlbteam as team %}
+        <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{callup_proposal.from_level.level }} {{ team.location }}</a>
+		
+	<h4>{{ callup_proposal.player.first_name }} {{ callup_proposal.player.last_name }} <i>should be</i> called up from {{callup_proposal.from_level}} to {{ callup_proposal.to_level }}</h4>
+	    <h5 style="display:inline;"><b>{{callup_proposal.player.position}}</b></h5>
+            <a style="display:inline;" href="{{ callup_proposal.player.bb_ref }}" target=_blank>More info</a>
+        </div>
+	{% endfor %}
+
+<script>
+          $(document).ready(function(){
+              {% for fa in callup_proposals %}
+                  {% if fa.user_upvoted == 1 %}
+                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
+                  {% elif fa.user_upvoted == -1 %}       
+                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
+                  {% endif %}
+                  
+            {% endfor %}
+            });
+</script>
+
+

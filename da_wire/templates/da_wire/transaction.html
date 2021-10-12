@@ -23,7 +23,7 @@
 		{% elif personal_leave_transaction %}
 			{{ personal_leave_transaction.date }} - {{ personal_leave_transaction.player }} on personal leave
 		{% elif trade_transaction %}
-		{{ trade_transaction.date }} - Trade involving {% for players in trade_transaction.players.all %}{% for player in players.players.all %}{{player}} {%endfor %}{%endfor%}
+		{{ trade_transaction.date }} - Trade involving {% for players in trade_transaction.players.all %}{% for player in players.players.all %}{{player}} &middot; {%endfor %}{%endfor%}
 		{% endif %}
 
 	</title>
@@ -704,7 +704,6 @@
     </div>              
 {% endif %}
 {% include 'da_wire/container.html' %}
-
 {% include 'da_wire/comment.html' %}
 
 </div>

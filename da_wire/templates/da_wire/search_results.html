@@ -1,0 +1,68 @@
+{% load static %}
+<html lang="en">
+<head>
+    <title>Waiver Wire - Search Results</title>
+    <meta charset="UTF-8" />
+    <meta name="description" content="A website dedicated to major and minor league baseball transactions.">
+    <meta name="keywords" content="MLB, baseball, major league, minor leagues, majors, minors, transactions, trades, options, free agents, players, waivers, signings, signing">
+    <meta name="author" content="Dan Frecka">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="shortcut icon" href="{% static 'da_wire/favicon.ico' %}"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <style>
+        :root {
+          --blue: #002D72;
+          --red: #D50032;
+	  --ternary: var(--red);
+        }
+        body{
+            background-color: var(--blue);
+            color: #ffffff;
+        }
+        .r {
+		padding: 4px;
+	}
+	.r>div:hover{
+		cursor: pointer;
+		background-color: #eee;
+	}
+	.r>div {
+  	    margin: 2px;	   
+  	    padding: 4px;
+            background-color: #ffffff;
+            border: 1px dashed var(--red);
+	}
+	    .r{
+            color: var(--blue);
+        }
+        li.something{
+            list-style-type: none;
+        }
+    </style>
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+          integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"></script>
+</head>
+<body>
+    {% include 'da_wire/header.html' %}
+    <div class="container">    
+	   	<h1>Search Results</h1>
+		</hr>
+		<div >
+			{% if players %}
+			<h2>Players</h2>
+			<ul>
+				{% for player in players %}
+				<li class="something"><a href="{% url 'transaction' player.transaction.tid %}">{{player}}</a></li>
+				{% endfor %}
+			</ul>
+			{% else %}
+				<h3> No players with requested search </h3>
+			{% endif %}
+		</div>
+    </div>
+    {% include 'da_wire/footer.html' %}
+</body>
+</html>
