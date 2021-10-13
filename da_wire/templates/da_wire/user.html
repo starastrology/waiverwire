@@ -105,6 +105,19 @@
 	    .page-item{
          	cursor: pointer;
         }
+	.comments .comment .text{
+            background-color: var(--blue);
+            padding: 10px;
+            border: 3px dashed white;
+        }
+        @media(max-width:800px){
+            .comments .comment .text{
+            width: 220px;
+            }
+	    .content{
+		width: 220px;
+	    }
+        }
 	
     </style>
 <script
@@ -335,23 +348,15 @@
 	<h1>Your comments</h1>
 	<div class="comments">
 	{% for comment in comments %}
-		<div class="comment" style="min-height: 100px;"><div>{{comment.user.username }} | {{ comment.datetime|timesince }} ago</div>
-            <div class="text" style="float: left;">{{ comment.text }}</div>
+		<div class="comment" style="min-height: 100px;">
+			<div>{{comment.user.username }} | {{ comment.datetime|timesince }} ago &middot; {{comment.votes}} upvotes <a href="{% url 'transaction' comment.transaction.tid %}">&#8618;</a></div>
+            <div class="text" >{{ comment.text|linebreaks }}</div>
             <div style="display: inline;" id="comment_{{comment.id}}">
-                <div style="display:inline;" class="count">{{comment.votes}}</div>
-                <div class="arrows">
-                    <form id="comment_upvote_{{comment.id}}" action="{% url 'transaction_upvote' %}" method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" name="pid" value="{{ comment.id }}">
-                    </form>
-                    <form id="comment_downvote_{{comment.id}}" action="{% url 'transaction_downvote' %}" method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" name="pid" value="{{ comment.id }}">
-                    </form>
-                    <div class="up" onclick="ajax_submit_upvote_comment('{{comment.id}}')"></div>
-                    <div class="down" onclick="ajax_submit_downvote_comment('{{comment.id}}')"></div>
-                </div>
-            </div>
+		    <form action="{% url 'delete_comment' %}" method="POST">
+			<input type=hidden name=comment_id value="{{comment.id}}" />
+			<button class="btn btn-danger">Delete Comment</button>
+		</form>
+	    </div>
         </div>
 		{% endfor %}
 	</div>
