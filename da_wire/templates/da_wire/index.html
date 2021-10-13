@@ -166,10 +166,19 @@
                 });
         }
     </script>
+    <script data-ad-client="ca-pub-1394361838214996" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 </head>
 <body>
     {% include 'da_wire/header.html' %}
     <div class="container">    
+	    {% if messages %}
+	    </br>
+		<div class="alert alert-success">
+        	{% for message in messages %}
+           		{{ message }}
+			{% endfor %}
+    		</div>	
+	    {% endif %}
 	    {% include 'da_wire/container.html' %}
     </div>
     {% include 'da_wire/footer.html' %}

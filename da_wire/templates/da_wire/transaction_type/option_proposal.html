@@ -2,7 +2,8 @@
 		{% for option_proposal in option_proposals %}
 <li class="something" id="transaction_{{option_proposal.transaction.tid}}" >
 		<h3 style="display:inline;">@{{option_proposal.user.username}}</h3> &middot; <span class="count">{{ option_proposal.votes }} upvotes</span> <a href="{% url 'transaction' option_proposal.transaction.tid %}">&#8618;</a> 
-                <div class="arrows">
+		{% if arrows %}
+		<div class="arrows">
                     <form id="transaction_upvote_{{ option_proposal.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="tid" value="{{ option_proposal.transaction.tid }}">
@@ -14,6 +15,7 @@
                     <div class="up" onclick="ajax_submit_upvote('{{ option_proposal.transaction.tid }}')"></div>
             <div class="down" onclick="ajax_submit_downvote('{{ option_proposal.transaction.tid }}')"></div>
                 </div>
+		{% endif %}
 	{% if option_proposal.user.id == request.user.id %}
 		<form  style="float:right;" onsubmit="return confirm('Are you sure you want to delete your proposal?');" action="{% url 'delete_transaction' %}" method="POST">
             <button class="btn btn-danger" type=submit>Delete Proposal</button>

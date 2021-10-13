@@ -13,7 +13,7 @@
 {% endif %}
 {% if request.resolver_match.view_name != "transaction" %}
 <div class="row">
-<div class="r col-sm-2" id="sidebar">
+<div class="r col-sm-2" id="sidebar" style="width: 200px;">
 		<h6 style="color: var(--ternary);">Transaction Types</h6>
 		<ul class="navbar-nav">
 		{% if fas %}
@@ -272,11 +272,19 @@
                         <li class="page-item active" aria-current="page" id="trade_1">
                           <span class="page-link" onclick="pick_page('1', 'trade');">1</span>
                         </li>
+			{% if trades.range %}
                     {% for i in trades.range %}
                         <li class="page-item" id="trade_{{i}}">
                             <span class="page-link" href="#" onclick="pick_page('{{i}}', 'trade');">{{i}}</span>
                         </li>
                     {% endfor %}
+		    {% else %}	
+		    {% for i in trades_range %}
+                        <li class="page-item" id="trade_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'trade');">{{i}}</span>
+                        </li>
+			{% endfor %}
+		    {% endif%}
                     </ul>
                 </nav>
             </form>

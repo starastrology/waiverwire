@@ -4,8 +4,9 @@
 		<h3 style="display:inline;">@{{trade_proposal.user.username}}</h3> 
 		&middot; 
 		<span class="count">{{ trade_proposal.votes }} upvotes</span> 
-		<a href="{% url 'transaction' trade_proposal.transaction.tid %}">&#8618;</a> 
-                <div class="arrows">
+		<a href="{% url 'transaction' trade_proposal.transaction.tid %}">&#8618;</a>
+		{% if arrows %}
+		<div class="arrows">
                     <form id="transaction_upvote_{{ trade_proposal.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
                     	{% csrf_token %}
                     	<input type="hidden" name="tid" value="{{ trade_proposal.transaction.tid }}">
@@ -17,6 +18,7 @@
                     <div class="up" onclick="ajax_submit_upvote('{{ trade_proposal.transaction.tid }}')"></div>
             	    <div class="down" onclick="ajax_submit_downvote('{{ trade_proposal.transaction.tid }}')"></div>
                </div>
+	       {% endif %}
 	{% if trade_proposal.user.id == request.user.id %}
 		<form  style="float:right;" onsubmit="return confirm('Are you sure you want to delete your proposal?');" action="{% url 'delete_transaction' %}" method="POST">
             	<button class="btn btn-danger" type=submit>Delete Proposal</button>
@@ -26,7 +28,6 @@
 	{% endif %}
 	<div>
 		<b style="display:inline;">{{ trade_proposal.date }}</b>
-		<a href="{% url 'transaction' trade_proposal.transaction.tid %}">&#8618;</a>
 {% for players in trade_proposal.players.all %}{% with forloop.counter as cntr %} 
 	{% for player in players.players.all %} 
 		<div>

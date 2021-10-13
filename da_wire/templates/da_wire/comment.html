@@ -3,19 +3,16 @@
 {% is_pro request.user as tf %}
 {% if request.user.is_authenticated and tf %}
 <p style="text-align: center;"> Post below... </p>
+{% elif request.user.is_authenticated %}
+	<form action="{% url 'upgrade_to_pro' %}" method="GET">
+		<button class="btn btn-warning">Upgrade to Pro for just $4.99 to comment</button>  
+	</form>
 {% else %}
 <p> Login to upvote, and <a href="{% url 'register_page' %}">upgrade to Pro</a> to comment! </p>
 {% endif %}
-<!--span>
-    Sort By:
-    <select>
-        <option>Date</option>
-        <option>Approval</option>
-    </select>
-</span-->
 <hr>
 
-{% if request.user.is_authenticated %}
+{% if request.user.is_authenticated and tf %}
 <div>
 <form action="{% url 'comment' %}" method="POST">
     {% csrf_token %}

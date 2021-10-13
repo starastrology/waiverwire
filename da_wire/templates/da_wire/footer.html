@@ -1,10 +1,10 @@
-<nav class="navbar-light bg-light" style="padding: 10px; text-align:center; display: block;" id="footer">
+<nav class="navbar-light bg-light" style="padding: 10px; text-align:center; display: block; min-height: 100%;" id="footer">
     {% load static %}
 
 	<div class="container">
     <div class="row"><div class="col-sm-12">
     <p>{% if logo %}
-        <img style="height: 140px;" src="{% static 'da_wire/'|add:logo %}" alt="...">{% else %}<a href="http://mlb.com" target=_blank>
+        <img style="height: 140px; max-width:100%;" src="{% static 'da_wire/'|add:logo %}" alt="...">{% else %}<a href="http://mlb.com" target=_blank>
         <img style="height: 140px;" src="{% static 'da_wire/mlb.png' %}" alt="..."></a>{% endif %}
     </p>
 	    </div>

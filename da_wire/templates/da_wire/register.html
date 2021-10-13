@@ -27,40 +27,6 @@
             border: 1px dashed var(--red);
             color: var(--blue);
         }
-        .upvoted{
-            opacity: 1;
-        }
-        {% load static %}
-        .up{
-            background-image: url("{% static 'da_wire/up.png' %}");
-        }
-        .down{
-            background-image: url("{% static 'da_wire/down.png' %}");
-        }
-        .up, .down{
-            background-repeat: no-repeat;
-            background-size: 18px;
-            width: 20px;
-            height: 20px;
-            margin: 2px 0;
-            opacity: .35;
-        }
-        .up:hover, .down:hover{
-            opacity: 1;
-            cursor: pointer;
-        }
-        .arrows{
-            display: inline;
-            float: left;
-            margin-top: -23px;
-        }
-        li.something{
-            list-style-type: none;
-            min-height: 50px;
-        }
-        .upvoted{
-            opacity: 1;
-        }
         #messages{
             border: 1px solid black;
             background-color: #f09;
@@ -71,7 +37,11 @@
     {% include 'da_wire/header.html' %}
     <div class="container">
        <h1>Register</h1>
-       <span id="messages">{{error_messages}}</span>
+       {% if messages %}
+       {% for message in messages %}
+       <span id="messages">{{message}}</span>
+       {% endfor %}
+       {% endif %}
         <form action="{% url 'register' %}" method="POST">
             <label for="username">Username</label>
             <input required class="form-control" id="username" name="username" type="text" />
@@ -83,7 +53,7 @@
             <input required class="form-control" id="confirm_password" name="confirm_password" type="password" />
             </br>
             {% csrf_token %}
-            <button class="btn btn-primary" type=submit>Register</button>
+            <button formmethod="post" class="btn btn-primary" type=submit>Register</button>
         </form>       
     </div>
 </body>
