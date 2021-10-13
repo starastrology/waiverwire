@@ -666,6 +666,14 @@ def contact(request):
     context = {'teams': mlbteams}
     return render(request, 'da_wire/contact.html', context)
 
+def delete_comment(request):
+    if request.user.is_authenticated:
+        comment_id = request.POST['comment_id']
+        comment = Comment.objects.filter(id=comment_id).first()
+        if comment.user == request.user:
+            comment.delete()
+    return redirect(reverse('user_page'))
+
 def comment(request):
     try:
         if request.user.prouser:
@@ -1421,8 +1429,20 @@ def user_page(request, id):
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
         for fa in option_proposals:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+
         comments = Comment.objects.filter(user=request.user).order_by('-datetime')
-        
+        for comment in comments:
+            comment.votes = CommentVote.objects.filter(comment=comment, is_up=1).count() - CommentVote.objects.filter(comment=comment, is_up=0).count()
+            user_upvoted = CommentVote.objects.filter(comment=comment, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    comment.user_upvoted = 1
+                else:
+                    comment.user_upvoted = -1
+            else:
+                comment.user_upvoted = 0
+     
+
         return render(request, 'da_wire/user.html', {'comments': comments, 'teams': mlbteams, 'trade_proposals':trade_proposals, 'callup_proposals': callup_proposals, 'option_proposals': option_proposals})
     else:
         return redirect(reverse('index'))
