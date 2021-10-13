@@ -81,14 +81,63 @@
             border: 1px solid black;
             background-color: #f09;
         }
+	.comments .comment{
+            border: 3px dashed white;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: var(--red);
+        }
+	.content{
+	   border: 3px dashed white;
+	   padding: 10px;
+	   background-color: var(--blue);
+	   width: 800px;
+	}
+        .comments .comment .text{
+             word-wrap: break-word;
+             width: 800px;
+        }
+        .comments .comment .text{
+            background-color: var(--blue);
+            padding: 10px;
+            border: 3px dashed white;
+        }
+	    .page-item{
+         	cursor: pointer;
+        }
+	
     </style>
+<script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+          integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"></script>
+     
+<script>
+        function pick_page(index, transaction_type){
+            form = $('#' + transaction_type + '_form');
+            form.find('#' + transaction_type + '_index').val(index);
+            $.ajax({
+                    type: "POST",
+                    url: "{% url 'pick_page' %}",
+                    data: form.serialize(),
+                    success : function(data) {
+                         $('#ul_' + transaction_type).html(data);
+                         form.find('.active').removeClass('active');
+                         form.find('#' + transaction_type + '_' +index).addClass('active');
+                     }
+                });
+        }
+    </script>
 </head>
 <body>
     {% include 'da_wire/header.html' %}
     <div class="container">
        <h1>{{ request.user.username }}</h1>
-       <span id="success">{{message}}</span>
-       <span id="messages">{{error_messages}}</span>
+       {% if messages %}
+       {% for message in messages %}
+       <span id="messages">{{message}}</span>
+       {%endfor %}
+       {% endif %}
         <form action="{% url 'change_password' %}" method="POST">
             <label for="username">Username</label>
             <input value="{{request.user.username}}" readonly class="form-control" id="username" name="username" type="text" />
@@ -107,36 +156,71 @@
             <button class="btn btn-danger" type=submit>Delete Account</button>
             {% csrf_token %}
         </form>
-	<form action="" method="POST">
+	{% is_pro request.user as tf %}
+	{% if not tf %}
+	<form action="{% url 'upgrade_to_pro' %}" method="GET">
 		<button class="btn btn-warning">Upgrade to Pro for just $4.99</button>  
 	</form>
 
 	<p style="font-size: 25px;">
 		With Pro, you gain the ability to view, upvote/downvote, and create transaction proposals including trades, options, and callups! Play GM with this all new feature. Plus, you can post comments for discussion of transactions and players! One time fee. No returns.
 	</p>
+
+	{% endif %}
 		{% endif %}
 	</hr>
 
 	{% if trade_proposals %}
 	<h1>Your Trade Proposals</h1>
-    	<div class="row"> <div class="r col-sm-12">
+    	<div class="row"> 
+		<div class="r col-sm-12">
+			<ul id="ul_trade_proposal">
 	{% for trade_proposal in trade_proposals %}
-	<h3 style="display:inline;">@{{trade_proposal.user.username}}</h3> &middot; <span>{{ trade_proposal.votes }} upvotes</span> <a href="{% url 'transaction' trade_proposal.transaction.tid %}">&#8618;</a> 
-       	<form  style="float:right;" onsubmit="return confirm('Are you sure you want to delete your proposal?');" action="{% url 'delete_transaction' %}" method="POST">
-            <button class="btn btn-danger" type=submit>Delete Proposal</button>
-	    <input type=hidden name="tid" value="{{ trade_proposal.transaction.tid }}" />
-            {% csrf_token %}
-        </form> 
-	<div>
-		<b style="display:inline;">{{ trade_proposal.date }}</b><a href="{% url 'transaction' trade_proposal.transaction.tid %}">&#8618;</a>
+				<li class="something">
+				<h3 style="display:inline;">@{{trade_proposal.user.username}}</h3> 
+				&middot; 
+				<span>{{ trade_proposal.votes }} upvotes</span> 
+				<a href="{% url 'transaction' trade_proposal.transaction.tid %}">&#8618;</a> 
+       				<form  style="float:right;" onsubmit="return confirm('Are you sure you want to delete your proposal?');" action="{% url 'delete_transaction' %}" method="POST">
+           		 		<button class="btn btn-danger" type=submit>Delete Proposal</button>
+	    				<input type=hidden name="tid" value="{{ trade_proposal.transaction.tid }}" />
+            				{% csrf_token %}
+        			</form> 
+				<div>
+					<b style="display:inline;">{{ trade_proposal.date }}</b><a href="{% url 'transaction' trade_proposal.transaction.tid %}">&#8618;</a>
 			{% for players in trade_proposal.players.all %}{% with forloop.counter as cntr %} {% for player in players.players.all %} 
-			<div><a href="{% url 'transaction' player.transaction.tid %}">{{player.first_name}} {{player.last_name}}</a>
-	to {{players.team_to.mlbteam.name}} (from <a href="{% url 'team' players.team_from.location|replace_forward_slash players.team_from.name %}">{{players.team_from.mlbteam.name}}</a>){% if cntr != trade_proposal.players.all|length %} 
-	{% endif %}</div> {% endfor %}{% endwith %} 
-        {% endfor %}
+					<div>
+						<a href="{% url 'transaction' player.transaction.tid %}">
+							{{player.first_name}} {{player.last_name}}
+						</a>
+						to {{players.team_to.mlbteam.name}} (from 
+						<a href="{% url 'team' players.team_from.location|replace_forward_slash players.team_from.name %}">{{players.team_from.mlbteam.name}}</a>
+						){% if cntr != trade_proposal.players.all|length %} {% endif %}
+					</div> 
+			{% endfor %}{% endwith %} 
+			{% endfor %}
+    				</div>
+				</li>
+				{%endfor %}
+			</ul>
+	<form action="{% url 'pick_page' %}" method="POST" id="trade_proposal_form">
+	    <input id="trade_proposal_index" type="hidden" name="index" value="1" />
+                <input id="trade_proposal_transaction_type" name="transaction_type" type="hidden" value="trade_proposal" />
+                {% csrf_token %}
+                <nav aria-label="...">
+                    <ul class="pagination pagination-sm flex-wrap">
+                        <li class="page-item active" aria-current="page" id="trade_proposal_1">
+                          <span class="page-link" onclick="pick_page('1', 'trade_proposal');">1</span>
+                        </li>
+                    {% for i in trade_proposals.range %}
+                        <li class="page-item" id="trade_proposal_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'trade_proposal');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
+	</form>
 
-    </div>
-    {%endfor %}
 </div>
     </div>
 	
@@ -147,8 +231,9 @@
 
 		<h1>Your Callup Proposals</h1>
 <div class="row"><div class="r col-sm-12">
+		<ul id="ul_callup_proposal">
 		{% for callup_proposal in callup_proposals %}
-
+		<li class="something">
 	<h3 style="display:inline;">@{{callup_proposal.user.username}}</h3> &middot; <span>{{ callup_proposal.votes }} upvotes</span> <a href="{% url 'transaction' callup_proposal.transaction.tid %}">&#8618;</a> 
        	<form  style="float:right;" onsubmit="return confirm('Are you sure you want to delete your proposal?');" action="{% url 'delete_transaction' %}" method="POST">
             <button class="btn btn-danger" type=submit>Delete Proposal</button>
@@ -166,7 +251,27 @@
 	    <h5 style="display:inline;"><b>{{callup_proposal.player.position}}</b></h5>
             <a style="display:inline;" href="{{ callup_proposal.player.bb_ref }}" target=_blank>More info</a>
         </div>
+		</li>
 	{% endfor %}
+		</ul>
+<form action="{% url 'pick_page' %}" method="POST" id="callup_proposal_form">
+	    <input id="callup_proposal_index" type="hidden" name="index" value="1" />
+                <input id="callup_proposal_transaction_type" name="transaction_type" type="hidden" value="callup_proposal" />
+                {% csrf_token %}
+                <nav aria-label="...">
+                    <ul class="pagination pagination-sm flex-wrap">
+                        <li class="page-item active" aria-current="page" id="callup_proposal_1">
+                          <span class="page-link" onclick="pick_page('1', 'callup_proposal');">1</span>
+                        </li>
+                    {% for i in callup_proposals.range %}
+                        <li class="page-item" id="callup_proposal_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'callup_proposal');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
+	</form>
+
 
 </div>
 </div>
@@ -175,8 +280,9 @@
 {% if option_proposals %}
     <h1>Your Option Proposals</h1>
     <div class="row"><div class="r col-sm-12">
-		{% for option_proposal in option_proposals %}
-
+		    <ul id="ul_option_proposal">
+		    {% for option_proposal in option_proposals %}
+		    <li class="something">
 		<h3 style="display:inline;">@{{option_proposal.user.username}}</h3> &middot; <span>{{ option_proposal.votes }} upvotes</span> <a href="{% url 'transaction' option_proposal.transaction.tid %}">&#8618;</a> 
        	<form  style="float:right;" onsubmit="return confirm('Are you sure you want to delete your proposal?');" action="{% url 'delete_transaction' %}" method="POST">
             <button class="btn btn-danger" type=submit>Delete Proposal</button>
@@ -198,12 +304,58 @@
        
 	
 	</div>
-	
+		    </li>
 	{% endfor %}
-    </div>
+		    </ul>
+   <form action="{% url 'pick_page' %}" method="POST" id="option_proposal_form">
+	    <input id="option_proposal_index" type="hidden" name="index" value="1" />
+                <input id="option_proposal_transaction_type" name="transaction_type" type="hidden" value="option_proposal" />
+                {% csrf_token %}
+                <nav aria-label="...">
+                    <ul class="pagination pagination-sm flex-wrap">
+                        <li class="page-item active" aria-current="page" id="option_proposal_1">
+                          <span class="page-link" onclick="pick_page('1', 'option_proposal');">1</span>
+                        </li>
+                    {% for i in option_proposals.range %}
+                        <li class="page-item" id="option_proposal_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'option_proposal');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
+	</form>
+
+
+	    </div>
     </div>
 
     {% endif %}
+
+	{% if comments %}
+	<h1>Your comments</h1>
+	<div class="comments">
+	{% for comment in comments %}
+		<div class="comment" style="min-height: 100px;"><div>{{comment.user.username }} | {{ comment.datetime|timesince }} ago</div>
+            <div class="text" style="float: left;">{{ comment.text }}</div>
+            <div style="display: inline;" id="comment_{{comment.id}}">
+                <div style="display:inline;" class="count">{{comment.votes}}</div>
+                <div class="arrows">
+                    <form id="comment_upvote_{{comment.id}}" action="{% url 'transaction_upvote' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="pid" value="{{ comment.id }}">
+                    </form>
+                    <form id="comment_downvote_{{comment.id}}" action="{% url 'transaction_downvote' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="pid" value="{{ comment.id }}">
+                    </form>
+                    <div class="up" onclick="ajax_submit_upvote_comment('{{comment.id}}')"></div>
+                    <div class="down" onclick="ajax_submit_downvote_comment('{{comment.id}}')"></div>
+                </div>
+            </div>
+        </div>
+		{% endfor %}
+	</div>
+	{% endif %}
 
     </div>
     {% include 'da_wire/footer.html' %}

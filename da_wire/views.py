@@ -1,11 +1,78 @@
 from django.shortcuts import render, redirect, reverse
 from .models import MLBAffiliate, Level, Player, Option, Trade, \
     CallUp, InjuredList, FASignings, DFA, MLBTeam, PersonalLeave, Position, \
-        Transaction, Comment, TransactionVote, CommentVote, PlayerTrade, TradeProposal, PlayerTradeProposal, CallUpProposal, OptionProposal
+        Transaction, Comment, TransactionVote, CommentVote, PlayerTrade, TradeProposal, \
+        PlayerTradeProposal, CallUpProposal, OptionProposal, ProUser
 from django.db.models import Q
 from django.contrib.auth import authenticate
 from django.contrib.auth import logout, login
 from django.http import HttpResponse
+from django.contrib import messages
+
+def upgrade_to_pro(request):
+    if request.user.is_authenticated:
+        pu = ProUser.objects.filter(user=request.user)
+        try:
+            if not pu:
+                import braintree
+
+                gateway = braintree.BraintreeGateway(
+                    braintree.Configuration(
+                        braintree.Environment.Sandbox,
+                        merchant_id="vjf256px6wd86cm4",
+                        public_key="3by3zyh5jz52gvk7",
+                        private_key="55e6bf358de966cffcf32359f9f16ef0"
+                    )
+                )
+
+                client_token = gateway.client_token.generate()
+
+                return render(request, 'da_wire/braintree.html', {'client_token': client_token})
+            else:
+                return redirect(reverse('index'))
+        except:
+            return redirect(reverse('index'))
+    else:
+        return redirect(reverse('index'))
+    
+def successful_payment(request):
+    return render(request, 'da_wire/success.html')
+
+def checkout(request):
+    import braintree
+
+    gateway = braintree.BraintreeGateway(
+        braintree.Configuration(
+            braintree.Environment.Sandbox,
+            merchant_id="vjf256px6wd86cm4",
+            public_key="3by3zyh5jz52gvk7",
+            private_key="55e6bf358de966cffcf32359f9f16ef0"
+        )
+    )
+
+    nonce_from_the_client = request.POST["payment_method_nonce"]
+    device_data = request.POST['device_data']
+    # Use payment method nonce here...
+    result = gateway.transaction.sale({
+        "amount": "4.99",
+        "payment_method_nonce": nonce_from_the_client,
+        #"device_data": device_data,
+        "options": {
+            "submit_for_settlement": True
+        }
+    })
+    if result.is_success:
+        pu = ProUser(user=request.user)
+        pu.save()
+        return redirect(reverse('successful_payment')) 
+    else:
+        for error in result.errors.deep_errors:
+            print("attribute: " + error.attribute)
+            print("  code: " + error.code)
+            print("  message: " + error.message) 
+            messages.error(request, error.message)
+        return redirect(reverse('upgrade_to_pro'))
+
 
 def delete_transaction(request):
     tid = request.POST['tid']
@@ -96,7 +163,7 @@ def proposals(request):
                         fa.user_upvoted = 0
         
             context = {'teams': mlbteams, 'option_proposals': option_proposals, 'callup_proposals': callup_proposals, \
-                'trade_proposals': trade_proposals }
+                    'trade_proposals': trade_proposals, 'arrows': True }
             return render(request, 'da_wire/proposals/proposals.html', context)
         else:
             return redirect(reverse('index'))
@@ -114,6 +181,8 @@ def player_search(request):
                 
         players = Player.objects.filter(Q(first_name_unaccented__in=name)|Q(last_name_unaccented__in=name)).order_by('last_name_unaccented', 'first_name_unaccented')
         return render(request, 'da_wire/search_results.html', {'players': players})
+    else:
+        return render(request, 'da_wire/search_results.html', {})
 
 def transaction_upvote(request):
     tid = request.POST["tid"]
@@ -617,8 +686,11 @@ def comment(request):
 from django.template.loader import render_to_string
 per_page = 1
 def pick_page(request):
+   
+    context = {'request': request}
     if request.POST.get('bool'):
         per_page = int(request.POST['bool'])
+        context['arrows'] = True
     else:
         per_page = 1
     index = int(request.POST['index']) - 1
@@ -628,7 +700,6 @@ def pick_page(request):
     lower_bound = index * per_page
     upper_bound = (index + 1) * per_page
     
-    context = {'request': request}
     
     # Free Agents
     if transaction_type == 'trade_proposal':
@@ -1242,13 +1313,13 @@ def login_view(request):
     user = authenticate(username=username, password=password)
     if user is not None:
         login(request, user)
-        message = "Logged In; welcome " + username
+        messages.success(request, "Logged in, welcome to Waiver Wire")
         if request.META.get('HTTP_REFERER'):
             return redirect(request.META.get('HTTP_REFERER'))
         else:
             return redirect(reverse('index'))
     else:
-        message = "Failed to log in due to incorrect password or username"
+        messages.error(request, "Failed to log in due to incorrect password or username")
         return redirect(reverse('index'))
 
 def logout_view(request):
@@ -1268,20 +1339,27 @@ def register(request):
         password = request.POST['password']
     else:
         return redirect(reverse('register_page'))
- 
+    
+    if " " in username:
+        messages.error(request, "No spaces allowed in username")
+        return redirect(reverse('register_page'))
     password_confirm = request.POST['confirm_password']
     email = request.POST['email']
     from django.contrib.auth.models import User
     user = User.objects.filter(username=username).first()
     if user:
-        return render(request, 'da_wire/register.html', {'error_messages': "User already exists"})
+        messages.error(request,'User already exists')
+        return redirect(reverse('register_page'))
     user = User.objects.filter(email=email).first()
     if user:
-        return render(request, 'da_wire/register.html', {'error_messages': "Email already in use"})
+        messages.error(request,'Email already in use')
+        return redirect(reverse('register_page'))
     if password_confirm != password:
-        return render(request, 'da_wire/register.html', {'error_messages': "Passwords not matching"})
+        messages.error(request, 'Passwords not matching')
+        return redirect(reverse('register_page'))
     if len(password) < 8:
-        return render(request, 'da_wire/register.html', {'error_messages': "Password must be 8 or more characters"})
+        messages.error(request, 'Passwords must be 8 or more characters')
+        return redirect(reverse('register_page'))
     #otherwise
     user = User.objects.create_user(username=username, email=email, password=password)
     user.save()
@@ -1289,41 +1367,63 @@ def register(request):
     return redirect(reverse('index'))
 
 def change_password(request):
-    username = request.POST['username']
-    password = request.POST['password']
-    password_confirm = request.POST['confirm_password']
-    from django.contrib.auth.models import User
-    user = User.objects.filter(username=username).first()
-    if password_confirm != password:
-        return render(request, 'da_wire/user.html', {'error_messages': "New passwords not matching"})
-    if len(password) < 8:
-        return render(request, 'da_wire/user.html', {'error_messages': "Password must be 8 or more characters"})
-    #otherwise
-    uid = user.id
-    user.set_password(password)
-    user.save()
-    login(request, user)
+    if request.user.is_authenticated:
+        username = request.POST['username']
+        password = request.POST['password']
+        password_confirm = request.POST['confirm_password']
+        from django.contrib.auth.models import User
+        user = User.objects.filter(username=username).first()
+        if user != request.user:
+            return redirect(reverse('index'))
+        if password_confirm != password:
+            messages.error(request, "New passwords not matching")
+            return redirect(reverse('user_page', kwargs={'id':request.user.id}))
+        if len(password) < 8:
+            messages.error(request, "Password must be 8 or more characters")
+            return redirect(reverse('user_page', kwargs={'id': request.user.id}))
+        #otherwise
+        uid = user.id
+        user.set_password(password)
+        user.save()
+        login(request, user)
     
-    mlb_level = Level.objects.filter(level="MLB").first()
-    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
-    return render(request, 'da_wire/user.html', {'message': "Successfully updated password", 'teams': mlbteams})
-    
+        messages.success(request, "Successfully updated password")
+        return redirect(reverse('index'))
+    else:
+        return redirect(reverse('index'))
 
 def user_page(request, id):
     if request.user.is_authenticated and request.user.id==id:
+        per_page = 1
         mlb_level = Level.objects.filter(level="MLB").first()
         mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
-        trade_proposals = TradeProposal.objects.filter(user=request.user)
-        callup_proposals = CallUpProposal.objects.filter(user=request.user)
-        option_proposals = OptionProposal.objects.filter(user=request.user)
+        trade_proposals = TradeProposal.objects.filter(user=request.user).order_by('-date')
+        trade_proposals_count = trade_proposals.count()
+        trade_proposals = trade_proposals[0:per_page]
+        upper = int(trade_proposals_count / per_page) + 1
+        trade_proposals.range = range(2, upper)
+
+        callup_proposals = CallUpProposal.objects.filter(user=request.user).order_by('-date')
+        callup_proposals_count = callup_proposals.count()
+        callup_proposals = callup_proposals[0:per_page]
+        upper = int(callup_proposals_count / per_page) + 1
+        callup_proposals.range = range(2, upper)
+
+        option_proposals = OptionProposal.objects.filter(user=request.user).order_by('-date')
+        option_proposals_count = option_proposals.count()
+        option_proposals = option_proposals[0:per_page]
+        upper = int(option_proposals_count / per_page) + 1
+        option_proposals.range = range(2, upper)
+
         for fa in trade_proposals:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
         for fa in callup_proposals:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
         for fa in option_proposals:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+        comments = Comment.objects.filter(user=request.user).order_by('-datetime')
         
-        return render(request, 'da_wire/user.html', {'teams': mlbteams, 'trade_proposals':trade_proposals, 'callup_proposals': callup_proposals, 'option_proposals': option_proposals})
+        return render(request, 'da_wire/user.html', {'comments': comments, 'teams': mlbteams, 'trade_proposals':trade_proposals, 'callup_proposals': callup_proposals, 'option_proposals': option_proposals})
     else:
         return redirect(reverse('index'))
     
@@ -1369,7 +1469,7 @@ def team_trades(request, location, name):
         upper += 2
     trades.range = range(2, upper)
 
-
+     
     from itertools import chain
     ct1 = 0
     while ct1 < len(trades):
@@ -2143,14 +2243,26 @@ def team(request, location, name):
     
     
     # Trades
-    trades_count = trades.count()
+    from itertools import chain
+    ct1 = 0
+    while ct1 < len(trades):
+        ct2 = 0
+        while ct2 < len(trades):
+            if trades[ct1] == trades[ct2] and ct1 != ct2:
+                trades = list(chain(trades[0:ct2], trades[ct2+1:]))
+                ct1 -= 1
+                break
+            ct2 += 1
+        ct1 += 1
+    
+    trades_count = len(trades)
     trades = trades[0:per_page]
     upper = int(trades_count / per_page)
     if upper > 25:
         upper = 26
     else:
         upper += 1 
-    trades.range = range(2, upper)
+    trades_range = range(2, upper)
     
     # IL
     injured_list_count = injured_list.count()
@@ -2308,7 +2420,7 @@ def team(request, location, name):
                     fa.user_upvoted = -1
             else:
                 fa.user_upvoted = 0    
-    context = {'players': players, 'mlbaffiliates': mlbaffiliates, \
+    context = {'trades_range': trades_range, 'players': players, 'mlbaffiliates': mlbaffiliates, \
                'teams': mlbteams, 'options': options, \
                'trades': trades, 'callups': callups, 'mlbaff': mlbaffiliate, \
                    'injured_list': injured_list, 'fa_signings': fa_signings, \

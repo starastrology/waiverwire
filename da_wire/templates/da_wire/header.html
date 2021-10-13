@@ -56,19 +56,24 @@
       					<input type="text" name="username" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
       					<span class="input-group-text" id="basic-addon2">***</span>
       					<input type="password" name="password" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon2">
-        				<button class="btn btn-outline-success" type="submit">Login</button>
+        				<button formmethod="post" class="btn btn-outline-success" type="submit">Login</button>
         				{% csrf_token %}
       		</form>
       {% else %}
 			<li class="nav-item">
-            			<a class="nav-link" href="{% url 'user_page' request.user.id %}">@{{request.user.username}}</a>
+				<a class="nav-link" href="{% url 'user_page' request.user.id %}">@{{request.user.username}}{% if tf %}<sup style="color: gold;">Pro</sup>{%endif%}</a>
           		</li>
 		</ul>
 		<form class="d-flex" method="POST" action="{% url 'logout' %}">
 			{% csrf_token %}
 			<button class="btn btn-outline-success" type="submit">Logout</button>		
 		</form>	
-      			
+		{% if not tf %}
+		&nbsp;
+		<form action="{% url 'upgrade_to_pro' %}" method="GET">
+			<button class="btn btn-warning">Upgrade to Pro for just $4.99</button>  
+		</form>
+      		{% endif %}
       {% endif %}
       		&nbsp;
 		<form class="d-flex float-right" method="GET" action="{% url 'player_search' %}">
