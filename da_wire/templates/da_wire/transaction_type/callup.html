@@ -11,7 +11,7 @@
             <form id="transaction_downvote_{{ callup.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="tid" value="{{ callup.transaction.tid }}">
-            </form>
+	    </form>
                     <div class="up" onclick="ajax_submit_upvote('{{ callup.transaction.tid }}')"></div>
             <div class="down" onclick="ajax_submit_downvote('{{ callup.transaction.tid }}')"></div>
                 </div>

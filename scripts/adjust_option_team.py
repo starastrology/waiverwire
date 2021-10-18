@@ -5,7 +5,6 @@ c = CallUp.objects.all()
 
 for a in o:
     try:
-        print(a)
         if a.player.mlbaffiliate.level != a.to_level and a.player.mlbaffiliate.mlbteam == a.mlbteam:
             for b in c:
                 if b.player == a.player:

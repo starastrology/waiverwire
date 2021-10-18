@@ -176,7 +176,7 @@
 	</form>
 
 	<p style="font-size: 25px;">
-		With Pro, you gain the ability to view, upvote/downvote, and create transaction proposals including trades, options, and callups! Play GM with this all new feature. Plus, you can post comments for discussion of transactions and players! One time fee. No returns.
+		With Pro, you gain the ability to view, upvote/downvote, and create transaction proposals including trades, options, callups, and Free Agent signings! Play GM with this all new feature. Plus, you can post comments for discussion of transactions and players! One time fee. No returns.
 	</p>
 
 	{% endif %}
@@ -344,6 +344,54 @@
 
     {% endif %}
 
+
+{% if signing_proposals %}
+    <h1>Your Signing Proposals</h1>
+    <div class="row"><div class="r col-sm-12">
+
+		    <ul id="ul_signing_proposal">
+			    {% include 'da_wire/transaction_type/signing_proposal.html' %}
+		    </ul>
+		
+{% if request.resolver_match.view_name != "transaction" %}
+    <form {% if not mlbaff %} 
+			action="{% url 'pick_page' %}"
+			{%else %}
+			action="{% url 'pick_page_team' %}"
+			{%endif%}  method="POST" id="signing_proposal_form">
+            {% if request.resolver_match.view_name == 'team' %}
+			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
+			{% endif %}    
+	
+	    <input id="signing_proposal_index" type="hidden" name="index" value="1" />
+                <input id="signing_proposal_transaction_type" name="transaction_type" type="hidden" value="signing_proposal" />
+                {% csrf_token %}
+                <nav aria-label="...">
+                    <ul class="pagination pagination-sm flex-wrap">
+                        <li class="page-item active" aria-current="page" id="signing_proposal_1">
+                          <span class="page-link" onclick="pick_page('1', 'signing_proposal');">1</span>
+                        </li>
+                    {% for i in signing_proposals.range %}
+                        <li class="page-item" id="signing_proposal_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'signing_proposal');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
+		{% if mlbaff %}
+		<input type=hidden name="mid" value="{{mlbaff.id}}" />
+		{% endif %}
+		<input type=hidden name=bool value=1 />
+            </form>
+	    {% endif %}
+
+    </div>
+    </div>
+
+
+    {% endif %}
+
+
 	{% if comments %}
 	<h1>Your comments</h1>
 	<div class="comments">
@@ -354,6 +402,7 @@
             <div style="display: inline;" id="comment_{{comment.id}}">
 		    <form action="{% url 'delete_comment' %}" method="POST">
 			<input type=hidden name=comment_id value="{{comment.id}}" />
+			{% csrf_token %}
 			<button class="btn btn-danger">Delete Comment</button>
 		</form>
 	    </div>

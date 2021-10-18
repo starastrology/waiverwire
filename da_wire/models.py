@@ -166,6 +166,20 @@ class FASignings(models.Model):
     def __str__(self):
         return self.player.first_name + " " + self.player.last_name + " to " + self.team_to.name
 
+class FASigningsProposal(models.Model):
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
+    date = models.DateField()
+    is_draftpick = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(1)])
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    team_to = models.ForeignKey(MLBAffiliate, on_delete=models.CASCADE)
+    salary = models.ForeignKey(Salary, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
+
+    def __str__(self):
+        return self.player.first_name + " " + self.player.last_name + " to " + self.team_to.name
+
+
+
 class PlayerTrade(models.Model):
     players = models.ManyToManyField(Player)
     team_from = models.ForeignKey(MLBAffiliate, on_delete=models.CASCADE, related_name="player_trade_team_from")

@@ -1,0 +1,74 @@
+  {% if request.user.is_authenticated %}
+    <script>
+
+function getCookie(name) {
+var cookieValue = null;
+if (document.cookie && document.cookie != '') {
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = jQuery.trim(cookies[i]);
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) == (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+        }
+    }
+}
+return cookieValue;
+}
+
+          function ajax_submit_upvote(id){
+              form = $('#transaction_upvote_'+id);
+                  $.ajax({
+                    type: "POST",
+                    url: "{% url 'transaction_upvote' %}", 
+                    data: form.serialize(),
+                    headers: {
+			    'X-CSRFToken': getCookie('csrftoken') /*$("#transaction_upvote_" + id + " input[name=csrfmiddelwaretoken]").val()*/
+                    },
+                    success : function(data) {
+                         if (data === "upvote"){
+                             $("#transaction_" + id + " .up").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+1).toString())
+                         }
+                         else if(data === "undo"){
+                             $("#transaction_" + id + " .up").removeClass('upvoted');
+			     $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-1).toString())
+                         }
+                         else{
+                             $("#transaction_" + id + " .down").removeClass('upvoted');
+                             $("#transaction_" + id + " .up").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+2).toString())
+                         }
+                     }
+                });
+            }
+            
+            function ajax_submit_downvote(id){
+              form = $('#transaction_downvote_'+id);
+                  $.ajax({
+                    type: "POST",
+                    url: "{% url 'transaction_downvote' %}", 
+                    data: form.serialize(),
+	            headers: {
+                       'X-CSRFToken': getCookie('csrftoken') // $("#transaction_downvote_" + id + " input[name=csrfmiddelwaretoken]").val()
+                    },
+                    success : function(data) {
+                         if (data === "downvote"){
+                             $("#transaction_" + id + " .down").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-1).toString())
+                         }
+                         else if(data === "undo"){
+                             $("#transaction_" + id + " .down").removeClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+1).toString())
+                         }
+                         else{
+                             $("#transaction_" + id + " .up").removeClass('upvoted');
+                             $("#transaction_" + id + " .down").addClass('upvoted');
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-2).toString())
+			     }
+			     }
+			     });
+			     }
+    </script>
+    {% endif %}

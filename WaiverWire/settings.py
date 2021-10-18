@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-i1l(e27&kdv$v4nv1klv7_terx$ry4#i*rm*_h+tu&r=#7vffy
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '3.144.229.194', 'waiverwire.org', '172.31.35.99']
+ALLOWED_HOSTS = ['localhost', '18.118.247.28', 'waiverwire.org', '172.31.21.12', '3.132.115.70', '3.16.58.218']
 
 
 # Application definition
@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'da_wire',
+    'django.contrib.humanize' 
 ]
 
 MIDDLEWARE = [

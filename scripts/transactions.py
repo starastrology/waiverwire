@@ -47,9 +47,9 @@ locations = MLBAffiliate.objects.filter(level__level="MLB")
 for location in locations:
     mlbaffiliate = location
     if mlbaffiliate.name=="Diamondbacks":
-        URL = "https://www.mlb.com/dbacks/roster/transactions/2021/07"
+        URL = "https://www.mlb.com/dbacks/roster/transactions/2021/10"
     else:
-        URL = "https://www.mlb.com/" + mlbaffiliate.name.replace(" ", "").lower() + "/roster/transactions/2021/07"
+        URL = "https://www.mlb.com/" + mlbaffiliate.name.replace(" ", "").lower() + "/roster/transactions/2021/10"
     print(URL)
     page = requests.get(URL)
     soup = BeautifulSoup(page.text, 'html5lib') 
@@ -64,7 +64,7 @@ for location in locations:
                 if date == '':
                     continue
                 past = datetime.strptime(date, "%m/%d/%y")
-                present = datetime.today() - timedelta(days=10)
+                present = datetime.today() - timedelta(days=365)
                 if past.date() >= present.date():
                     td = tds[1].text
                     td = td.replace("Player To Be Named Later", "omfggg")
@@ -192,7 +192,10 @@ for location in locations:
                             
                         if verb == "recalled" or verb == "selected":
                             team = team.strip()
-                            player = tds[1].find_all('a')[0].text
+                            player = tds[1].find_all('a')
+                            if not player:
+                                continue
+                            player = player[0].text
                             team_from = team_from.strip()
                             team_from = team_from[0:len(team_to)-1]
                             team_from = MLBAffiliate.objects.filter(location__startswith=team_from.split(" ")[0], name__endswith=team_from.split(" ")[len(team_from.split(" "))-1]).first()
@@ -207,6 +210,8 @@ for location in locations:
                                     URL = "https://www.mlb.com" + link
                                     player = add_player_to_db(player, URL, team_to)
                             if player:
+                                if not team_from:
+                                    continue
                                 callup = CallUp.objects.filter(date=past.date(), player=player, from_level=team_from.level, to_level=team_to.level, mlbteam=mlbaffiliate.mlbteam).first()
                                 if not callup:
                                     t = Transaction()
@@ -515,4 +520,23 @@ for location in locations:
                                         except Exception as e: 
                                             print(e) 
                         else:
-                            print("need to manually add:", td[0], td[1])
+                            print("need to manually add:", tds[0].text, tds[1].text)
+                    elif "elected" in info:
+                        player = tds[1].find_all('a')[0].text
+                        player = Player.objects.filter(first_name_unaccented__startswith=player.split(" ")[0], last_name_unaccented__endswith=player.split(" ")[len(player.split(" "))-1]).first()
+                        if player and (player.is_FA == 1 or not player.mlbaffiliate):
+                            continue
+                        #IF PLAYER DOES NOT EXIST IN DATABASE 
+                        if not player:
+                            link = tds[1].find_all('a')[0]['href']
+                            URL = "https://www.mlb.com" + link
+                            player = add_player_to_db(player, URL, None)
+                            if player:
+                                player.mlbaffiliate = None
+                                player.is_FA = 1
+                                player.save()
+                        else:
+                            player.mlbaffiliate = None
+                            player.is_FA = 1
+                            player.save()
+                        print(player, "elected free agency")      

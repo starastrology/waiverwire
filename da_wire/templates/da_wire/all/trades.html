@@ -119,67 +119,11 @@
       src="https://code.jquery.com/jquery-3.6.0.min.js"
           integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
       crossorigin="anonymous"></script>
-      {% if request.user.is_authenticated %}
-    <script>
     
-        let cookie = document.cookie
-          let csrfToken = cookie.substring(cookie.indexOf('=') + 1)
-        function ajax_submit_upvote(id){
-              form = $('#transaction_upvote_'+id);
-                  $.ajax({
-                    type: "POST",
-                    url: "{% url 'transaction_upvote' %}", 
-                    data: form.serialize(),
-                    headers: {
-                       'X-CSRFToken': csrfToken
-                    },
-                    success : function(data) {
-                         if (data === "upvote"){
-                             $("#transaction_" + id + " .up").addClass('upvoted');
-                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+1).toString())
-                         }
-                         else if(data === "undo"){
-                             $("#transaction_" + id + " .up").removeClass('upvoted');
-                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-1).toString())
-                         }
-                         else{
-                             $("#transaction_" + id + " .down").removeClass('upvoted');
-                             $("#transaction_" + id + " .up").addClass('upvoted');
-                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+2).toString())
-                         }
-                     }
-                });
-            }
-            
-            function ajax_submit_downvote(id){
-              form = $('#transaction_downvote_'+id);
-                  $.ajax({
-                    type: "POST",
-                    url: "{% url 'transaction_downvote' %}", 
-                    data: form.serialize(),
-                    headers: {
-                       'X-CSRFToken': csrfToken
-                    },
-                    success : function(data) {
-                         if (data === "downvote"){
-                             $("#transaction_" + id + " .down").addClass('upvoted');
-                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-1).toString())
-                         }
-                         else if(data === "undo"){
-                             $("#transaction_" + id + " .down").removeClass('upvoted');
-                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+1).toString())
-                         }
-                         else{
-                             $("#transaction_" + id + " .up").removeClass('upvoted');
-                             $("#transaction_" + id + " .down").addClass('upvoted');
-                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-2).toString())
-                         }
-                     }
-                });
-            }
-    </script>
-    {% endif %}
-<script>
+    	
+	{% include 'da_wire/voting_javascript.html' %}
+
+    <script>
         function pick_page(index, transaction_type){
             form = $('#' + transaction_type + '_form');
             form.find('#' + transaction_type + '_index').val(index);
@@ -210,7 +154,7 @@
 	    </div>
 		    </div>
 	    </div>
-    <a href="{% url 'team' mlbaff.location mlbaff.name %}" style="text-decoration: none;"><h1 style="text-align:center;">
+    <a href="{% url 'team' mlbaff.location|replace_forward_slash mlbaff.name %}" style="text-decoration: none;"><h1 style="text-align:center;">
 	    <img src="{% static 'da_wire/'|add:mlbaff.logo %}" style="width:150px;"> {{ mlbaff.location }} {{ mlbaff.name }}
 	    </h1></a>
 	{% endif %}    
