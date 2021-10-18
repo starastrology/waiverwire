@@ -18,4 +18,3 @@ for fa in fas:
         fa.is_FA = 0
         fa.save()
         print(fa, fa.mlbaffiliate)
-

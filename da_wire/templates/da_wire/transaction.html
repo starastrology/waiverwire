@@ -24,6 +24,14 @@
 			{{ personal_leave_transaction.date }} - {{ personal_leave_transaction.player }} on personal leave
 		{% elif trade_transaction %}
 		{{ trade_transaction.date }} - Trade involving {% for players in trade_transaction.players.all %}{% for player in players.players.all %}{{player}} &middot; {%endfor %}{%endfor%}
+		{% elif trade_proposal %}
+		Trade Proposal from {{ trade_proposal.user.username }}
+		{% elif callup_proposal %}
+		Callup Proposal from {{ callup_proposal.user.username }}
+		{% elif option_proposal %}
+		Option Proposal from {{ option_proposal.user.username }}
+		{% elif signing_proposal %}
+		Signing Proposal from {{ signing_proposal.user.username }}
 		{% endif %}
 
 	</title>
@@ -434,6 +442,31 @@
             <a href="{{ option_proposal.player.bb_ref }}" target=_blank>More info</a>
         </div>
     </div>
+
+{% elif signing_proposal %}
+    <h1>{{type}}</h1>
+    <h3>@{{signing_proposal.user.username}}</h3>
+    <div id="main">
+        <div style="display:inline;" class="count">{{ votes }}</div>
+        <div class="arrows">
+            <form id="transaction_upvote" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ signing_proposal.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ signing_proposal.transaction.tid }}">
+            </form>
+            <div class="up" onclick="ajax_submit_upvote_main()"></div>
+            <div class="down" onclick="ajax_submit_downvote_main()"></div>
+        </div>
+	{% load humanize %}
+        <div class="display">
+		<h2>{{signing_proposal.date}}</h2> 
+		<h3>@{{signing_proposal.user.username}} is suggesting <a href="{% url 'transaction' signing_proposal.player.transaction.tid %}">{{signing_proposal.player.first_name}} {{signing_proposal.player.last_name}}</a> to {{signing_proposal.team_to.location}} {{signing_proposal.team_to.name}} for ${{ signing_proposal.salary.money|intword }} over {{signing_proposal.salary.years}} years</h4>
+        	</h3>
+	</div>
+    </div> 
 
 
 

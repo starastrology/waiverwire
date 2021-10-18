@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect, reverse
 from .models import MLBAffiliate, Level, Player, Option, Trade, \
     CallUp, InjuredList, FASignings, DFA, MLBTeam, PersonalLeave, Position, \
         Transaction, Comment, TransactionVote, CommentVote, PlayerTrade, TradeProposal, \
-        PlayerTradeProposal, CallUpProposal, OptionProposal, ProUser
+        PlayerTradeProposal, CallUpProposal, OptionProposal, ProUser, FASigningsProposal, \
+        Salary
 from django.db.models import Q
 from django.contrib.auth import authenticate
 from django.contrib.auth import logout, login
@@ -92,7 +93,12 @@ def delete_transaction(request):
                 if option_proposal:
                     if option_proposal.user == request.user:
                         t.delete()
-            
+                else:
+                    signing_proposal = FASigningsProposal.objects.filter(transaction=t).first()
+                    if signing_proposal:
+                        if signing_proposal.user == request.user:
+                            t.delete()
+
     if request.META.get('HTTP_REFERER'):
         return redirect(request.META.get('HTTP_REFERER'))
     else:
@@ -130,6 +136,13 @@ def proposals(request):
             upper = int(option_proposals_count / per_page) + 1
             option_proposals.range = range(2, upper)
 
+            # Signing Proposals
+            signing_proposals = FASigningsProposal.objects.all().order_by('-date')
+            signing_proposals_count = signing_proposals.count()
+            signing_proposals = signing_proposals[0:per_page]
+            upper = int(signing_proposals_count / per_page) + 1
+            signing_proposals.range = range(2, upper)
+
             if request.user.is_authenticated:
                 for fa in trade_proposals:
                     fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
@@ -161,8 +174,20 @@ def proposals(request):
                             fa.user_upvoted = -1
                     else:
                         fa.user_upvoted = 0
-        
-            context = {'teams': mlbteams, 'option_proposals': option_proposals, 'callup_proposals': callup_proposals, \
+                for fa in signing_proposals:
+                    fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                    user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                    if user_upvoted:
+                        if user_upvoted.is_up:
+                            fa.user_upvoted = 1
+                        else:
+                            fa.user_upvoted = -1
+                    else:
+                        fa.user_upvoted = 0
+ 
+
+            context = {'teams': mlbteams, 'signing_proposals': signing_proposals, 'option_proposals': option_proposals, \
+                    'callup_proposals': callup_proposals, \
                     'trade_proposals': trade_proposals, 'arrows': True }
             return render(request, 'da_wire/proposals/proposals.html', context)
         else:
@@ -201,7 +226,6 @@ def transaction_upvote(request):
             transaction_upvote.delete()
             return HttpResponse("undo")
     
-
 def transaction_downvote(request):
     tid = request.POST["tid"]
     transaction = Transaction.objects.filter(tid=tid).first()
@@ -422,6 +446,7 @@ def transaction(request, tid):
     trade_proposal = TradeProposal.objects.filter(transaction=transaction).first()
     callup_proposal = CallUpProposal.objects.filter(transaction=transaction).first()
     option_proposal = OptionProposal.objects.filter(transaction=transaction).first()
+    signing_proposal = FASigningsProposal.objects.filter(transaction=transaction).first()
     if trade_proposal:
         transaction_type = 'User Trade Proposal'
         context['trade_proposal'] = trade_proposal
@@ -431,6 +456,9 @@ def transaction(request, tid):
     elif option_proposal:
         transaction_type = 'User Option Proposal'
         context['option_proposal'] = option_proposal
+    elif signing_proposal:
+        transaction_type = 'User Signing Proposal'
+        context['signing_proposal'] = signing_proposal
     elif fa:
         transaction_type = 'FA'
         context['fa'] = fa
@@ -500,7 +528,7 @@ def get_players(request):
     return HttpResponse(html)
 
 def create_trade_proposal(request):
-    mlbaffiliates = MLBAffiliate.objects.filter(level__level="MLB").order_by('location')
+    mlbaffiliates = MLBAffiliate.objects.filter(level__level="MLB").order_by('location', 'name')
     arizona = MLBTeam.objects.filter(location="Arizona", name="Diamondbacks").first()
     arizona_affiliates = MLBAffiliate.objects.filter(mlbteam=arizona)
     players = Player.objects.filter(mlbaffiliate__in=arizona_affiliates)
@@ -585,7 +613,7 @@ def get_levels(request):
 
 
 def create_callup_proposal(request):
-    mlbaffiliates = MLBAffiliate.objects.filter(level__level="MLB")
+    mlbaffiliates = MLBAffiliate.objects.filter(level__level="MLB").order_by('location', 'name')
     all_mlbaffiliates = MLBAffiliate.objects.all().exclude(level__level="MLB").order_by('location', 'name')
     acl_angels = MLBAffiliate.objects.filter(location='ACL', name='Angels').first()
     players = Player.objects.filter(mlbaffiliate=acl_angels)
@@ -618,7 +646,7 @@ def submit_callup_proposal(request):
 
 
 def create_option_proposal(request):
-    mlbaffiliates = MLBAffiliate.objects.filter(level__level="MLB")
+    mlbaffiliates = MLBAffiliate.objects.filter(level__level="MLB").order_by('location', 'name')
     all_mlbaffiliates = MLBAffiliate.objects.all().exclude(level__level="Rk").order_by('location', 'name')
     ironbirds = MLBAffiliate.objects.filter(location='Aberdeen', name='IronBirds').first()
     players = Player.objects.filter(mlbaffiliate=ironbirds)
@@ -648,7 +676,41 @@ def submit_option_proposal(request):
             option_proposal = OptionProposal(user=request.user, transaction=t, date=datetime.datetime.now(), from_level=from_level, to_level=to_level, mlbteam=team.mlbteam, player=player)
             option_proposal.save()
             return redirect(reverse('transaction',  kwargs={'tid': option_proposal.transaction.tid}))
+
+
+def create_signing_proposal(request):
+    mlbaffiliates = MLBAffiliate.objects.filter(level__level="MLB").order_by('location', 'name')
+    arizona = MLBAffiliate.objects.filter(location='Arizona', name='Diamondbacks').first()
+    players = Player.objects.filter(is_FA=1).order_by('last_name', 'first_name')
+    context = {'teams': mlbaffiliates, 'mlbaff': arizona, 'players': players}
+    return render(request, 'da_wire/proposals/create_signing.html', context)
+
+def submit_signing_proposal(request):
+    if request.user.is_authenticated:
+        import datetime
+        team = request.POST['team'].split(" ")
+        player = request.POST['players'].split(" ")
+        team = MLBAffiliate.objects.filter(location__startswith=team[0], name__endswith=team[len(team)-1]).first()
+        player= Player.objects.filter(first_name__startswith=player[0], last_name__endswith=player[len(player)-1]).first()
+        money = request.POST['money']
+        years = request.POST['years']
+        if money=='minorleaguedeal':
+            money = 30000
+        salary = Salary.objects.filter(money=money, years=years).first()
+        if not salary:
+            salary = Salary(money=money, years=years)
+            salary.save()
+        signing_proposal = FASigningsProposal.objects.filter(team_to=team, player=player, salary=salary).first()
+        if signing_proposal:
+            return redirect(reverse('transaction',  kwargs={'tid': signing_proposal.transaction.tid}))
+        else:
+            t = Transaction()
+            t.save()
+            signing_proposal = FASigningsProposal(user=request.user, transaction=t, date=datetime.datetime.now(), team_to=team, player=player, salary=salary)
+            signing_proposal.save()
+            return redirect(reverse('transaction',  kwargs={'tid': signing_proposal.transaction.tid}))
  
+
 
 def privacy(request):
     mlb_level = Level.objects.filter(level="MLB").first()
@@ -672,7 +734,9 @@ def delete_comment(request):
         comment = Comment.objects.filter(id=comment_id).first()
         if comment.user == request.user:
             comment.delete()
-    return redirect(reverse('user_page'))
+        return redirect(reverse('user_page', kwargs={'id': request.user.id}))
+    else:
+        return redirect(reverse('index'))
 
 def comment(request):
     try:
@@ -755,6 +819,21 @@ def pick_page(request):
                     fa.user_upvoted = 0
         context['option_proposals'] = option_proposals[lower_bound:upper_bound]
         html = render_to_string('da_wire/transaction_type/option_proposal.html', context)
+    elif transaction_type == 'signing_proposal':
+        signing_proposals = FASigningsProposal.objects.all().order_by('-date')
+        if request.user.is_authenticated:
+            for fa in signing_proposals:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['signing_proposals'] = signing_proposals[lower_bound:upper_bound]
+        html = render_to_string('da_wire/transaction_type/signing_proposal.html', context)
      
     elif transaction_type == 'fa':
         fas = Player.objects.filter(is_FA=1).order_by("last_name")
@@ -1423,12 +1502,23 @@ def user_page(request, id):
         upper = int(option_proposals_count / per_page) + 1
         option_proposals.range = range(2, upper)
 
+        signing_proposals = FASigningsProposal.objects.filter(user=request.user).order_by('-date')
+        signing_proposals_count = signing_proposals.count()
+        signing_proposals = signing_proposals[0:per_page]
+        upper = int(signing_proposals_count / per_page) + 1
+        signing_proposals.range = range(2, upper)
+
+
+
         for fa in trade_proposals:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
         for fa in callup_proposals:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
         for fa in option_proposals:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+        for fa in signing_proposals:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+
 
         comments = Comment.objects.filter(user=request.user).order_by('-datetime')
         for comment in comments:
@@ -1443,7 +1533,7 @@ def user_page(request, id):
                 comment.user_upvoted = 0
      
 
-        return render(request, 'da_wire/user.html', {'comments': comments, 'teams': mlbteams, 'trade_proposals':trade_proposals, 'callup_proposals': callup_proposals, 'option_proposals': option_proposals})
+        return render(request, 'da_wire/user.html', {'comments': comments, 'teams': mlbteams, 'trade_proposals':trade_proposals, 'callup_proposals': callup_proposals, 'option_proposals': option_proposals, 'signing_proposals': signing_proposals})
     else:
         return redirect(reverse('index'))
     

@@ -3,7 +3,7 @@
 <head>
     <title>Waiver Wire - Proposals</title>
     <meta charset="UTF-8">
-    <meta name="description" content="Change your password or delete your account.">
+    <meta name="description" content="User proposals for teams to do. Trades, callups, options, and free agent signings.">
     <meta name="keywords" content="user, password, account, MLB, baseball, Majors, minors, transactions, trades, options, free agents, players, waivers, signings, signing">
     <meta name="author" content="Dan Frecka">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -90,10 +90,25 @@
       src="https://code.jquery.com/jquery-3.6.0.min.js"
           integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
       crossorigin="anonymous"></script>
-    <script>
-          
-          let cookie = document.cookie
-          let csrfToken = cookie.substring(cookie.indexOf('=') + 1)
+
+        <script>
+
+function getCookie(name) {
+var cookieValue = null;
+if (document.cookie && document.cookie != '') {
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = jQuery.trim(cookies[i]);
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) == (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+        }
+    }
+}
+return cookieValue;
+}
+
           function ajax_submit_upvote(id){
               form = $('#transaction_upvote_'+id);
                   $.ajax({
@@ -101,7 +116,7 @@
                     url: "{% url 'transaction_upvote' %}", 
                     data: form.serialize(),
                     headers: {
-                       'X-CSRFToken': csrfToken
+			    'X-CSRFToken': getCookie('csrftoken') /*$("#transaction_upvote_" + id + " input[name=csrfmiddelwaretoken]").val()*/
                     },
                     success : function(data) {
                          if (data === "upvote"){
@@ -110,7 +125,7 @@
                          }
                          else if(data === "undo"){
                              $("#transaction_" + id + " .up").removeClass('upvoted');
-                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-1).toString() + " upvotes")
+                             $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-1).toString()+ " upvotes")
                          }
                          else{
                              $("#transaction_" + id + " .down").removeClass('upvoted');
@@ -126,15 +141,15 @@
                   $.ajax({
                     type: "POST",
                     url: "{% url 'transaction_downvote' %}", 
-                    data: form.serialize(),
-                    headers: {
-                       'X-CSRFToken': csrfToken
+			                    data: form.serialize(),
+	            headers: {
+                       'X-CSRFToken': getCookie('csrftoken') // $("#transaction_downvote_" + id + " input[name=csrfmiddelwaretoken]").val()
                     },
                     success : function(data) {
                          if (data === "downvote"){
                              $("#transaction_" + id + " .down").addClass('upvoted');
                              $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-1).toString()+ " upvotes")
-			 }
+                         }
                          else if(data === "undo"){
                              $("#transaction_" + id + " .down").removeClass('upvoted');
                              $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())+1).toString()+ " upvotes")
@@ -143,12 +158,14 @@
                              $("#transaction_" + id + " .up").removeClass('upvoted');
                              $("#transaction_" + id + " .down").addClass('upvoted');
                              $("#transaction_" + id + " .count").html((parseInt($("#transaction_" + id + " .count").html())-2).toString()+ " upvotes")
-                         }
-                     }
-                });
-            }
+			     }
+			     }
+			     });
+			     }
     </script>
-	<script>
+  
+
+<script>
         function pick_page(index, transaction_type){
             form = $('#' + transaction_type + '_form');
             form.find('#' + transaction_type + '_index').val(index);
@@ -299,6 +316,55 @@
 
 
     {% endif %}
+
+{% if signing_proposals %}
+    <h1>Signing Proposals</h1>
+    <div class="row"><div class="r col-sm-12">
+
+		    <ul id="ul_signing_proposal">
+			    {% include 'da_wire/transaction_type/signing_proposal.html' %}
+		    </ul>
+		
+{% if request.resolver_match.view_name != "transaction" %}
+    <form {% if not mlbaff %} 
+			action="{% url 'pick_page' %}"
+			{%else %}
+			action="{% url 'pick_page_team' %}"
+			{%endif%}  method="POST" id="signing_proposal_form">
+            {% if request.resolver_match.view_name == 'team' %}
+			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
+			{% endif %}    
+	
+	    <input id="signing_proposal_index" type="hidden" name="index" value="1" />
+                <input id="signing_proposal_transaction_type" name="transaction_type" type="hidden" value="signing_proposal" />
+                {% csrf_token %}
+                <nav aria-label="...">
+                    <ul class="pagination pagination-sm flex-wrap">
+                        <li class="page-item active" aria-current="page" id="signing_proposal_1">
+                          <span class="page-link" onclick="pick_page('1', 'signing_proposal');">1</span>
+                        </li>
+                    {% for i in signing_proposals.range %}
+                        <li class="page-item" id="signing_proposal_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'signing_proposal');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
+		{% if mlbaff %}
+		<input type=hidden name="mid" value="{{mlbaff.id}}" />
+		{% endif %}
+		<input type=hidden name=bool value=1 />
+            </form>
+	    {% endif %}
+
+    </div>
+    </div>
+
+
+    {% endif %}
+
+ 
+
 
     </div>
     {% include 'da_wire/footer.html' %}

@@ -1,0 +1,48 @@
+{% load humanize %}
+{% for signing_proposal in signing_proposals %}   
+<li class="something" id="transaction_{{signing_proposal.transaction.tid}}" >
+	<h3 style="display:inline;">@{{signing_proposal.user.username}}</h3> &middot; <span class="count">{{ signing_proposal.votes }} upvotes</span> <a href="{% url 'transaction' signing_proposal.transaction.tid %}">&#8618;</a> 
+	{% if arrows %}     
+	
+        <div class="arrows">
+		<form id="transaction_upvote_{{signing_proposal.transaction.tid}}" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ signing_proposal.transaction.tid }}">
+            </form>
+	    <form id="transaction_downvote_{{signing_proposal.transaction.tid}}" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ signing_proposal.transaction.tid }}">
+            </form>
+	    <div class="up" onclick="ajax_submit_upvote('{{signing_proposal.transaction.tid}}')"></div>
+	    <div class="down" onclick="ajax_submit_downvote('{{ signing_proposal.transaction.tid}}')"></div>
+        </div>
+	{% endif %}
+{% if signing_proposal.user.id == request.user.id %}
+	<form  style="float:right;" onsubmit="return confirm('Are you sure you want to delete your proposal?');" action="{% url 'delete_transaction' %}" method="POST">
+            <button class="btn btn-danger" type=submit>Delete Proposal</button>
+	    <input type=hidden name="tid" value="{{ signing_proposal.transaction.tid }}" />
+            {% csrf_token %}
+        </form> 
+	{% endif %}
+	<div class="display">
+		<h2>{{signing_proposal.date}}</h2> 
+		<h3>@{{signing_proposal.user.username}} is suggesting <a href="{% url 'transaction' signing_proposal.player.transaction.tid %}">{{signing_proposal.player.first_name}} {{signing_proposal.player.last_name}}</a> to {{signing_proposal.team_to.location}} {{signing_proposal.team_to.name}} for ${{ signing_proposal.salary.money|intword }} over {{signing_proposal.salary.years}} years</h4>
+        	</h3>
+	</div>
+
+</li>
+
+    {% endfor %}
+
+<script>
+          $(document).ready(function(){
+              {% for fa in signing_proposals %}
+                  {% if fa.user_upvoted == 1 %}
+                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
+                  {% elif fa.user_upvoted == -1 %}       
+                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
+                  {% endif %}
+                  
+            {% endfor %}
+            });
+</script>
