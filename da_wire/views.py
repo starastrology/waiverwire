@@ -114,34 +114,31 @@ def proposals(request):
             ################################################
         
             per_page = 1
+            context = {}
 
             # Trade Proposals
             trade_proposals = TradeProposal.objects.all().order_by('-date')
             trade_proposals_count = trade_proposals.count()
-            trade_proposals = trade_proposals[0:per_page]
             upper = int(trade_proposals_count / per_page) + 1
-            trade_proposals.range = range(2, upper)
+            context['trade_proposals_range'] = range(2, upper)
     
             # Callup Proposals
             callup_proposals = CallUpProposal.objects.all().order_by('-date')
             callup_proposals_count = callup_proposals.count()
-            callup_proposals = callup_proposals[0:per_page]
             upper = int(callup_proposals_count / per_page) + 1
-            callup_proposals.range = range(2, upper)
+            context['callup_proposals_range'] = range(2, upper)
         
             # Option Proposals
             option_proposals = OptionProposal.objects.all().order_by('-date')
             option_proposals_count = option_proposals.count()
-            option_proposals = option_proposals[0:per_page]
             upper = int(option_proposals_count / per_page) + 1
-            option_proposals.range = range(2, upper)
+            context['option_proposals_range'] = range(2, upper)
 
             # Signing Proposals
             signing_proposals = FASigningsProposal.objects.all().order_by('-date')
             signing_proposals_count = signing_proposals.count()
-            signing_proposals = signing_proposals[0:per_page]
             upper = int(signing_proposals_count / per_page) + 1
-            signing_proposals.range = range(2, upper)
+            context['signing_proposals_range'] = range(2, upper)
 
             if request.user.is_authenticated:
                 for fa in trade_proposals:
@@ -154,6 +151,10 @@ def proposals(request):
                             fa.user_upvoted = -1
                     else:
                         fa.user_upvoted = 0
+                import operator
+                trade_proposals = sorted(trade_proposals, key=operator.attrgetter('votes'), reverse=True)
+                trade_proposals = trade_proposals[0:per_page]
+
                 for fa in callup_proposals:
                     fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
                     user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
@@ -164,6 +165,9 @@ def proposals(request):
                             fa.user_upvoted = -1
                     else:
                         fa.user_upvoted = 0
+                callup_proposals = sorted(callup_proposals, key=operator.attrgetter('votes'), reverse=True)
+                callup_proposals = callup_proposals[0:per_page]
+
                 for fa in option_proposals:
                     fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
                     user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
@@ -174,6 +178,9 @@ def proposals(request):
                             fa.user_upvoted = -1
                     else:
                         fa.user_upvoted = 0
+                option_proposals = sorted(option_proposals, key=operator.attrgetter('votes'), reverse=True)
+                option_proposals = option_proposals[0:per_page]
+
                 for fa in signing_proposals:
                     fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
                     user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
@@ -184,11 +191,18 @@ def proposals(request):
                             fa.user_upvoted = -1
                     else:
                         fa.user_upvoted = 0
+                signing_proposals = sorted(signing_proposals, key=operator.attrgetter('votes'), reverse=True)
+                signing_proposals = signing_proposals[0:per_page]
+
  
 
-            context = {'teams': mlbteams, 'signing_proposals': signing_proposals, 'option_proposals': option_proposals, \
-                    'callup_proposals': callup_proposals, \
-                    'trade_proposals': trade_proposals, 'arrows': True }
+            context['teams']=mlbteams
+            context['signing_proposals']=signing_proposals
+            context['option_proposals']=option_proposals
+            context['callup_proposals']=callup_proposals
+            context['trade_proposals']=trade_proposals
+            context['arrows']=True
+
             return render(request, 'da_wire/proposals/proposals.html', context)
         else:
             return redirect(reverse('index'))
@@ -772,6 +786,7 @@ def pick_page(request):
     lower_bound = index * per_page
     upper_bound = (index + 1) * per_page
     
+    import operator
     
     # Free Agents
     if transaction_type == 'trade_proposal':
@@ -787,6 +802,8 @@ def pick_page(request):
                         fa.user_upvoted = -1
                 else:
                     fa.user_upvoted = 0
+            trade_proposals = sorted(trade_proposals, key=operator.attrgetter('votes'), reverse=True)
+        
         context['trade_proposals'] = trade_proposals[lower_bound:upper_bound]
         html = render_to_string('da_wire/transaction_type/trade_proposal.html', context)
     elif transaction_type == 'callup_proposal':
@@ -802,6 +819,8 @@ def pick_page(request):
                         fa.user_upvoted = -1
                 else:
                     fa.user_upvoted = 0
+            
+            callup_proposals = sorted(callup_proposals, key=operator.attrgetter('votes'), reverse=True)
         context['callup_proposals'] = callup_proposals[lower_bound:upper_bound]
         html = render_to_string('da_wire/transaction_type/callup_proposal.html', context)
     elif transaction_type == 'option_proposal':
@@ -817,6 +836,8 @@ def pick_page(request):
                         fa.user_upvoted = -1
                 else:
                     fa.user_upvoted = 0
+
+            option_proposals = sorted(option_proposals, key=operator.attrgetter('votes'), reverse=True)
         context['option_proposals'] = option_proposals[lower_bound:upper_bound]
         html = render_to_string('da_wire/transaction_type/option_proposal.html', context)
     elif transaction_type == 'signing_proposal':
@@ -832,6 +853,8 @@ def pick_page(request):
                         fa.user_upvoted = -1
                 else:
                     fa.user_upvoted = 0
+
+            signing_proposals = sorted(signing_proposals, key=operator.attrgetter('votes'), reverse=True)
         context['signing_proposals'] = signing_proposals[lower_bound:upper_bound]
         html = render_to_string('da_wire/transaction_type/signing_proposal.html', context)
      
@@ -847,7 +870,8 @@ def pick_page(request):
                     else:
                         fa.user_upvoted = -1
                 else:
-                    fa.user_upvoted = 0
+                    fa.user_upvoted = 0 
+            fas = sorted(fas, key=operator.attrgetter('votes'), reverse=True)
         context['fas'] = fas[lower_bound:upper_bound]
         html = render_to_string('da_wire/transaction_type/fa.html', context)
     elif transaction_type == 'callup':
@@ -1170,16 +1194,17 @@ def index(request):
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
     ################################################
     
+    context = {}
+
     # Free Agents
     fas = Player.objects.filter(is_FA=1).order_by("last_name")
     fas_count = fas.count()
-    fas = fas[0:per_page]
     upper = int(fas_count / per_page)
     if upper > 15:  
         upper = 16
     else:
         upper += 1
-    fas.range = range(2, upper)
+    context['fas_range'] = range(2, upper)
             
     # Call Ups
     callups = CallUp.objects.all().order_by('-date')
@@ -1294,6 +1319,8 @@ def index(request):
                     fa.user_upvoted = -1
             else:
                 fa.user_upvoted = 0
+        import operator
+        fas = sorted(fas, key=operator.attrgetter('votes'), reverse=True)
         for fa in callups:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
             user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
@@ -1386,12 +1413,14 @@ def index(request):
                     fa.user_upvoted = -1
             else:
                 fa.user_upvoted = 0
-    
-    context = {'teams': mlbteams, 'options': options, 'fas': fas, \
+         
+    fas = fas[0:per_page]
+    context_ = {'teams': mlbteams, 'options': options, 'fas': fas, \
                'trades': trades, 'callups': callups, \
                    'injured_list': injured_list, 'fa_signings': fa_signings, \
                         'dfas': dfas, \
                            'personal_leave': personal_leave, 'rehab_assignment': rehab_assignment}
+    context.update(context_)
     return render(request, 'da_wire/index.html', context)
 
 def login_view(request):
@@ -2010,12 +2039,11 @@ def fas(request):
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
     fas = Player.objects.filter(is_FA=1).order_by("last_name")
     fas_count = fas.count()
-    fas = fas[0:per_page]
-    upper = int(fas_count / per_page) + 1
-    if upper > 25:
-        upper = 26
-    fas.range = range(2, upper)
-
+    upper = int(fas_count / per_page)
+    if fas_count % per_page == 0:
+        upper += 1
+    else:
+        upper += 2 
 
 
     if request.user.is_authenticated:
@@ -2031,9 +2059,9 @@ def fas(request):
                 fa.user_upvoted = 0
         import operator
         fas = sorted(fas, key=operator.attrgetter('votes'), reverse=True)
-        fas = fas[0:per_page]
+    fas = fas[0:per_page]
 
-    context = {'teams': mlbteams, 'fas': fas }
+    context = {'teams': mlbteams, 'fas': fas, 'fas_range': range(2,upper) }
     return render(request, 'da_wire/all/fas.html', context)
 
 def callups(request):
