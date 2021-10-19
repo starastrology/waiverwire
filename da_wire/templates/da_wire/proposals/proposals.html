@@ -23,9 +23,11 @@
 	.r {
 		padding: 4px;
 	}
-	.r>div:hover{
-		cursor: pointer;
-		background-color: #eee;
+	li.something a:hover{
+		opacity: .5;
+	}
+	li.something a{
+		text-decoration: none;
 	}
 	.r>div {
   	    margin: 2px;	   
@@ -211,7 +213,7 @@ return cookieValue;
                         <li class="page-item active" aria-current="page" id="trade_proposal_1">
                           <span class="page-link" onclick="pick_page('1', 'trade_proposal');">1</span>
                         </li>
-                    {% for i in trade_proposals.range %}
+                    {% for i in trade_proposals_range %}
                         <li class="page-item" id="trade_proposal_{{i}}">
                             <span class="page-link" href="#" onclick="pick_page('{{i}}', 'trade_proposal');">{{i}}</span>
                         </li>
@@ -254,7 +256,7 @@ return cookieValue;
                         					<li class="page-item active" aria-current="page" id="callup_proposal_1">
                           						<span class="page-link" onclick="pick_page('1', 'callup_proposal');">1</span>
                         					</li>
-                    					{% for i in callup_proposals.range %}
+                    					{% for i in callup_proposals_range %}
                         					<li class="page-item" id="callup_proposal_{{i}}">
                             						<span class="page-link" href="#" onclick="pick_page('{{i}}', 'callup_proposal');">{{i}}</span>
                         					</li>
@@ -297,7 +299,7 @@ return cookieValue;
                         <li class="page-item active" aria-current="page" id="option_proposal_1">
                           <span class="page-link" onclick="pick_page('1', 'option_proposal');">1</span>
                         </li>
-                    {% for i in callup_proposals.range %}
+                    {% for i in callup_proposals_range %}
                         <li class="page-item" id="option_proposal_{{i}}">
                             <span class="page-link" href="#" onclick="pick_page('{{i}}', 'option_proposal');">{{i}}</span>
                         </li>
@@ -343,7 +345,7 @@ return cookieValue;
                         <li class="page-item active" aria-current="page" id="signing_proposal_1">
                           <span class="page-link" onclick="pick_page('1', 'signing_proposal');">1</span>
                         </li>
-                    {% for i in signing_proposals.range %}
+                    {% for i in signing_proposals_range %}
                         <li class="page-item" id="signing_proposal_{{i}}">
                             <span class="page-link" href="#" onclick="pick_page('{{i}}', 'signing_proposal');">{{i}}</span>
                         </li>
