@@ -16,6 +16,7 @@ urlpatterns = [
     path('get_levels', views.get_levels, name='get_levels'),
     path('proposals', views.proposals, name='proposals'),
     path('search/results', views.player_search, name='player_search'),
+    path('getcomments', views.get_comments, name='get_comments'),
     path('transaction/delete', views.delete_transaction, name='delete_transaction'),
     path('proposals/trade/create', views.create_trade_proposal, name='create_trade_proposal'),
     path('proposals/trade/submit', views.submit_trade_proposal, name='submit_trade_proposal'),

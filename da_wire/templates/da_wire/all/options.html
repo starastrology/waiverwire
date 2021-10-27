@@ -115,6 +115,13 @@
 			display: none;
 		}
 	}
+	.display{
+		display: inline;
+	}
+	li.something{
+		border-bottom: 1px solid black;
+		padding: 20px;
+	}
     </style>
     
     <script
@@ -130,7 +137,7 @@
             form.find('#' + transaction_type + '_index').val(index);
             var i = 0;
 		$.ajax({
-                    type: "POST",
+                    type: "GET",
                     url: form.attr('action'),
                     data: form.serialize(),
                     success : function(data) {
@@ -191,7 +198,7 @@
 			{%else %}
 			action="{% url 'pick_page_team' %}"
 			{%endif%}
-			method="POST" id="option_form">
+			method="GET" id="option_form">
             {% if request.resolver_match.view_name == 'team' %}
 			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
 			{% endif %}    

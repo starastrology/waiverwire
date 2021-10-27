@@ -91,6 +91,13 @@
 	li.something a{
 		text-decoration: none;
 	}
+	.display{
+		display: inline;
+	}
+	li.something{
+		border-bottom: 1px solid black;
+		padding: 20px;
+	}
     </style>
     <script
       src="https://code.jquery.com/jquery-3.6.0.min.js"
@@ -103,7 +110,7 @@
             form = $('#' + transaction_type + '_form');
             form.find('#' + transaction_type + '_index').val(index);
             $.ajax({
-                    type: "POST",
+                    type: "GET",
                     url: "{% url 'pick_page' %}",
                     data: form.serialize(),
                     success : function(data) {

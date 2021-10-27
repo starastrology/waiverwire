@@ -31,7 +31,7 @@
 {% for players in trade_proposal.players.all %}{% with forloop.counter as cntr %} 
 	{% for player in players.players.all %} 
 		<div>
-			<a href="{% url 'transaction' player.transaction.tid %}">{{player.first_name}} {{player.last_name}}</a>
+			<a href="{% url 'transaction' player.transaction.tid %}">{{player}}</a>
 			to {{players.team_to.mlbteam.name}} (from 
 			<a href="{% url 'team' players.team_from.location|replace_forward_slash players.team_from.name %}">{{players.team_from.mlbteam.name}}</a>)
 			{% if cntr != trade_proposal.players.all|length %} {% endif %}

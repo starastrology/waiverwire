@@ -1,0 +1,15 @@
+	{% for comment in comments %}
+	<li class="something">
+		<div class="comment" style="min-height: 100px;">
+			<div>{{comment.user.username }} | {{ comment.datetime|timesince }} ago &middot; {{comment.votes}} upvotes <a href="{% url 'transaction' comment.transaction.tid %}">&#8618;</a></div>
+            <div class="text" >{{ comment.text|linebreaks }}</div>
+            <div style="display: inline;" id="comment_{{comment.id}}">
+		    <form action="{% url 'delete_comment' %}" method="POST">
+			<input type=hidden name=comment_id value="{{comment.id}}" />
+			<br>
+			<button class="btn btn-danger">Delete Comment</button>
+		</form>
+	    </div>
+        </div>
+	</li>
+		{% endfor %}

@@ -115,6 +115,13 @@ li.something a:hover{
 			display: none;
 		}
 	}
+	.display{
+		display: inline;
+	}
+	li.something{
+		border-bottom: 1px solid black;
+		padding: 20px;
+	}
     </style>
     
     <script
@@ -130,7 +137,7 @@ li.something a:hover{
             form = $('#' + transaction_type + '_form');
             form.find('#' + transaction_type + '_index').val(index);
             $.ajax({
-                    type: "POST",
+                    type: "GET",
                     url: form.prop('action'),
                     data: form.serialize(),
                     success : function(data) {
@@ -188,7 +195,7 @@ li.something a:hover{
 			action="{% url 'pick_page' %}"
 			{%else %}
 			action="{% url 'pick_page_team' %}"
-			{%endif%} method="POST" id="dfa_form">
+			{%endif%} method="GET" id="dfa_form">
             {% if request.resolver_match.view_name == 'team' %}
 			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
 			{% endif %}    

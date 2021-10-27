@@ -75,9 +75,10 @@ class Player(models.Model):
     bb_ref = models.CharField(default="", max_length=300)
     first_name_unaccented = models.CharField(max_length=50)
     last_name_unaccented = models.CharField(max_length=50)
+    picture = models.CharField(max_length=1000, default=None, blank=True)
 
     def __str__(self):
-        return self.first_name + " " + self.last_name
+        return self.first_name + " " + self.middle_initial + " " + self.last_name
 
 class Option(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)

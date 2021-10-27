@@ -109,6 +109,13 @@
 	li.something a{
 		text-decoration: none;
 	}
+	.display{
+		display: inline;
+	}
+	li.something{
+		border-bottom: 1px solid black;
+		padding: 20px;
+	}
     </style>
     <script data-ad-client="ca-pub-1394361838214996" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>     
     <script
@@ -122,7 +129,7 @@
             form = $('#' + transaction_type + '_form');
             form.find('#' + transaction_type + '_index').val(index);
             $.ajax({
-                    type: "POST",
+                    type: "GET",
                     url: "{% url 'pick_page_team' %}",
                     data: form.serialize(),
                     success : function(data) {
@@ -179,8 +186,8 @@
                 {% endif %}
 
              	<!--a href="{% url 'transaction' player.transaction.tid %}">&#8618;</a-->
-		<div class="display">
-			<b>{{player.position }}</b> <a href="{% url 'transaction' player.transaction.tid %}">{{ player.first_name }} {{ player.last_name }}</a> {% if player.number %}<i>#{{player.number}}</i>{% endif %}
+		<div class="display" style="display:inline;">
+			{% if player.picture %}<img src="{{player.picture}}" style="height:50px;" />{% endif %}<b>{{player.position }}</b> <a href="{% url 'transaction' player.transaction.tid %}">{{ player }}</a> {% if player.number %}<i>#{{player.number}}</i>{% endif %}
 		</div>
 	</li>
     </div>
