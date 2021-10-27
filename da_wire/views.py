@@ -193,7 +193,7 @@ def proposals(request):
                         fa.user_upvoted = 0
                 signing_proposals = sorted(signing_proposals, key=operator.attrgetter('votes'), reverse=True)
                 signing_proposals = signing_proposals[0:per_page]
-
+            
  
 
             context['teams']=mlbteams
@@ -290,6 +290,15 @@ def comment_downvote(request):
         else:
             comment_upvote.delete()
             return HttpResponse("undo")
+
+def get_comments(request):
+    per_page = 1
+    page = int(request.GET['index'])
+    comments = Comment.objects.filter(user=request.user).order_by('-datetime')
+    comments = comments[page-1:page+per_page-1]
+    context = {'comments': comments}
+    html = render_to_string('da_wire/comments.html', context)
+    return HttpResponse(html)
 
 def transaction(request, tid):
     mlb_level = Level.objects.filter(level="MLB").first()
@@ -774,13 +783,13 @@ per_page = 1
 def pick_page(request):
    
     context = {'request': request}
-    if request.POST.get('bool'):
-        per_page = int(request.POST['bool'])
+    if request.GET.get('bool'):
+        per_page = int(request.GET['bool'])
         context['arrows'] = True
     else:
         per_page = 1
-    index = int(request.POST['index']) - 1
-    transaction_type = request.POST['transaction_type']
+    index = int(request.GET['index']) - 1
+    transaction_type = request.GET['transaction_type']
     
     # need to check see if upper bound exists
     lower_bound = index * per_page
@@ -1014,14 +1023,14 @@ def pick_page(request):
     return HttpResponse(html)
 
 def pick_page_team(request):
-    if request.POST.get('bool'):
+    if request.GET.get('bool'):
         per_page = 10
     else:
         per_page = 1
-    mid = request.POST['mid']
+    mid = request.GET['mid']
     mlbaffiliate = MLBAffiliate.objects.filter(id=mid).first()
-    index = int(request.POST['index']) - 1
-    transaction_type = request.POST['transaction_type']
+    index = int(request.GET['index']) - 1
+    transaction_type = request.GET['transaction_type']
     
     # need to check see if upper bound exists
     lower_bound = index * per_page
@@ -1511,31 +1520,29 @@ def change_password(request):
 def user_page(request, id):
     if request.user.is_authenticated and request.user.id==id:
         per_page = 1
+        context = {}
         mlb_level = Level.objects.filter(level="MLB").first()
         mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+        
         trade_proposals = TradeProposal.objects.filter(user=request.user).order_by('-date')
         trade_proposals_count = trade_proposals.count()
-        trade_proposals = trade_proposals[0:per_page]
         upper = int(trade_proposals_count / per_page) + 1
-        trade_proposals.range = range(2, upper)
+        context['trade_proposals_range'] = range(2, upper)
 
         callup_proposals = CallUpProposal.objects.filter(user=request.user).order_by('-date')
         callup_proposals_count = callup_proposals.count()
-        callup_proposals = callup_proposals[0:per_page]
         upper = int(callup_proposals_count / per_page) + 1
-        callup_proposals.range = range(2, upper)
+        context['callup_proposals_range'] = range(2, upper)
 
         option_proposals = OptionProposal.objects.filter(user=request.user).order_by('-date')
         option_proposals_count = option_proposals.count()
-        option_proposals = option_proposals[0:per_page]
         upper = int(option_proposals_count / per_page) + 1
-        option_proposals.range = range(2, upper)
+        context['option_proposals_range'] = range(2, upper)
 
         signing_proposals = FASigningsProposal.objects.filter(user=request.user).order_by('-date')
         signing_proposals_count = signing_proposals.count()
-        signing_proposals = signing_proposals[0:per_page]
         upper = int(signing_proposals_count / per_page) + 1
-        signing_proposals.range = range(2, upper)
+        context['signing_proposals_range'] = range(2, upper)
 
 
 
@@ -1547,7 +1554,16 @@ def user_page(request, id):
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
         for fa in signing_proposals:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-
+        
+        import operator
+        trade_proposals = sorted(trade_proposals, key=operator.attrgetter('votes'), reverse=True)
+        trade_proposals = trade_proposals[0:per_page]
+        callup_proposals = sorted(callup_proposals, key=operator.attrgetter('votes'), reverse=True)
+        callup_proposals = callup_proposals[0:per_page]
+        option_proposals = sorted(option_proposals, key=operator.attrgetter('votes'), reverse=True)
+        option_proposals = option_proposals[0:per_page]
+        signing_proposals = sorted(signing_proposals, key=operator.attrgetter('votes'), reverse=True)
+        signing_proposals = signing_proposals[0:per_page]
 
         comments = Comment.objects.filter(user=request.user).order_by('-datetime')
         for comment in comments:
@@ -1560,9 +1576,18 @@ def user_page(request, id):
                     comment.user_upvoted = -1
             else:
                 comment.user_upvoted = 0
-     
+        comments_count = comments.count()
+        comments = comments[0:per_page]
+        upper = int(comments_count / per_page) + 1
+        context['comments_range'] = range(2,upper)
+        context['comments'] = comments
+        context['teams']=mlbteams
+        context['trade_proposals']=trade_proposals
+        context['callup_proposals']=callup_proposals
+        context['signing_proposals']=signing_proposals
+        context['option_proposals'] = option_proposals
 
-        return render(request, 'da_wire/user.html', {'comments': comments, 'teams': mlbteams, 'trade_proposals':trade_proposals, 'callup_proposals': callup_proposals, 'option_proposals': option_proposals, 'signing_proposals': signing_proposals})
+        return render(request, 'da_wire/user.html', context)
     else:
         return redirect(reverse('index'))
     

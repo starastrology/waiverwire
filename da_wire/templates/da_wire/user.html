@@ -4,7 +4,7 @@
     <title>Waiver Wire</title>
     <meta charset="UTF-8">
     <meta name="description" content="Change your password or delete your account.">
-    <meta name="keywords" content="user, password, account, MLB, baseball, Majors, minors, transactions, trades, options, free agents, players, waivers, signings, signing">
+    <meta name="keywords" content="user, password, account, MLB, baseball, Majors, minors, transactions, trades, options, free agents, players, waivers,signings, signing">
     <meta name="author" content="Dan Frecka">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% load static %}
@@ -95,7 +95,7 @@
 	   background-color: var(--blue);
 	   width: 800px;
 	}
-        .comments .comment .text{
+        .text{
              word-wrap: break-word;
              width: 800px;
         }
@@ -112,7 +112,7 @@
             padding: 10px;
             border: 3px dashed white;
         }
-        @media(max-width:800px){
+        @media(max-width:990px){
             .comments .comment .text{
             width: 220px;
             }
@@ -132,13 +132,27 @@
             form = $('#' + transaction_type + '_form');
             form.find('#' + transaction_type + '_index').val(index);
             $.ajax({
-                    type: "POST",
+                    type: "GET",
                     url: "{% url 'pick_page' %}",
                     data: form.serialize(),
                     success : function(data) {
                          $('#ul_' + transaction_type).html(data);
                          form.find('.active').removeClass('active');
                          form.find('#' + transaction_type + '_' +index).addClass('active');
+                     }
+                });
+        }
+	function get_comments(index){
+            form = $('#comments_form');
+            form.find('#comments_index').val(index);
+            $.ajax({
+                    type: "GET",
+                    url: "{% url 'get_comments' %}",
+                    data: form.serialize(),
+                    success : function(data) {
+                         $('#ul_comments').html(data);
+                         form.find('.active').removeClass('active');
+                         form.find('#comment_' + index).addClass('active');
                      }
                 });
         }
@@ -206,7 +220,7 @@
 			{% for players in trade_proposal.players.all %}{% with forloop.counter as cntr %} {% for player in players.players.all %} 
 					<div>
 						<a href="{% url 'transaction' player.transaction.tid %}">
-							{{player.first_name}} {{player.last_name}}
+							{{player}}
 						</a>
 						to {{players.team_to.mlbteam.name}} (from 
 						<a href="{% url 'team' players.team_from.location|replace_forward_slash players.team_from.name %}">{{players.team_from.mlbteam.name}}</a>
@@ -218,16 +232,15 @@
 				</li>
 				{%endfor %}
 			</ul>
-	<form action="{% url 'pick_page' %}" method="POST" id="trade_proposal_form">
+	<form action="{% url 'pick_page' %}" method="GET" id="trade_proposal_form">
 	    <input id="trade_proposal_index" type="hidden" name="index" value="1" />
                 <input id="trade_proposal_transaction_type" name="transaction_type" type="hidden" value="trade_proposal" />
-                {% csrf_token %}
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="trade_proposal_1">
                           <span class="page-link" onclick="pick_page('1', 'trade_proposal');">1</span>
                         </li>
-                    {% for i in trade_proposals.range %}
+                    {% for i in trade_proposals_range %}
                         <li class="page-item" id="trade_proposal_{{i}}">
                             <span class="page-link" href="#" onclick="pick_page('{{i}}', 'trade_proposal');">{{i}}</span>
                         </li>
@@ -256,29 +269,26 @@
             {% csrf_token %}
         </form> 
         <div>
-<b>{{callup_proposal.date }}</b> - <a href="{% url 'transaction' callup_proposal.player.transaction.tid %}">{{callup_proposal.player.first_name }} {{ callup_proposal.player.last_name }}</a> 
+<b>{{callup_proposal.date }}</b> - <a href="{% url 'transaction' callup_proposal.player.transaction.tid %}">{{callup_proposal.player }}</a> 
         {% get_affiliate callup_proposal.to_level callup_proposal.mlbteam as team_to %}
         to {{team_to.location }} {{team_to.name }} from 
         {% get_affiliate callup_proposal.from_level callup_proposal.mlbteam as team %}
         <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{callup_proposal.from_level.level }} {{ team.location }}</a>
 		
-	<h4>{{ callup_proposal.player.first_name }} {{ callup_proposal.player.last_name }} <i>should be</i> called up from {{callup_proposal.from_level}} to {{ callup_proposal.to_level }}</h4>
-	    <h5 style="display:inline;"><b>{{callup_proposal.player.position}}</b></h5>
-            <a style="display:inline;" href="{{ callup_proposal.player.bb_ref }}" target=_blank>More info</a>
+	<h4><b>{{callup_proposal.player.position }}</b> {{ callup_proposal.player }} <i>should be</i> called up from {{callup_proposal.from_level.level}} to {{ callup_proposal.to_level.level }}</h4>
         </div>
 		</li>
 	{% endfor %}
 		</ul>
-<form action="{% url 'pick_page' %}" method="POST" id="callup_proposal_form">
+<form action="{% url 'pick_page' %}" method="GET" id="callup_proposal_form">
 	    <input id="callup_proposal_index" type="hidden" name="index" value="1" />
                 <input id="callup_proposal_transaction_type" name="transaction_type" type="hidden" value="callup_proposal" />
-                {% csrf_token %}
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="callup_proposal_1">
                           <span class="page-link" onclick="pick_page('1', 'callup_proposal');">1</span>
                         </li>
-                    {% for i in callup_proposals.range %}
+                    {% for i in callup_proposals_range %}
                         <li class="page-item" id="callup_proposal_{{i}}">
                             <span class="page-link" href="#" onclick="pick_page('{{i}}', 'callup_proposal');">{{i}}</span>
                         </li>
@@ -305,33 +315,29 @@
             {% csrf_token %}
         </form>
 	<div>
-		<b>{{option_proposal.date }}</b> - <a href="{% url 'transaction' option_proposal.player.transaction.tid %}">{{option_proposal.player.first_name }} {{ option_proposal.player.last_name }}</a> <i>should be</i> optioned
+		<b>{{option_proposal.date }}</b> - <a href="{% url 'transaction' option_proposal.player.transaction.tid %}">{{option_proposal.player }}</a> <i>should be</i> optioned
         {% get_affiliate option_proposal.to_level option_proposal.mlbteam as team_to %}
         to {{team_to.location }} {{team_to.name }} ({{ option_proposal.to_level.level }}) from {{ option_proposal.from_level.level }} 
         {% get_affiliate option_proposal.from_level option_proposal.mlbteam as team %}
         <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{ team.location }}</a>
 		
 	
-	    <h4>@{{ option_proposal.user.username }} is proposing that {{ option_proposal.player.first_name }} {{ option_proposal.player.last_name }} be optioned from {{option_proposal.from_level}} to {{ option_proposal.to_level }}</h4>
-	    {% if option_proposal.player.number %}<h5>#{{option_proposal.player.number}} </h5>{% endif %}
-            <h5>{{option_proposal.player.position}}</h5>
-            <a href="{{ option_proposal.player.bb_ref }}" target=_blank>More info</a>
+	<h4>@{{ option_proposal.user.username }} is proposing that <b>{{option_proposal.player.position }}</b> {{ option_proposal.player }} be optioned from {{option_proposal.from_level}} to {{ option_proposal.to_level }}</h4>
        
 	
 	</div>
 		    </li>
 	{% endfor %}
 		    </ul>
-   <form action="{% url 'pick_page' %}" method="POST" id="option_proposal_form">
+   <form action="{% url 'pick_page' %}" method="GET" id="option_proposal_form">
 	    <input id="option_proposal_index" type="hidden" name="index" value="1" />
                 <input id="option_proposal_transaction_type" name="transaction_type" type="hidden" value="option_proposal" />
-                {% csrf_token %}
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="option_proposal_1">
                           <span class="page-link" onclick="pick_page('1', 'option_proposal');">1</span>
                         </li>
-                    {% for i in option_proposals.range %}
+                    {% for i in option_proposals_range %}
                         <li class="page-item" id="option_proposal_{{i}}">
                             <span class="page-link" href="#" onclick="pick_page('{{i}}', 'option_proposal');">{{i}}</span>
                         </li>
@@ -360,20 +366,19 @@
 			action="{% url 'pick_page' %}"
 			{%else %}
 			action="{% url 'pick_page_team' %}"
-			{%endif%}  method="POST" id="signing_proposal_form">
+			{%endif%}  method="GET" id="signing_proposal_form">
             {% if request.resolver_match.view_name == 'team' %}
 			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
 			{% endif %}    
 	
 	    <input id="signing_proposal_index" type="hidden" name="index" value="1" />
                 <input id="signing_proposal_transaction_type" name="transaction_type" type="hidden" value="signing_proposal" />
-                {% csrf_token %}
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="signing_proposal_1">
                           <span class="page-link" onclick="pick_page('1', 'signing_proposal');">1</span>
                         </li>
-                    {% for i in signing_proposals.range %}
+                    {% for i in signing_proposals_range %}
                         <li class="page-item" id="signing_proposal_{{i}}">
                             <span class="page-link" href="#" onclick="pick_page('{{i}}', 'signing_proposal');">{{i}}</span>
                         </li>
@@ -383,7 +388,6 @@
 		{% if mlbaff %}
 		<input type=hidden name="mid" value="{{mlbaff.id}}" />
 		{% endif %}
-		<input type=hidden name=bool value=1 />
             </form>
 	    {% endif %}
 
@@ -396,21 +400,43 @@
 
 	{% if comments %}
 	<h1>Your comments</h1>
+
 	<div class="comments">
+		<ul id="ul_comments">
 	{% for comment in comments %}
+	<li class="something">
 		<div class="comment" style="min-height: 100px;">
 			<div>{{comment.user.username }} | {{ comment.datetime|timesince }} ago &middot; {{comment.votes}} upvotes <a href="{% url 'transaction' comment.transaction.tid %}">&#8618;</a></div>
             <div class="text" >{{ comment.text|linebreaks }}</div>
             <div style="display: inline;" id="comment_{{comment.id}}">
-		    <form action="{% url 'delete_comment' %}" method="POST">
+		    <form action="{% url 'delete_comment' %}" method="POST" onsubmit="return confirm('Are you sure you want to delete your comment?');">
 			<input type=hidden name=comment_id value="{{comment.id}}" />
-			{% csrf_token %}
+			<br>
 			<button class="btn btn-danger">Delete Comment</button>
+			{% csrf_token %}
 		</form>
 	    </div>
         </div>
+	</li>
 		{% endfor %}
+		</ul>
+
+	<form method="GET" id="comments_form">
+		    <input id="comments_index" type="hidden" name="index" value="1" />
+    	<nav aria-label="...">
+                    <ul class="pagination pagination-sm flex-wrap">
+                        <li class="page-item active" aria-current="page" id="comment_1">
+                          <span class="page-link" onclick="get_comments('1');">1</span>
+                        </li>
+                    {% for i in comments_range %}
+                        <li class="page-item" id="comment_{{i}}">
+                            <span class="page-link" href="#" onclick="get_comments('{{i}}');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
 	</div>
+	</form>
 	{% endif %}
 
     </div>

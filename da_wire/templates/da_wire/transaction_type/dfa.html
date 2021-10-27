@@ -18,7 +18,7 @@
 		
                  <a href="{% url 'transaction' dfa.transaction.tid %}">&#8618;</a> 
 		<div class="display">
-			<b>{{dfa.date }}</b> - <a href="{% url 'transaction' dfa.player.transaction.tid %}">{{dfa.player.first_name }} {{ dfa.player.last_name }}</a> designated for assignment by {{ dfa.team_by.location }} {{ dfa.team_by.name }}
+			<b>{{dfa.date }}</b> - <b>{{dfa.player.position}}</b> <a href="{% url 'transaction' dfa.player.transaction.tid %}">{{dfa.player }}</a> designated for assignment by {{ dfa.team_by.location }} {{ dfa.team_by.name }}
 		</div>         
 	</li>
 {% endfor %}

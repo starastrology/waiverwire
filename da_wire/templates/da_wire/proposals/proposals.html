@@ -172,7 +172,7 @@ return cookieValue;
             form = $('#' + transaction_type + '_form');
             form.find('#' + transaction_type + '_index').val(index);
             $.ajax({
-                    type: "POST",
+                    type: "GET",
                     url: form.prop('action'),
                     data: form.serialize(),
                     success : function(data) {
@@ -200,7 +200,7 @@ return cookieValue;
 			action="{% url 'pick_page' %}"
 			{%else %}
 			action="{% url 'pick_page_team' %}"
-			{%endif%}  method="POST" id="trade_proposal_form">
+			{%endif%}  method="GET" id="trade_proposal_form">
             {% if request.resolver_match.view_name == 'team' %}
 			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
 			{% endif %}    
@@ -243,7 +243,7 @@ return cookieValue;
 						action="{% url 'pick_page' %}"
 						{%else %}
 						action="{% url 'pick_page_team' %}"
-						{%endif%}  method="POST" id="callup_proposal_form">
+						{%endif%}  method="GET" id="callup_proposal_form">
             			{% if request.resolver_match.view_name == 'team' %}
 					<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
 				{% endif %}    
@@ -286,7 +286,7 @@ return cookieValue;
 			action="{% url 'pick_page' %}"
 			{%else %}
 			action="{% url 'pick_page_team' %}"
-			{%endif%}  method="POST" id="option_proposal_form">
+			{%endif%}  method="GET" id="option_proposal_form">
             {% if request.resolver_match.view_name == 'team' %}
 			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
 			{% endif %}    
@@ -332,7 +332,7 @@ return cookieValue;
 			action="{% url 'pick_page' %}"
 			{%else %}
 			action="{% url 'pick_page_team' %}"
-			{%endif%}  method="POST" id="signing_proposal_form">
+			{%endif%}  method="GET" id="signing_proposal_form">
             {% if request.resolver_match.view_name == 'team' %}
 			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
 			{% endif %}    

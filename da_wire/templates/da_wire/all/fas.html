@@ -114,6 +114,13 @@ li.something a:hover{
 	li.something a{
 		text-decoration: none;
 	}
+	.display{
+		display: inline;
+	}
+	li.something{
+		border-bottom: 1px solid black;
+		padding: 20px;
+	}
     </style>
     
     <script
@@ -130,7 +137,7 @@ li.something a:hover{
             form.find('#' + transaction_type + '_index').val(index);
             var i = 0;
 			$.ajax({
-                    type: "POST",
+                    type: "GET",
                     url: form.prop('action'),
                     data: form.serialize(),
                     success : function(data) {
@@ -168,7 +175,7 @@ li.something a:hover{
     		<ul id="ul_fa">
 				{% include 'da_wire/transaction_type/fa.html' %}
     		</ul>
-		<form action="{% url 'pick_page' %}" method="POST" id="fa_form">
+		<form action="{% url 'pick_page' %}" method="GET" id="fa_form">
             {% if request.resolver_match.view_name == 'team' %}
 			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
 			{% endif %}    

@@ -26,15 +26,12 @@
         </form> 
 	{% endif %}
         <div>
-<b>{{callup_proposal.date }}</b> - <a href="{% url 'transaction' callup_proposal.player.transaction.tid %}">{{callup_proposal.player.first_name }} {{ callup_proposal.player.last_name }}</a> 
+<b>{{callup_proposal.date }}</b> - <a href="{% url 'transaction' callup_proposal.player.transaction.tid %}">{{callup_proposal.player }}</a> 
         {% get_affiliate callup_proposal.to_level callup_proposal.mlbteam as team_to %}
         to {{team_to.location }} {{team_to.name }} from 
         {% get_affiliate callup_proposal.from_level callup_proposal.mlbteam as team %}
         <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{callup_proposal.from_level.level }} {{ team.location }}</a>
-		
-	<h4>{{ callup_proposal.player.first_name }} {{ callup_proposal.player.last_name }} <i>should be</i> called up from {{callup_proposal.from_level}} to {{ callup_proposal.to_level }}</h4>
-	    <h5 style="display:inline;"><b>{{callup_proposal.player.position}}</b></h5>
-            <a style="display:inline;" href="{{ callup_proposal.player.bb_ref }}" target=_blank>More info</a>
+	<h4><b>{{callup_proposal.player.position }}</b> {{ callup_proposal.player }} <i>should be</i> called up from {{callup_proposal.from_level.level}} to {{ callup_proposal.to_level.level }}</h4>
         </div>
 	{% endfor %}
 

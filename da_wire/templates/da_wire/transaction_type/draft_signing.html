@@ -17,7 +17,7 @@
                 {% endif %}
                 <a href="{% url 'transaction' draft_signing.transaction.tid %}">&#8618;</a> 
 		<div class="display">
-			<b>{{draft_signing.date}}</b> - <a href="{% url 'transaction' draft_signing.player.transaction.tid %}">{{draft_signing.player.first_name}} {{draft_signing.player.last_name}}</a> to {{draft_signing.team_to.location}} {{draft_signing.team_to.name}}
+			<b>{{draft_signing.date}}</b> - <a href="{% url 'transaction' draft_signing.player.transaction.tid %}">{{draft_signing.player}}</a> to {{draft_signing.team_to.location}} {{draft_signing.team_to.name}}
         	</div>
 	</li>
 {% endfor %}

@@ -96,14 +96,13 @@
 			action="{% url 'pick_page' %}"
 			{%else %}
 			action="{% url 'pick_page_team' %}"
-			{%endif%} method="POST" id="fa_form">
+			{%endif%} method="GET" id="fa_form">
             {% if request.resolver_match.view_name == 'team' %}
 			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
 			{% endif %}    
 	
 		    <input id="fa_index" type="hidden" name="index" value="1" />
                 <input id="fa_transaction_type" name="transaction_type" type="hidden" value="fa" />
-                {% csrf_token %}
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="fa_1">
@@ -121,8 +120,8 @@
 	</div>
     {% endif %}
 	{% if callups %}   
-	<div class="r col-sm-4"><div id="callups"> <h1 style="display:inline;">Callups</h1> {% if request.resolver_match.view_name != 'transaction' %} <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_callups' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'callups' %}{%endif%}">view all</a></small>{%endif%}
-     <ul id="ul_callup">
+	<div class="r col-sm-4"><div id="callups"> <h1 style="display:inline;">Callups</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_callups' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'callups' %}{%endif%}">view all</a></small>
+    <ul id="ul_callup">
         {% include 'da_wire/transaction_type/callup.html' %}
     </ul>
     
@@ -131,14 +130,13 @@
 			action="{% url 'pick_page' %}"
 			{%else %}
 			action="{% url 'pick_page_team' %}"
-			{%endif%}  method="POST" id="callup_form">
+			{%endif%}  method="GET" id="callup_form">
             {% if request.resolver_match.view_name == 'team' %}
 			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
 			{% endif %}    
 	
 	    <input id="callup_index" type="hidden" name="index" value="1" />
                 <input id="callup_transaction_type" name="transaction_type" type="hidden" value="callup" />
-                {% csrf_token %}
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="callup_1">
@@ -174,14 +172,13 @@
 			{%else %}
 			action="{% url 'pick_page_team' %}"
 			{%endif%}
-			method="POST" id="option_form">
+			method="GET" id="option_form">
             {% if request.resolver_match.view_name == 'team' %}
 			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
 			{% endif %}    
 	
 			<input id="option_index" type="hidden" name="index" value="1" />
                 <input id="option_transaction_type" name="transaction_type" type="hidden" value="option" />
-                {% csrf_token %}
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="option_1">
@@ -215,14 +212,13 @@
 			action="{% url 'pick_page' %}"
 			{%else %}
 			action="{% url 'pick_page_team' %}"
-			{%endif%} method="POST" id="dfa_form">
+			{%endif%} method="GET" id="dfa_form">
             {% if request.resolver_match.view_name == 'team' %}
 			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
 			{% endif %}    
 	
 		    <input id="dfa_index" type="hidden" name="index" value="1" />
                 <input id="dfa_transaction_type" name="transaction_type" type="hidden" value="dfa" />
-                {% csrf_token %}
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="dfa_1">
@@ -257,7 +253,7 @@
 			action="{% url 'pick_page' %}"
 			{%else %}
 			action="{% url 'pick_page_team' %}"
-			{%endif%} method="POST" id="trade_form">
+			{%endif%} method="GET" id="trade_form">
             {% if request.resolver_match.view_name == 'team' %}
 			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
 			{% endif %}    
@@ -266,7 +262,6 @@
                 <input id="trade_transaction_type" name="transaction_type" type="hidden" value="trade" />
                 <input id="trade_team" name="team" type="hidden" value="{{players.all.0.mlbaffiliate.name}}" />
                 <input id="trade_level" name="level" type="hidden" value="{{players.all.0.mlbaffiliate.level.level}}" />
-                {% csrf_token %}
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="trade_1">
@@ -308,14 +303,13 @@
 			action="{% url 'pick_page' %}"
 			{%else %}
 			action="{% url 'pick_page_team' %}"
-			{%endif%} method="POST" id="injured_form">
+			{%endif%} method="GET" id="injured_form">
             {% if request.resolver_match.view_name == 'team' %}
 			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
 			{% endif %}    
 	
 	    <input id="injured_index" type="hidden" name="index" value="1" />
                 <input id="injured_transaction_type" name="transaction_type" type="hidden" value="injured" />
-                {% csrf_token %}
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="injured_1">
@@ -352,13 +346,12 @@
 			action="{% url 'pick_page' %}"
 			{%else %}
 			action="{% url 'pick_page_team' %}"
-			{%endif%} method="POST" id="fa_signing_form">
+			{%endif%} method="GET" id="fa_signing_form">
             {% if request.resolver_match.view_name == 'team' %}
 			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
 			{% endif %}    
 	    <input id="fa_signing_index" type="hidden" name="index" value="1" />
                 <input id="fa_signing_transaction_type" name="transaction_type" type="hidden" value="fa_signing" />
-                {% csrf_token %}
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="fa_signing_1">
@@ -395,13 +388,12 @@
 			action="{% url 'pick_page' %}"
 			{%else %}
 			action="{% url 'pick_page_team' %}"
-			{%endif%} method="POST" id="personal_leave_form">
+			{%endif%} method="GET" id="personal_leave_form">
                 {% if request.resolver_match.view_name == 'team' %}
 			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
 			{% endif %}
 	    	<input id="personal_leave_index" type="hidden" name="index" value="1" />
                 <input id="personal_leave_transaction_type" name="transaction_type" type="hidden" value="personal_leave" />
-                {% csrf_token %}
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="personal_leave_1">
@@ -438,13 +430,12 @@
 			action="{% url 'pick_page' %}"
 			{%else %}
 			action="{% url 'pick_page_team' %}"
-			{%endif%} method="POST" id="rehab_form">
+			{%endif%} method="GET" id="rehab_form">
           	{% if request.resolver_match.view_name == 'team' %}
 			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
 			{% endif %}
 	    	<input id="rehab_index" type="hidden" name="index" value="1" />
                 <input id="rehab_transaction_type" name="transaction_type" type="hidden" value="rehab" />
-                {% csrf_token %}
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="rehab_1">
