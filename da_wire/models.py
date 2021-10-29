@@ -62,6 +62,35 @@ class Position(models.Model):
 class Transaction(models.Model):
     tid = models.AutoField(primary_key=True)
 
+class PitcherStats(models.Model):
+    ERA = models.DecimalField(max_digits=6, decimal_places=2)
+    SO = models.IntegerField()
+    WHIP = models.DecimalField(max_digits=6, decimal_places=2)
+
+    def __str__(self):
+        return str(self.ERA) + "/" + str(self.SO) + "/" + str(self.WHIP)
+
+class BatterStats(models.Model):
+    avg = models.DecimalField(max_digits=4, decimal_places=3)
+    OBP = models.DecimalField(max_digits=4, decimal_places=3)
+    OPS = models.DecimalField(max_digits=4, decimal_places=3)
+    
+    def __str__(self):
+        return str(self.avg) + "/" + str(self.OBP) + "/" + str(self.OPS)
+
+class Stats(models.Model):
+    is_mlb = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(1)])
+    pitcher_stats = models.ForeignKey(PitcherStats, on_delete=models.CASCADE, default=None, null=True, blank=True)
+    batter_stats = models.ForeignKey(BatterStats, on_delete=models.CASCADE, default=None, null=True, blank=True) 
+
+    """
+    def __str__(self):
+        if self.pitcher_stats:
+            return self.pitcher_stats
+        else:
+            return self.batter_stats
+    """
+
 class Player(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50)
@@ -76,6 +105,8 @@ class Player(models.Model):
     first_name_unaccented = models.CharField(max_length=50)
     last_name_unaccented = models.CharField(max_length=50)
     picture = models.CharField(max_length=1000, default=None, blank=True)
+    stats = models.ForeignKey(Stats, on_delete=models.CASCADE, default=None, null=True, blank=True)
+
 
     def __str__(self):
         return self.first_name + " " + self.middle_initial + " " + self.last_name

@@ -49,10 +49,55 @@
           --blue: #002D72;
           --red: #D50032;
         }
-        body{
-            background-color: var(--blue);
-            color: #ffffff;
+	@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300&display=swap');	
+	.container{
+		{% if callup_transaction %}
+			{% get_affiliate callup_transaction.to_level callup_transaction.mlbteam as team_to %}
+		{% elif option_transaction %}	
+			{% get_affiliate option_transaction.to_level option_transaction.mlbteam as team_to %}
+		{% elif rehab_assignment_transaction %}
+			{% get_affiliate rehab_assignment_transaction.to_level rehab_assignment_transaction.mlbteam as team_to %}
+		{% elif dfa_transaction %}
+			{% get_thangy dfa_transaction.team_by as team_to %}
+		{% elif injury_transaction %}
+			{% get_thangy injury_transaction.team_for as team_to %}
+		{% elif non_fa %}
+			{% get_thangy non_fa.mlbaffiliate as team_to %}
+		{% elif fa_signing_transaction %}
+			{% get_thangy fa_signing_transaction.team_to as team_to %}
+		{% elif personal_leave_transaction %}
+			{% get_thangy personal_leave_transaction.team_for as team_to %}
+		{% endif %}
+
+		{% if not fa %}
+		background: url('{% static 'da_wire/'|add:team_to.logo %}');
+		{% endif %}
+		background-size: 300px;
+		background-position: center;
+		background-repeat: no-repeat;
+	}
+	body{
+           background-color: var(--blue);	
+	   {% if not fa %}
+		background-color: {{ team_to.colors.all.0 }};
+		{% endif %}
+		color: #ffffff;
+	    font-family: 'Ubuntu', sans-serif;
         }
+	#main{
+		opacity: .92;
+	    margin-bottom: 25px;
+	    {% if not fa %}
+	    border: 3px dashed {{team_to.colors.all.2}};
+	    color: {{ team_to.colors.all.0 }};
+	    background-color: {{ team_to.colors.all.1 }};
+	    {% else %}
+	    color: var(--red);
+	    background-color: #cccccc;
+	    {% endif %}
+	    padding: 5px;
+            color: var(--red);
+	}
         .r {
             height: 340px;
             overflow-y: scroll;
@@ -85,9 +130,13 @@
           scrollbar-width: none;  /* Firefox */
         }
         .up{
+	background-color: white;
+	border-radius: 100%;
             background-image: url("{% static 'da_wire/up.png' %}");
         }
         .down{
+		background-color: white;
+		border-radius: 100%;
             background-image: url("{% static 'da_wire/down.png' %}");
         }
         .up, .down{
@@ -109,13 +158,7 @@
                 display: none;
             {% endif %}
         }
-        #main{
-            margin-bottom: 25px;
-            border: 3px dashed white;
-            padding: 5px;
-            background-color: #ccc;
-            color: var(--red);
-	}
+        
         #main .up, #main .down{
             background-size: 36px;
             width: 40px;
@@ -133,6 +176,11 @@
 	.arrows{
             margin-top: -23px;
 	}
+	{% if not request.user.is_authenticated %}
+		.arrows{
+			display: none;
+		}
+	{% endif %}
         li.something{
             list-style-type: none;
         }
@@ -164,7 +212,8 @@
             font-size: 40px;
         }
         textarea{
-            width: 100%;
+        opacity: .6;
+	width: 100%;
         }
         .upvoted{
             opacity: 1;
@@ -180,7 +229,9 @@
 		width: 220px;
 	    }
 	    #main .arrows, #main .count{
+		{% if request.user.is_authenticated %}
 		    display: block;
+		    {% endif %}
 		position: relative;
 	    	right: 0;
 	    }
@@ -196,7 +247,13 @@
 		width: 100%;
 	}
 	#stats td{
-		color: black;
+		width: 33.33333%;
+		{% if not fa %}
+		color: {{ team_to.colors.all.0 }};
+
+		{% else %}
+			color: black;
+		{% endif %}
 		border: 3px solid white;
 	}
 	#stats td, #stats th{
@@ -449,8 +506,6 @@
         <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{callup_proposal.from_level.level }} {{ team.location }}</a>
 		
 	<h4>{{ callup_proposal.player }} <i>should be</i> called up from {{callup_proposal.from_level}} to {{ callup_proposal.to_level }}</h4>
-	    <h5 style="display:inline;"><b>{{callup_proposal.player.position}}</b></h5>
-            <a style="display:inline;" href="{{ callup_proposal.player.bb_ref }}" target=_blank>More info</a>
         </div>
     </div>
 {% elif option_proposal %}
@@ -479,9 +534,6 @@
 		
 	
 	    <h4>@{{ option_proposal.user.username }} is proposing that {{ option_proposal.player }} be optioned from {{option_proposal.from_level}} to {{ option_proposal.to_level }}</h4>
-	    {% if option_proposal.player.number %}<h5>#{{option_proposal.player.number}} </h5>{% endif %}
-            <h5>{{option_proposal.player.position}}</h5>
-            <a href="{{ option_proposal.player.bb_ref }}" target=_blank>More info</a>
         </div>
     </div>
 
@@ -531,7 +583,16 @@
         <div class="display">
           	<h1><b> {{fa.position}} </b>{{ fa }} {% if fa.number %}<i style="color:#aaaaaa;">#{{ fa.number }}</i>{% endif %}   </h1> 
 		{% if fa.picture %}<div><img src="{{ fa.picture }}" /></div>{% endif %}
-		<table id="stats"><caption>MLB Career</caption><tr><th>Avg</th><th>OBP</th><th>OPS</th></tr><tr><td>.302</td><td>.416</td><td>.937</td></table>
+		{% if fa.stats %}<table id="stats"><caption>M{% if not fa.stats.is_mlb %}i{% endif %}LB Career</caption>
+			{% if fa.stats.batter_stats %}
+			<tr><th>Avg</th><th>OBP</th><th>OPS</th></tr>
+			<tr><td>{{fa.stats.batter_stats.avg|remove_zero}}</td><td>{{fa.stats.batter_stats.OBP|remove_zero}}</td><td>{{fa.stats.batter_stats.OPS|remove_zero}}</td>
+			{% endif %}
+			{% if fa.stats.pitcher_stats %}
+			<tr><th>ERA</th><th>SO</th><th>WHIP</th></tr>
+			<tr><td>{{fa.stats.pitcher_stats.ERA}}</td><td>{{fa.stats.pitcher_stats.SO}}</td><td>{{fa.stats.pitcher_stats.WHIP}}</td>
+			{% endif %}
+		</table>{%endif %}
 		<a style="display:inline; float:right;" href="{{ fa.bb_ref }}" target=_blank>More info</a> </h3>
         </div>
     </div>
@@ -555,7 +616,16 @@
 		<h1><b> {{non_fa.position}} </b>{{ non_fa }} {% if non_fa.number %}<i style="color:#aaaaaa;">#{{ non_fa.number }}</i>{% endif %}   </h1> 
 		<h2><a href="{% url 'team' type.location|replace_forward_slash type.name %}">{{type}}</a></h2>
 		{% if non_fa.picture %}<div><img src="{{ non_fa.picture }}" /></div>{% endif %}
-		<table id="stats"><caption>MLB Career</caption><tr><th>Avg</th><th>OBP</th><th>OPS</th></tr><tr><td>.302</td><td>.416</td><td>.937</td></table>
+		{% if non_fa.stats %}
+		<table id="stats"><caption>M{% if not non_fa.stats.is_mlb %}i{% endif %}LB Career</caption>
+			{% if non_fa.stats.batter_stats %}
+			<tr><th>Avg</th><th>OBP</th><th>OPS</th></tr>
+			<tr><td>{{non_fa.stats.batter_stats.avg|remove_zero }}</td><td>{{non_fa.stats.batter_stats.OBP|remove_zero}}</td><td>{{non_fa.stats.batter_stats.OPS|remove_zero}}</td>
+			{% endif %}
+			{% if non_fa.stats.pitcher_stats %}
+			<tr><th>ERA</th><th>SO</th><th>WHIP</th></tr>
+			<tr><td>{{non_fa.stats.pitcher_stats.ERA}}</td><td>{{non_fa.stats.pitcher_stats.SO}}</td><td>{{non_fa.stats.pitcher_stats.WHIP}}</td>
+				{% endif %}</table>{% endif %}
 		<a style="display:inline; float:right;" href="{{ non_fa.bb_ref }}" target=_blank>More info</a> </h3>
 	
         </div>
@@ -578,12 +648,6 @@
         </div>
         <div  class="display">
 		<h4>{{ dfa_transaction.player }} DFA'd by <a href="{% url 'team' dfa_transaction.team_by.location|replace_forward_slash dfa_transaction.team_by.name %}">{{dfa_transaction.team_by}}</a> on <b>{{ dfa_transaction.date }}</b></h4>
-	    <div class="content">
-		    {% if dfa_transaction.player.number %} <h5>Number: #{{dfa_transaction.player.number}} </h5> {% endif %}
-            <h5>Position: {{dfa_transaction.player.position}}</h5>
-            <a href="{{ dfa_transaction.player.bb_ref }}" target=_blank>more info</a>
-	    </a>
-	   </div>
     </div>
     </div>
 {% elif callup_transaction %}
@@ -658,9 +722,6 @@
         </div>
         <div  class="display">
 		<h4><a href="{% url 'transaction' rehab_assignment_transaction.player.transaction.tid %}">{{ rehab_assignment_transaction.player }}</a> assigned to {{rehab_assignment_transaction.to_level}} from {{ rehab_assignment_transaction.from_level }} for rehab</h4>
-		{% if rehab_assignment_transaction.player.number %} <h5>#{{rehab_assignment_transaction.player.number}} </h5> {% endif %}
-            <h5>{{rehab_assignment_transaction.player.position}}</h5>
-            <a href="{{ rehab_assignment_transaction.player.bb_ref }}" target=_blank>More info</a>
         </div>
     </div>  
 {% elif trade_transaction %}
@@ -710,7 +771,6 @@
 		<h3><b>{{injury_transaction.date}}</b></h3>
 		<h4><a href="{% url 'transaction' injury_transaction.player.transaction.tid %}">{{injury_transaction.player}}</a> of the <a href="{% url 'team' injury_transaction.team_for.location|replace_forward_slash injury_transaction.team_for.name %}">{{ injury_transaction.team_for }}</a>
 		</h4>
-			<a href="{{ injury_transaction.player.bb_ref }}">More info about player</a>
 		
 	</div>
     </div> 
@@ -773,7 +833,7 @@
             <div class="down" onclick="ajax_submit_downvote_main()"></div>
         </div>
         <div  class="display">
-            <h4>{{personal_leave_transaction.date}} - <a href="{{personal_leave_transaction.player.bb_ref}}">{{personal_leave_transaction.player}}</a> for {{personal_leave_transaction.length}} days</h4>
+            <h4>{{personal_leave_transaction.date}} - <a href="{% url 'transaction' personal_leave_transaction.player.transaction.tid %}">{{personal_leave_transaction.player}}</a> for {{personal_leave_transaction.length}} days</h4>
         </div>
     </div>              
 {% endif %}
@@ -781,6 +841,6 @@
 {% include 'da_wire/comment.html' %}
 
 </div>
-
+{% include 'da_wire/footer.html' %}
 </body>
 </html>

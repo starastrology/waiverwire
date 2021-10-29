@@ -25,3 +25,14 @@ def is_pro(user):
             return False
     else:
         return False
+
+@register.filter
+def remove_zero(value):
+    if str(value)[0] == "0":
+        return str(value)[1:]
+    else:
+        return value
+
+@register.simple_tag
+def get_thangy(team):
+    return team

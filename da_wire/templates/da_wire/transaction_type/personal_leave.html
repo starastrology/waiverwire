@@ -15,7 +15,7 @@
             <div class="down" onclick="ajax_submit_downvote('{{ personale.transaction.tid }}')"></div>
                 </div>
                 {% endif %}
-                <b>{{personale.date}}</b> - <a href="{{personale.player.bb_ref}}">{{personale.player}}</a> placed on personal leave.
+                <b>{{personale.date}}</b> - <a href="{% url 'transaction' personale.player.transaction.tid %}">{{personale.player}}</a> placed on personal leave.
                 <a href="{% url 'transaction' personale.transaction.tid %}">&rarr;</a> 
                 </li>
 {% endfor %}
