@@ -2,11 +2,11 @@ from django.contrib import admin
 from .models import MLBTeam, MLBAffiliate, Level, Salary, Position, Player, \
 DFA, InjuredList, PersonalLeave, Option, FASignings, Trade, PlayerTrade, CallUp, \
     Color, Transaction, Comment, TransactionVote, CommentVote, TradeProposal, PlayerTradeProposal, \
-    CallUpProposal, OptionProposal, FASigningsProposal
+    CallUpProposal, OptionProposal, FASigningsProposal, Stats, BatterStats, PitcherStats
 
 
 class PlayerAdmin(admin.ModelAdmin):
-    search_fields = ['last_name']
+    search_fields = ['last_name_unaccented']
 
 admin.site.register(MLBTeam)
 admin.site.register(MLBAffiliate)
@@ -32,3 +32,6 @@ admin.site.register(PlayerTradeProposal)
 admin.site.register(CallUpProposal)
 admin.site.register(OptionProposal)
 admin.site.register(FASigningsProposal)
+admin.site.register(Stats)
+admin.site.register(BatterStats)
+admin.site.register(PitcherStats)
