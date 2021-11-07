@@ -41,10 +41,6 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
 ]
 
-# Stripe test values
-#STRIPE_PUBLISHABLE_KEY = 'pk_test_51Jsg0jHSiSQekQU9CAieigKDsNswQkm9R6rIYdrSx2AQVlQ9XUByJQhsCOTblp5WvlOwFkLRtOXCVd2znlhByFkr00I3eMU8Wy'
-#STRIPE_SECRET_KEY = 'sk_test_51Jsg0jHSiSQekQU9v2yX6MBq4VudhJO52pI40xLRfLNp1aDNl7DS8RgBc0ILZgxVm9pwEVxb7BUXshZkpTDPP1Nr00rwssKPAy'
-#STRIPE_ENDPOINT_SECRET = 'whsec_K4LozEU04yBGPrXf1PTl06hQ0nDiLTbx'
 # Stripe production values
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
