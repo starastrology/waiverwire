@@ -1,6 +1,6 @@
 #urls.py
 
-from django.urls import path
+from django.urls import path, include
 
 from . import views
 
@@ -10,7 +10,10 @@ urlpatterns = [
     path('about', views.about, name='about'),
     path('success', views.successful_payment, name='successful_payment'),
     path('contact', views.contact, name='contact'),
-    path('checkout', views.checkout, name='checkout'),
+    path('cancelled/', views.upgrade_to_pro),
+    path('webhook/', views.stripe_webhook), 
+    path('config/', views.stripe_config),
+    path('create-checkout-session/', views.create_checkout_session),
     path('upgrade', views.upgrade_to_pro, name='upgrade_to_pro'),
     path('get_players', views.get_players, name='get_players'),
     path('get_levels', views.get_levels, name='get_levels'),

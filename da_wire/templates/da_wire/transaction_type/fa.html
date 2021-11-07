@@ -18,7 +18,8 @@
 
 		<div class="display">
                 <span>
-                <b>{{fa.position}}</b> <i><a href="{% url 'transaction' fa.transaction.tid %}">{{fa}}</a></i>
+			{% load static %}
+			{% if fa.picture %}<img src="{{ fa.picture }}" style="max-height:50px;"/>{% endif %} <b>{{fa.position}}</b> <i><a href="{% url 'transaction' fa.transaction.tid %}">{{fa}}</a></i> 
                 </span>
 		</div>
             </li>

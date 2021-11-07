@@ -9,71 +9,92 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import logout, login
 from django.http import HttpResponse
 from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
+from django.http.response import JsonResponse
+from django.conf import settings
+import stripe
 
+@csrf_exempt
 def upgrade_to_pro(request):
     if request.user.is_authenticated:
         pu = ProUser.objects.filter(user=request.user)
+        return render(request, 'da_wire/braintree.html')
+
+@csrf_exempt
+def create_checkout_session(request):
+    if request.method == 'GET':
+        domain_url = 'https://waiverwire.org'
+        stripe.api_key = settings.STRIPE_SECRET_KEY
         try:
-            if not pu:
-                import braintree
+            # Create new Checkout Session for the order
+            # Other optional params include:
+            # [billing_address_collection] - to display billing address details on the page
+            # [customer] - if you have an existing Stripe Customer ID
+            # [payment_intent_data] - capture the payment later
+            # [customer_email] - prefill the email input in the form
+            # For full details see https://stripe.com/docs/api/checkout/sessions/create
 
-                gateway = braintree.BraintreeGateway(
-                    braintree.Configuration(
-                        braintree.Environment.Sandbox,
-                        merchant_id="vjf256px6wd86cm4",
-                        public_key="3by3zyh5jz52gvk7",
-                        private_key="55e6bf358de966cffcf32359f9f16ef0"
-                    )
-                )
+            # ?session_id={CHECKOUT_SESSION_ID} means the redirect will have the session ID set as a query param
+            checkout_session = stripe.checkout.Session.create(
+                success_url=domain_url + '/success?session_id={CHECKOUT_SESSION_ID}',
+                cancel_url=domain_url + '/cancelled/',
+                payment_method_types=['card'],
+                mode='payment',
+                line_items=[
+                    {
+                        'name': 'Pro account',
+                        'quantity': 1,
+                        'currency': 'usd',
+                        'amount': '499',
+                    }
+                ],
+                metadata={"username": request.user.username}
+            ) 
+            return JsonResponse({'sessionId': checkout_session['id']})
+        except Exception as e:
+            return JsonResponse({'error': str(e)})
 
-                client_token = gateway.client_token.generate()
 
-                return render(request, 'da_wire/braintree.html', {'client_token': client_token})
-            else:
-                return redirect(reverse('index'))
-        except:
-            return redirect(reverse('index'))
-    else:
-        return redirect(reverse('index'))
-    
+@csrf_exempt
+def stripe_webhook(request):
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    endpoint_secret = settings.STRIPE_ENDPOINT_SECRET
+    payload = request.body
+    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    event = None
+    import json
+    a = json.loads(payload)
+    username=a['data']['object']['metadata']['username']
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        # Invalid payload
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        return HttpResponse(status=400)
+
+    # Handle the checkout.session.completed event
+    if event['type'] == 'checkout.session.completed':
+        print("Payment was successful.")
+        pu = ProUser()
+        from django.contrib.auth.models import User
+        pu.user = User.objects.get(username=username)
+        pu.save()
+
+    return HttpResponse(status=200)
+
+@csrf_exempt
+def stripe_config(request):
+    if request.method == 'GET':
+        stripe_config = {'publicKey': settings.STRIPE_PUBLISHABLE_KEY}
+        return JsonResponse(stripe_config, safe=False)
+
+@csrf_exempt
 def successful_payment(request):
     return render(request, 'da_wire/success.html')
-
-def checkout(request):
-    import braintree
-
-    gateway = braintree.BraintreeGateway(
-        braintree.Configuration(
-            braintree.Environment.Sandbox,
-            merchant_id="vjf256px6wd86cm4",
-            public_key="3by3zyh5jz52gvk7",
-            private_key="55e6bf358de966cffcf32359f9f16ef0"
-        )
-    )
-
-    nonce_from_the_client = request.POST["payment_method_nonce"]
-    device_data = request.POST['device_data']
-    # Use payment method nonce here...
-    result = gateway.transaction.sale({
-        "amount": "4.99",
-        "payment_method_nonce": nonce_from_the_client,
-        #"device_data": device_data,
-        "options": {
-            "submit_for_settlement": True
-        }
-    })
-    if result.is_success:
-        pu = ProUser(user=request.user)
-        pu.save()
-        return redirect(reverse('successful_payment')) 
-    else:
-        for error in result.errors.deep_errors:
-            print("attribute: " + error.attribute)
-            print("  code: " + error.code)
-            print("  message: " + error.message) 
-            messages.error(request, error.message)
-        return redirect(reverse('upgrade_to_pro'))
-
 
 def delete_transaction(request):
     tid = request.POST['tid']
@@ -210,6 +231,9 @@ def proposals(request):
         return redirect(reverse('index'))
 
 def player_search(request):
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    
     search = request.GET['search']
     if search:
         import urllib.parse
@@ -219,9 +243,9 @@ def player_search(request):
                 name[name.index(n)] = n.capitalize()
                 
         players = Player.objects.filter(Q(first_name_unaccented__in=name)|Q(last_name_unaccented__in=name)).order_by('last_name_unaccented', 'first_name_unaccented')
-        return render(request, 'da_wire/search_results.html', {'players': players})
+        return render(request, 'da_wire/search_results.html', {'players': players, 'teams': mlbteams})
     else:
-        return render(request, 'da_wire/search_results.html', {})
+        return render(request, 'da_wire/search_results.html', {'teams': mlbteams})
 
 def transaction_upvote(request):
     tid = request.POST["tid"]
@@ -781,7 +805,6 @@ def comment(request):
 from django.template.loader import render_to_string
 per_page = 1
 def pick_page(request):
-   
     context = {'request': request}
     if request.GET.get('bool'):
         per_page = int(request.GET['bool'])
@@ -1202,7 +1225,8 @@ def index(request):
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
     ################################################
-    
+    per_page = 1
+
     context = {}
 
     # Free Agents

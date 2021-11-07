@@ -30,7 +30,7 @@ def add_player_to_db(player, URL, mlbaffiliate):
     last_name = last_name.strip() 
     print("created player:", name[0] + " " + last_name)
     span = soup.find_all('span', class_="player-header--vitals-number")
-    number = span.text[1:]
+    number = span[0].text[1:]
     if div:
         li = div[0].ul.li.text
         position = Position.objects.filter(position=li).first()
@@ -47,9 +47,9 @@ locations = MLBAffiliate.objects.filter(level__level="MLB")
 for location in locations:
     mlbaffiliate = location
     if mlbaffiliate.name=="Diamondbacks":
-        URL = "https://www.mlb.com/dbacks/roster/transactions/2021/10"
+        URL = "https://www.mlb.com/dbacks/roster/transactions"
     else:
-        URL = "https://www.mlb.com/" + mlbaffiliate.name.replace(" ", "").lower() + "/roster/transactions/2021/10"
+        URL = "https://www.mlb.com/" + mlbaffiliate.name.replace(" ", "").lower() + "/roster/transactions"
     print(URL)
     page = requests.get(URL)
     soup = BeautifulSoup(page.text, 'html5lib') 
@@ -528,8 +528,8 @@ for location in locations:
                             continue
                         #IF PLAYER DOES NOT EXIST IN DATABASE 
                         if not player:
-                            link = tds[1].find_all('a')[0]['href']
-                            URL = "https://www.mlb.com" + link
+                            URL = tds[1].find_all('a')[0]['href']
+                            #URL = "https://www.mlb.com" + link
                             player = add_player_to_db(player, URL, None)
                             if player:
                                 player.mlbaffiliate = None

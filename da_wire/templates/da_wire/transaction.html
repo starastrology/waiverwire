@@ -67,6 +67,16 @@
 			{% get_thangy fa_signing_transaction.team_to as team_to %}
 		{% elif personal_leave_transaction %}
 			{% get_thangy personal_leave_transaction.team_for as team_to %}
+		{% elif trade_transaction %}
+			{% get_thangy trade_transaction.players.all.0.team_to as team_to %}
+		{% elif trade_proposal %}
+			{% get_thangy trade_proposal.players.all.0.team_to as team_to %}
+		{% elif callup_proposal %}
+			{% get_affiliate callup_proposal.to_level callup_proposal.mlbteam as team_to %}
+		{% elif option_proposal %}
+			{% get_affiliate option_proposal.to_level option_proposal.mlbteam as team_to %}
+		{% elif signing_proposal %}
+			{% get_thangy signing_proposal.team_to as team_to %}
 		{% endif %}
 
 		{% if not fa %}
@@ -96,9 +106,14 @@
 	    background-color: #cccccc;
 	    {% endif %}
 	    padding: 5px;
-            color: var(--red);
 	}
+	{% if not fa %}
+	#main h1, #main h2, #main h3{
+		color: {{ team_to.colors.all.2 }};
+	}
+	{% endif %}
         .r {
+            opacity: .9;
             height: 340px;
             overflow-y: scroll;
             padding: 10px;
@@ -271,7 +286,6 @@
 		padding: 20px;
 	}
     </style>
-    <script data-ad-client="ca-pub-1394361838214996" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
     {% if request.user.is_authenticated %}
     <script
       src="https://code.jquery.com/jquery-3.6.0.min.js"
@@ -582,7 +596,7 @@
         </div>
         <div class="display">
           	<h1><b> {{fa.position}} </b>{{ fa }} {% if fa.number %}<i style="color:#aaaaaa;">#{{ fa.number }}</i>{% endif %}   </h1> 
-		{% if fa.picture %}<div><img src="{{ fa.picture }}" /></div>{% endif %}
+		{% if fa.picture %}<div><img style="max-height:400px;" src="{{ fa.picture }}" /></div>{% endif %}
 		{% if fa.stats %}<table id="stats"><caption>M{% if not fa.stats.is_mlb %}i{% endif %}LB Career</caption>
 			{% if fa.stats.batter_stats %}
 			<tr><th>Avg</th><th>OBP</th><th>OPS</th></tr>
@@ -615,7 +629,7 @@
 
 		<h1><b> {{non_fa.position}} </b>{{ non_fa }} {% if non_fa.number %}<i style="color:#aaaaaa;">#{{ non_fa.number }}</i>{% endif %}   </h1> 
 		<h2><a href="{% url 'team' type.location|replace_forward_slash type.name %}">{{type}}</a></h2>
-		{% if non_fa.picture %}<div><img src="{{ non_fa.picture }}" /></div>{% endif %}
+		{% if non_fa.picture %}<div><img style="max-height:400px;" src="{{ non_fa.picture }}" /></div>{% endif %}
 		{% if non_fa.stats %}
 		<table id="stats"><caption>M{% if not non_fa.stats.is_mlb %}i{% endif %}LB Career</caption>
 			{% if non_fa.stats.batter_stats %}
