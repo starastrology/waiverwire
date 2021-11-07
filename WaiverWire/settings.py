@@ -38,8 +38,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'da_wire',
-    'django.contrib.humanize' 
+    'django.contrib.humanize',
 ]
+
+# Stripe test values
+#STRIPE_PUBLISHABLE_KEY = 'pk_test_51Jsg0jHSiSQekQU9CAieigKDsNswQkm9R6rIYdrSx2AQVlQ9XUByJQhsCOTblp5WvlOwFkLRtOXCVd2znlhByFkr00I3eMU8Wy'
+#STRIPE_SECRET_KEY = 'sk_test_51Jsg0jHSiSQekQU9v2yX6MBq4VudhJO52pI40xLRfLNp1aDNl7DS8RgBc0ILZgxVm9pwEVxb7BUXshZkpTDPP1Nr00rwssKPAy'
+#STRIPE_ENDPOINT_SECRET = 'whsec_K4LozEU04yBGPrXf1PTl06hQ0nDiLTbx'
+# Stripe production values
+STRIPE_PUBLISHABLE_KEY = 'pk_live_51Jsg0jHSiSQekQU9A9JIv86sI263UKzSed9Ku2M1DNW5V3QVbW2XfBMKAE0r6ePhnkIqgGA9OOoIAKIGgqbCyzKk00FRvGr0YQ'
+STRIPE_SECRET_KEY = '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'
+STRIPE_ENDPOINT_SECRET = 'whsec_IEa3ybCuiSK5IIkIMybYn42YcQciKuHu'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

@@ -47,16 +47,28 @@
 	    		{% endfor %}
 				</ul>
 	  		</li>
-        {% if not request.user.is_authenticated %}
+<style>
+@media(max-width: 977px){
+	#logout, #search, #login{
+		position: relative !important;
+		top: unset !important;
+		right: unset !important;
+		left: unset !important;
+	}
+}
+</style>
+
+			{% if not request.user.is_authenticated %}
       			<li class="nav-item">
           			<a class="nav-link" href="{% url 'register_page' %}">Register</a>
       			</li>
 		</ul>
-		<form class="d-flex float-right" method="POST" action="{% url 'login' %}">
+
+		<form class="d-flex" style="position: absolute; left: 10px; top: 10px;" id="login" method="POST" action="{% url 'login' %}">
       					<span class="input-group-text" id="basic-addon1">@</span>
-      					<input type="text" name="username" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
+      					<input type="text" name="username" style="width: 100px;" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
       					<span class="input-group-text" id="basic-addon2">***</span>
-      					<input type="password" name="password" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon2">
+      					<input type="password" style="width: 100px;" name="password" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon2">
         				<button formmethod="post" class="btn btn-outline-success" type="submit">Login</button>
         				{% csrf_token %}
       		</form>
@@ -65,7 +77,7 @@
 				<a class="nav-link" href="{% url 'user_page' request.user.id %}">@{{request.user.username}}{% if tf %}<sup style="color: gold;">Pro</sup>{%endif%}</a>
           		</li>
 		</ul>
-		<form class="d-flex" method="POST" action="{% url 'logout' %}">
+		<form id="logout" class="d-flex" style="left: 10px; top: 10px; position:absolute; right: auto;" method="POST" action="{% url 'logout' %}">
 			{% csrf_token %}
 			<button class="btn btn-outline-success" type="submit">Logout</button>		
 		</form>	
@@ -77,7 +89,7 @@
       		{% endif %}
       {% endif %}
       		&nbsp;
-		<form class="d-flex float-right" method="GET" action="{% url 'player_search' %}">
+		<form id="search" class="d-flex" style="right:0; position: absolute; top:10px;" method="GET" action="{% url 'player_search' %}">
 			<input class="form-control me-2" type="search" name="search" placeholder="Player Search" aria-label="Search">
         <button class="btn btn-outline-success" type="submit">Search</button>
 		</form>				
