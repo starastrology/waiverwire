@@ -1233,8 +1233,8 @@ def index(request):
     fas = Player.objects.filter(is_FA=1).order_by("last_name")
     fas_count = fas.count()
     upper = int(fas_count / per_page)
-    if upper > 15:  
-        upper = 16
+    if upper > 25:  
+        upper = 26
     else:
         upper += 1
     context['fas_range'] = range(2, upper)
