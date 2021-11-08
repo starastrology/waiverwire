@@ -1,6 +1,6 @@
 import unicodedata
 
-from da_wire.models import MLBAffiliate, Player, Position, Transaction, DFA, Option, CallUp, FASignings, InjuredList, PersonalLeave, Trade, PlayerTrade
+from da_wire.models import MLBAffiliate, Player, Position, Transaction, DFA, Option, CallUp, FASignings, InjuredList, PersonalLeave, Trade, PlayerTrade, WaiverClaim
 
 def strip_accents(text):
     try:
@@ -222,7 +222,7 @@ for location in locations:
                                     player.mlbaffiliate = team_to
                                     player.save()
                                     print("Processing call up", player, team)
-                    elif "claimed" in info or "signed" in info:
+                    elif "signed" in info:
                         for i in info:
                             if bln and i[0].isupper():
                                 team += i + " "
@@ -235,7 +235,7 @@ for location in locations:
                             elif i[0].isupper() or i != "off" or i != "waivers" or i != "from":
                                 player += i + " "
                             
-                        if verb == "claimed" or verb=="signed":
+                        if verb=="signed":
                             team = team.strip()
                             if tds[1].find_all('a'):
                                 player = tds[1].find_all('a')[0].text
@@ -261,7 +261,54 @@ for location in locations:
                                     player.mlbaffiliate = team
                                     player.save()
                                     print("Processing FA signing", player, team)
-                             
+                    
+                    elif "claimed" in info:
+                        for i in info:
+                            if bln and i[0].isupper():
+                                team += i + " "
+                            elif bln:
+                                bln = False
+                                verb = i
+                            elif pos_bool and (i[0].isupper() or i[0].isnumeric()):
+                                pos = i
+                                pos_bool = False
+                            elif i == "from":
+                                name_bln = False
+                            elif not name_bln:
+                                team_from += i + " "
+                            
+                        if verb=="claimed":
+                            team = team.strip()
+                            team_from = team_from.strip()
+                            # remove period
+                            team_from = team_from[0:len(team_from)-1]
+                            if tds[1].find_all('a'):
+                                player = tds[1].find_all('a')[0].text
+                            else:
+                                continue
+                            team = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
+                            team_from = MLBAffiliate.objects.filter(location__startswith=team_from.split(" ")[0], name__endswith=team_from.split(" ")[len(team_from.split(" "))-1]).first()
+                            player = Player.objects.filter(first_name_unaccented__startswith=player.split(" ")[0], last_name_unaccented__endswith=player.split(" ")[len(player.split(" "))-1]).first()
+                            
+                            if not player:
+                                a = tds[1].find_all('a')
+                                if a:
+                                    a = a[0]
+                                    link = a['href']
+                                    URL = "https://www.mlb.com" + link
+                                    player = add_player_to_db(player, URL, team)
+                            if player:
+                                waiver_claim = WaiverClaim.objects.filter(date=past.date(), player=player, team_to=team, team_from=team_from).first()
+                                if not waiver_claim:
+                                    t = Transaction()
+                                    t.save()
+                                    waiver_claim = WaiverClaim(transaction=t, date=past.date(), player=player, team_to=team, team_from=team_from)
+                                    waiver_claim.save()
+                                    player.mlbaffiliate = team
+                                    player.save()
+                                    print("Processing Waiver Claim", player, team, team_from)
+                     
+
                     elif "placed" in info and "injured" in info:
                         for i in info:
                             if bln and i[0].isupper():

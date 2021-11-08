@@ -3,7 +3,7 @@ from .models import MLBAffiliate, Level, Player, Option, Trade, \
     CallUp, InjuredList, FASignings, DFA, MLBTeam, PersonalLeave, Position, \
         Transaction, Comment, TransactionVote, CommentVote, PlayerTrade, TradeProposal, \
         PlayerTradeProposal, CallUpProposal, OptionProposal, ProUser, FASigningsProposal, \
-        Salary
+        Salary, WaiverClaim
 from django.db.models import Q
 from django.contrib.auth import authenticate
 from django.contrib.auth import logout, login
@@ -94,7 +94,12 @@ def stripe_config(request):
 
 @csrf_exempt
 def successful_payment(request):
-    return render(request, 'da_wire/success.html')
+    ############### For the header #######################
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    ################################################
+    context = {'teams': mlbteams}
+    return render(request, 'da_wire/success.html', context)
 
 def delete_transaction(request):
     tid = request.POST['tid']
@@ -237,7 +242,7 @@ def player_search(request):
     search = request.GET['search']
     if search:
         import urllib.parse
-        name = urllib.parse.unquote(search).split(" ")
+        name = urllib.parse.unquote(search.strip()).split(" ")
         for n in name:
             if not n[0].isupper():
                 name[name.index(n)] = n.capitalize()
@@ -320,8 +325,10 @@ def get_comments(request):
     page = int(request.GET['index'])
     comments = Comment.objects.filter(user=request.user).order_by('-datetime')
     comments = comments[page-1:page+per_page-1]
+    for comment in comments:
+        comment.votes = CommentVote.objects.filter(comment=comment, is_up=1).count() - CommentVote.objects.filter(comment=comment, is_up=0).count()
     context = {'comments': comments}
-    html = render_to_string('da_wire/comments.html', context)
+    html = render_to_string('da_wire/comments.html', context, request=request)
     return HttpResponse(html)
 
 def transaction(request, tid):
@@ -936,6 +943,22 @@ def pick_page(request):
                     fa.user_upvoted = 0
         context['options'] = options
         html = render_to_string('da_wire/transaction_type/option.html', context)
+    elif transaction_type == 'waiver_claim':
+        waiver_claims = WaiverClaim.objects.all().order_by('-date')[lower_bound:upper_bound]
+        if request.user.is_authenticated:
+            for fa in waiver_claims:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['waiver_claims'] = waiver_claims
+        html = render_to_string('da_wire/transaction_type/waiver_claim.html', context)
+    
     elif transaction_type == 'dfa':
         dfas = DFA.objects.all().order_by('-date')[lower_bound:upper_bound]
         if request.user.is_authenticated:
@@ -1095,6 +1118,22 @@ def pick_page_team(request):
                     fa.user_upvoted = 0
         context['options'] = options
         html = render_to_string('da_wire/transaction_type/option.html', context)
+    elif transaction_type == 'waiver_claim':
+        waiver_claims = WaiverClaim.objects.filter(Q(team_to=mlbaffiliate) | Q(team_from=mlbaffiliate)).order_by("-date")[lower_bound:upper_bound]
+        if request.user.is_authenticated:
+            for fa in waiver_claims:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
+                else:
+                    fa.user_upvoted = 0
+        context['waiver_claims'] = waiver_claims
+        html = render_to_string('da_wire/transaction_type/waiver_claim.html', context)
+ 
     elif transaction_type == 'dfa':
         dfas = DFA.objects.filter(team_by=mlbaffiliate).order_by("-date")[lower_bound:upper_bound]
         if request.user.is_authenticated:
@@ -1260,7 +1299,19 @@ def index(request):
     else:
         upper += 1
     options.range = range(2, upper)
-    
+
+    # Waiver Claims
+    waiver_claims = WaiverClaim.objects.all().order_by('-date')
+    waiver_claims_count = waiver_claims.count()
+    waiver_claims = waiver_claims[0:per_page]
+    upper = int(waiver_claims_count / per_page)
+    if upper > 25:
+        upper = 26
+    else:
+        upper += 1
+    waiver_claims.range = range(2, upper)
+ 
+
     # DFAs
     dfas = DFA.objects.all().order_by('-date')
     dfas_count = dfas.count()
@@ -1374,6 +1425,16 @@ def index(request):
                     fa.user_upvoted = -1
             else:
                 fa.user_upvoted = 0
+        for fa in waiver_claims:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
         for fa in dfas:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
             user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
@@ -1452,7 +1513,7 @@ def index(request):
                'trades': trades, 'callups': callups, \
                    'injured_list': injured_list, 'fa_signings': fa_signings, \
                         'dfas': dfas, \
-                           'personal_leave': personal_leave, 'rehab_assignment': rehab_assignment}
+                        'waiver_claims': waiver_claims, 'personal_leave': personal_leave, 'rehab_assignment': rehab_assignment}
     context.update(context_)
     return render(request, 'da_wire/index.html', context)
 
@@ -1801,6 +1862,62 @@ def team_options(request, location, name):
                'options': options, 'mlbaff': mlbaffiliate, \
                 'primary': primary, 'secondary': secondary, 'ternary': ternary, 'logo' : logo}
     return render(request, 'da_wire/all/options.html', context)
+
+def team_waiver_claims(request, location, name):
+    import urllib.parse
+    location = urllib.parse.unquote(location)
+    mlbaffiliate = MLBAffiliate.objects.filter(name=name, location=location).first()
+    colors = mlbaffiliate.colors
+    if colors.all().count() > 0:
+        primary = colors.all()[0]
+    else:
+        primary = ""
+    if colors.all().count() > 1:
+        secondary = colors.all()[1]
+    else:
+        secondary = ""
+    if colors.all().count() > 2:
+        ternary = colors.all()[2]
+    else:
+        ternary = ""
+    
+
+    level_obj = mlbaffiliate.level
+    logo = mlbaffiliate.logo
+    mlbaffiliates = MLBAffiliate.objects.filter(mlbteam=mlbaffiliate.mlbteam).order_by("level")
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    waiver_claims = WaiverClaim.objects.filter(Q(team_to=mlbaffiliate) | Q(team_from=mlbaffiliate)).order_by('date')
+
+    per_page = 10
+    waiver_claims_count = waiver_claims.count()
+    waiver_claims = waiver_claims[0:per_page]
+    upper = int(waiver_claims_count / per_page)
+    if waiver_claims_count % per_page == 0:
+        upper += 1
+    else:
+        upper += 2
+    waiver_claims.range = range(2, upper)
+
+    if request.user.is_authenticated:
+        for fa in waiver_claims:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'mlbaffiliates': mlbaffiliates, \
+               'teams': mlbteams,  \
+               'waiver_claims': waiver_claims, 'mlbaff': mlbaffiliate, \
+                'primary': primary, 'secondary': secondary, 'ternary': ternary, 'logo' : logo}
+    return render(request, 'da_wire/all/waiver_claims.html', context)
+
+
+
 
 
 def team_dfas(request, location, name):
@@ -2232,6 +2349,37 @@ def trades(request):
     context = {'teams': mlbteams, 'trades': trades }
     return render(request, 'da_wire/all/trades.html', context)
 
+def waiver_claims(request):
+    mlb_level = Level.objects.filter(level="MLB").first()
+    mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
+    waiver_claims = WaiverClaim.objects.all().order_by("-date")
+    
+    per_page = 25
+    waiver_claims_count = waiver_claims.count()
+    waiver_claims = waiver_claims[0:per_page]
+    upper = int(waiver_claims_count / per_page)
+    if waiver_claims_count % per_page == 0:
+        upper += 1
+    else:
+        upper += 2 
+    waiver_claims.range = range(2, upper)
+
+    if request.user.is_authenticated:
+        for fa in waiver_claims:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    context = {'teams': mlbteams, 'waiver_claims': waiver_claims }
+    return render(request, 'da_wire/all/waiver_claims.html', context)
+
+
+
 def il(request):
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
@@ -2388,6 +2536,7 @@ def team(request, location, name):
                                     |Q(mlbteam=mlbaffiliate.mlbteam, to_level=level_obj, is_rehab_assignment=0)).order_by("-date")
     callups = CallUp.objects.filter(Q(mlbteam=mlbaffiliate.mlbteam, from_level=level_obj) \
                                     |Q(mlbteam=mlbaffiliate.mlbteam, to_level=level_obj)).order_by("-date")
+    waiver_claims = WaiverClaim.objects.filter(Q(team_to=mlbaffiliate) | Q(team_from=mlbaffiliate)).order_by('date')
     trades = Trade.objects.filter(Q(players__team_to=mlbaffiliate)|Q(players__team_from=mlbaffiliate)).order_by("-date")
     injured_list = InjuredList.objects.filter(team_for=mlbaffiliate).order_by("-date")
     fa_signings = FASignings.objects.filter(team_to=mlbaffiliate, is_draftpick=0).order_by("-date")
@@ -2417,7 +2566,19 @@ def team(request, location, name):
     else:
         upper += 1 
     options.range = range(2, upper)
-    
+
+    # Waiver Claims
+    waiver_claims_count = waiver_claims.count()
+    waiver_claims = waiver_claims[0:per_page]
+    upper = int(waiver_claims_count / per_page)
+    if upper > 25:
+        upper = 26
+    else:
+        upper += 1
+    waiver_claims.range = range(2, upper)
+ 
+
+
     # DFAs
     dfas_count = dfas.count()
     dfas = dfas[0:per_page]
@@ -2535,6 +2696,16 @@ def team(request, location, name):
                     fa.user_upvoted = -1
             else:
                 fa.user_upvoted = 0
+        for fa in waiver_claims:
+            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
         for fa in dfas:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
             user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
@@ -2608,7 +2779,7 @@ def team(request, location, name):
             else:
                 fa.user_upvoted = 0    
     context = {'trades_range': trades_range, 'players': players, 'mlbaffiliates': mlbaffiliates, \
-               'teams': mlbteams, 'options': options, \
+            'teams': mlbteams, 'options': options, 'waiver_claims': waiver_claims,\
                'trades': trades, 'callups': callups, 'mlbaff': mlbaffiliate, \
                    'injured_list': injured_list, 'fa_signings': fa_signings, \
                        'dfas': dfas, \

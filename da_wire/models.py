@@ -111,6 +111,16 @@ class Player(models.Model):
     def __str__(self):
         return self.first_name + " " + self.middle_initial + " " + self.last_name
 
+class WaiverClaim(models.Model):
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
+    date = models.DateField()
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    team_from = models.ForeignKey(MLBAffiliate, on_delete=models.CASCADE, related_name="waiver_claim_team_from")
+    team_to = models.ForeignKey(MLBAffiliate, on_delete=models.CASCADE, related_name="waiver_claim_team_to")
+
+    def __str__(self):
+        return self.player.first_name + " " + self.player.last_name + " to " + self.team_to.name + " from " + self.team_from.name
+
 class Option(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
     date = models.DateField()
