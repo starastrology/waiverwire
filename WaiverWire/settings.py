@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
 ]
 
+import os
 # Stripe production values
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
@@ -129,7 +130,6 @@ STATIC_URL = '/static/'
 if DEBUG:
     STATICFILES_DIRS = ["C:\\Users\\15134\\Desktop\\WaiverWire\\WaiverWire\\static"]
 else:
-    import os
     STATIC_ROOT = os.path.join(BASE_DIR, "WaiverWire/static/")
 
 # Default primary key field type

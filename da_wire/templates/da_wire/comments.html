@@ -4,11 +4,12 @@
 			<div>{{comment.user.username }} | {{ comment.datetime|timesince }} ago &middot; {{comment.votes}} upvotes <a href="{% url 'transaction' comment.transaction.tid %}">&#8618;</a></div>
             <div class="text" >{{ comment.text|linebreaks }}</div>
             <div style="display: inline;" id="comment_{{comment.id}}">
-		    <form action="{% url 'delete_comment' %}" method="POST">
+		    <form action="{% url 'delete_comment' %}" method="POST" onsubmit="return confirm('Are you sure you want to delete your comment?');">
 			<input type=hidden name=comment_id value="{{comment.id}}" />
 			<br>
 			<button class="btn btn-danger">Delete Comment</button>
-		</form>
+			{% csrf_token %}
+		    </form>
 	    </div>
         </div>
 	</li>

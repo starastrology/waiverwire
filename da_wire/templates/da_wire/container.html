@@ -200,6 +200,50 @@
     </div>
     {% endif %}
     </div>
+    {% if waiver_claims %}
+    <div class="row">
+    	<div class="col-sm-2"></div>
+	<div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-10 {%else%} col-sm-12 {% endif %}">
+	    <div id="waiver_claims">
+		<h1 style="display:inline;">Waiver Claims</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_waiver_claims' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'waiver_claims' %}{%endif%}">view all</a></small>
+  
+
+    		<ul id="ul_waiver_claim">
+         		{% include 'da_wire/transaction_type/waiver_claim.html' %}
+    		</ul>
+
+	{% if request.resolver_match.view_name != "transaction" %}
+    		<form 
+		{% if request.resolver_match.view_name == 'index' %} 
+			action="{% url 'pick_page' %}"
+			{%else %}
+			action="{% url 'pick_page_team' %}"
+			{%endif%}
+			method="GET" id="waiver_claim_form">
+            {% if request.resolver_match.view_name == 'team' %}
+			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
+			{% endif %}    
+	
+			<input id="waiver_claim_index" type="hidden" name="index" value="1" />
+                <input id="waiver_claim_transaction_type" name="transaction_type" type="hidden" value="waiver_claim" />
+                <nav aria-label="...">
+                    <ul class="pagination pagination-sm flex-wrap">
+                        <li class="page-item active" aria-current="page" id="waiver_claim_1">
+                          <span class="page-link" onclick="pick_page('1', 'waiver_claim');">1</span>
+                        </li>
+                    {% for i in waiver_claims.range %}
+                        <li class="page-item" id="waiver_claim_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'waiver_claim');">{{i}}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </nav>
+            </form>
+	    {% endif %}
+    </div>
+    </div>
+    </div>
+    {% endif %}
     <div class="row">
 	    <div class="col-sm-2"></div>
     	{% if dfas %}

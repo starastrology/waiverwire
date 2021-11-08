@@ -1,0 +1,37 @@
+{% for waiver_claim in waiver_claims %}
+        <li class="something" id="transaction_{{waiver_claim.transaction.tid}}">
+                {% if request.user.is_authenticated %}
+                <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{waiver_claim.votes}}</div>
+                <div class="arrows">
+                    <form id="transaction_upvote_{{ waiver_claim.transaction.tid }}" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ waiver_claim.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote_{{ waiver_claim.transaction.tid }}" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ waiver_claim.transaction.tid }}">
+            </form>
+                    <div class="up" onclick="ajax_submit_upvote('{{ waiver_claim.transaction.tid }}')"></div>
+                    <div class="down" onclick="ajax_submit_downvote('{{ waiver_claim.transaction.tid }}')"></div>
+                </div>
+                {% endif %}
+                <a href="{% url 'transaction' waiver_claim.transaction.tid %}">&#8618;</a>
+		<div class="display">
+			<b>{{waiver_claim.date}}</b> - {{waiver_claim.player.position }} <a href="{% url 'transaction' waiver_claim.player.transaction.tid %}">{{waiver_claim.player}}</a> claimed off waivers by <a href="{% url 'team' waiver_claim.team_to.location waiver_claim.team_to.name %}">{{waiver_claim.team_to.location}} {{waiver_claim.team_to.name}}</a> from <a href="{% url 'team' waiver_claim.team_from.location waiver_claim.team_from.name %}">{{waiver_claim.team_from.location}} {{waiver_claim.team_from.name }}</a>.
+        	</div>        
+	</li>
+{% endfor %}
+{% if request.user.is_authenticated %}
+<script>
+          $(document).ready(function(){
+              {% for fa in waiver_claims %}
+                  {% if fa.user_upvoted == 1 %}
+                         $('#transaction_{{fa.transaction.tid}} .up').addClass('upvoted');
+                  {% elif fa.user_upvoted == -1 %}       
+                         $('#transaction_{{fa.transaction.tid}} .down').addClass('upvoted');
+                  {% endif %}
+                  
+            {% endfor %}
+            });
+</script>
+{% endif %}
