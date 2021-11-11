@@ -16,6 +16,8 @@
 			{{ fa_signing_transaction.date }} - {{fa_signing_transaction.player}} signed to {{fa_signing_transaction.team_to}}
 		{% elif draft_signing_transaction %}
 			{{ draft_signing_transaction.date }} - {{draft_signing_transaction}} signed to {{draft_signing_transaction.team_to}}
+		{% elif waiver_claim_transaction %}
+			{{ waiver_claim_transaction.date }} - {{ waiver_claim_transaction.player }} claimed off waivers
 		{% elif dfa_transaction %}
 			{{ dfa_transaction.date }} - {{dfa_transaction.player}} designated for assignment
 		{% elif injury_transaction %}
@@ -49,6 +51,45 @@
           --blue: #002D72;
           --red: #D50032;
         }
+#navbarNavDropdown{
+		margin-top: 20px;
+	}
+	.navbar-brand{
+		position: relative;
+    		font-size: 2em;
+	}
+	h1,h2{
+		font-size: 4em;
+		padding: 40px;
+		margin: auto;
+		width: 100%;
+		text-align: center;
+		position: relative;
+	}
+	.navbar-brand,h1,h2{
+    text-transform: uppercase;
+    font-weight: 200;
+    color: #f5f5f5 !important;
+    text-shadow: 1px 1px 1px #919191,
+        1px 2px 1px #919191,
+        1px 3px 1px #919191,
+        1px 4px 1px #919191,
+        1px 5px 1px #919191,
+        1px 6px 1px #919191,
+        1px 7px 1px #919191,
+        1px 8px 1px #919191,
+        1px 9px 1px #919191,
+        1px 10px 1px #919191,
+    1px 18px 6px rgba(16,16,16,0.4),
+    1px 22px 10px rgba(16,16,16,0.2),
+    1px 25px 35px rgba(16,16,16,0.2),
+    1px 30px 60px rgba(16,16,16,0.4);
+	}
+	@media (max-width: 576px) {
+		h1, h2{
+			font-size: 2.5em;
+		}
+	}
 	@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300&display=swap');	
 	.container{
 		{% if callup_transaction %}
@@ -63,6 +104,8 @@
 			{% get_thangy injury_transaction.team_for as team_to %}
 		{% elif non_fa %}
 			{% get_thangy non_fa.mlbaffiliate as team_to %}
+		{% elif waiver_claim_transaction %}
+			{% get_thangy waiver_claim_transaction.team_to as team_to %}
 		{% elif fa_signing_transaction %}
 			{% get_thangy fa_signing_transaction.team_to as team_to %}
 		{% elif personal_leave_transaction %}
@@ -94,14 +137,37 @@
 		color: #ffffff;
 	    font-family: 'Ubuntu', sans-serif;
         }
+
+	#comment_section{
+		padding: 10px;
+	    {% if not fa %}
+	    background-color: {{team_to.colors.all.1 }};
+		border: 3px groove {{team_to.colors.all.2}};
+		{% else %}
+		border: 3px groove white;
+		background-color: #cccccc; 
+			{% endif %}
+	}
+	#none{
+		text-align: center;
+		padding: 10px;
+	    {% if not fa %}
+	    background-color: {{team_to.colors.all.0 }};
+		border: 3px groove {{team_to.colors.all.2}};
+		{% else %}
+		border: 3px groove white;
+		background-color: var(--blue); 
+			{% endif %}
+	}
 	#main{
 		opacity: .92;
 	    margin-bottom: 25px;
 	    {% if not fa %}
-	    border: 3px dashed {{team_to.colors.all.2}};
+	    border: 3px groove {{team_to.colors.all.2}};
 	    color: {{ team_to.colors.all.0 }};
 	    background-color: {{ team_to.colors.all.1 }};
 	    {% else %}
+	    border: 3px groove white);
 	    color: var(--red);
 	    background-color: #cccccc;
 	    {% endif %}
@@ -129,7 +195,7 @@
         .r {
             background-color: #ffffff;
             display: table-cell;
-            border: 1px dashed var(--red);
+            border: 3px groove var(--red);
             -webkit-box-sizing: border-box;
             -moz-box-sizing: border-box;
             box-sizing: border-box;
@@ -200,26 +266,26 @@
             list-style-type: none;
         }
         .comments .comment{
-            border: 3px dashed white;
-            margin: 10px 0;
+            text-align: left;
+	    border: 3px groove white;
+            display: table;
+	    margin: 10px 0;
             padding: 10px;
+	    min-width: 600px;
             background-color: var(--red);
         }
-	.content{
-	   border: 3px dashed white;
-	   padding: 10px;
-	   background-color: var(--blue);
-	   width: 800px;
-	}
         .comments .comment .text{
              word-wrap: break-word;
-             width: 800px;
+             width: 94%;
         }
         .comments .comment .text{
             background-color: var(--blue);
             padding: 10px;
-            border: 3px dashed white;
+            border: 3px groove white;
         }
+	p{
+		margin: 0;
+	}
 	#main{
 		padding: 30px;
 	}
@@ -237,12 +303,12 @@
 		float: right;
 	}
         @media(max-width:800px){
+		.comments .comment{
+			min-width: 300px;
+		}
             .comments .comment .text{
-            width: 220px;
+            width: 85%;
             }
-	    .content{
-		width: 220px;
-	    }
 	    #main .arrows, #main .count{
 		{% if request.user.is_authenticated %}
 		    display: block;
@@ -595,11 +661,11 @@
             <div class="down" onclick="ajax_submit_downvote_main()"></div>
         </div>
         <div class="display">
-          	<h1><b> {{fa.position}} </b>{{ fa }} {% if fa.number %}<i style="color:#aaaaaa;">#{{ fa.number }}</i>{% endif %}   </h1> 
+          	<h1><b style="color:#f3af3f;"> {{fa.position}} </b>{{ fa }} {% if fa.number %}<i style="color:#aaaaaa;">#{{ fa.number }}</i>{% endif %}   </h1> 
 		{% if fa.picture %}<div><img style="max-height:400px;" src="{{ fa.picture }}" /></div>{% endif %}
 		{% if fa.stats %}<table id="stats"><caption>M{% if not fa.stats.is_mlb %}i{% endif %}LB Career</caption>
 			{% if fa.stats.batter_stats %}
-			<tr><th>Avg</th><th>OBP</th><th>OPS</th></tr>
+			<tr><th>AVG</th><th>OBP</th><th>OPS</th></tr>
 			<tr><td>{{fa.stats.batter_stats.avg|remove_zero}}</td><td>{{fa.stats.batter_stats.OBP|remove_zero}}</td><td>{{fa.stats.batter_stats.OPS|remove_zero}}</td>
 			{% endif %}
 			{% if fa.stats.pitcher_stats %}
@@ -627,13 +693,13 @@
         </div>
         <div class="display">
 
-		<h1><b> {{non_fa.position}} </b>{{ non_fa }} {% if non_fa.number %}<i style="color:#aaaaaa;">#{{ non_fa.number }}</i>{% endif %}   </h1> 
-		<h2><a href="{% url 'team' type.location|replace_forward_slash type.name %}">{{type}}</a></h2>
+		<h1><b  style="color:#f3af3f;"> {{non_fa.position}} </b>{{ non_fa }} {% if non_fa.number %}<i style="color:#aaaaaa;">#{{ non_fa.number }}</i>{% endif %}   </h1> 
+		<h3><a href="{% url 'team' type.location|replace_forward_slash type.name %}">{{type}}</a></h3>
 		{% if non_fa.picture %}<div><img style="max-height:400px;" src="{{ non_fa.picture }}" /></div>{% endif %}
 		{% if non_fa.stats %}
 		<table id="stats"><caption>M{% if not non_fa.stats.is_mlb %}i{% endif %}LB Career</caption>
 			{% if non_fa.stats.batter_stats %}
-			<tr><th>Avg</th><th>OBP</th><th>OPS</th></tr>
+			<tr><th>AVG</th><th>OBP</th><th>OPS</th></tr>
 			<tr><td>{{non_fa.stats.batter_stats.avg|remove_zero }}</td><td>{{non_fa.stats.batter_stats.OBP|remove_zero}}</td><td>{{non_fa.stats.batter_stats.OPS|remove_zero}}</td>
 			{% endif %}
 			{% if non_fa.stats.pitcher_stats %}
@@ -718,6 +784,29 @@
             <h4>{{ option_transaction.player }} optioned by {{option_transaction.from_level}} to {{ option_transaction.to_level }}</h4>
         </div>
     </div>
+{% elif waiver_claim_transaction %}
+    <h1>{{type}}</h1>
+    <div id="main">
+        <div style="display:inline;" class="count">{{ votes }}</div>
+        <div class="arrows">
+            <form id="transaction_upvote" action="{% url 'transaction_upvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ waiver_claim_transaction.transaction.tid }}">
+            </form>
+            <form id="transaction_downvote" action="{% url 'transaction_downvote' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ waiver_claim_transaction.transaction.tid }}">
+            </form>
+            <div class="up" onclick="ajax_submit_upvote_main()"></div>
+            <div class="down" onclick="ajax_submit_downvote_main()"></div>
+        </div>
+        <div class="display" >
+        	<b>{{waiver_claim_transaction.date}}</b> - {{waiver_claim_transaction.player.position }} <a href="{% url 'transaction' waiver_claim_transaction.player.transaction.tid %}">{{waiver_claim_transaction.player}}</a> claimed off waivers by <a href="{% url 'team' waiver_claim_transaction.team_to.location waiver_claim_transaction.team_to.name %}">{{waiver_claim_transaction.team_to.location}} {{waiver_claim_transaction.team_to.name}}</a> from <a href="{% url 'team' waiver_claim_transaction.team_from.location waiver_claim_transaction.team_from.name %}">{{waiver_claim_transaction.team_from.location}} {{waiver_claim_transaction.team_from.name }}</a>.
+        	
+	</div>
+    </div>
+
+
 {% elif rehab_assignment_transaction %}
     <h1>{{type}}</h1>
     <div id="main">
@@ -851,6 +940,7 @@
         </div>
     </div>              
 {% endif %}
+<hr>
 {% include 'da_wire/container.html' %}
 {% include 'da_wire/comment.html' %}
 

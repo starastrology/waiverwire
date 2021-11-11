@@ -29,6 +29,40 @@
 	--ternary: white;
 	   {% endif %}
         }
+#navbarNavDropdown{
+		margin-top: 20px;
+	}
+	.navbar-brand{
+		position: relative;
+    		font-size: 2em;
+	}
+	h1,h2{
+		font-size: 4em;
+		padding: 40px;
+		margin: auto;
+		width: 100%;
+		text-align: center;
+		position: relative;
+	}
+	.navbar-brand,h1,h2{
+    text-transform: uppercase;
+    font-weight: 200;
+    color: #f5f5f5 !important;
+    text-shadow: 1px 1px 1px #919191,
+        1px 2px 1px #919191,
+        1px 3px 1px #919191,
+        1px 4px 1px #919191,
+        1px 5px 1px #919191,
+        1px 6px 1px #919191,
+        1px 7px 1px #919191,
+        1px 8px 1px #919191,
+        1px 9px 1px #919191,
+        1px 10px 1px #919191,
+    1px 18px 6px rgba(16,16,16,0.4),
+    1px 22px 10px rgba(16,16,16,0.2),
+    1px 25px 35px rgba(16,16,16,0.2),
+    1px 30px 60px rgba(16,16,16,0.4);
+	}
        	@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300&display=swap');	
 	body{
 	    font-family: 'Ubuntu', sans-serif; 
@@ -47,76 +81,16 @@
   	    margin: 2px;	   
   	    padding: 14px;
 	    background-color: white;
-            border: 1px dashed var(--secondary);
-	    {% if "FFFFFF" in primary %}
-	        background-color: var(--ternary);
-            {% endif %}
-            color: var(--primary);
-        }
-        .col {
-            display:table-row;
-        }
-        a{
-            color: var(--secondary);
-        }
-        b{
-            color: var(--secondary);
-        }
-        .up{
-            background-image: url("{% static 'da_wire/up.png' %}");
-        }
-        .down{
-            background-image: url("{% static 'da_wire/down.png' %}");
-        }
-        .up, .down{
-            background-repeat: no-repeat;
-            background-size: 18px;
-            width: 20px;
-            height: 20px;
-            margin: 2px 0;
-            opacity: .35;
-        }
-        .up:hover, .down:hover{
-            opacity: 1;
-            cursor: pointer;
-        }
-        .arrows{
-            display: inline;
-            float: left;
-            margin-top: -23px;
-        }
-        li.something{
-            list-style-type: none;
-            min-height: 50px;
-        }
-        .upvoted{
-            opacity: 1;
-        }
-        .page-item{
-            cursor: pointer;
-        }
-	#sidebar{
-		position: fixed;
-	}
-	
-	#sidebar ul{
-		font-size: 14px;
-		padding-bottom: 10px;
-	}
-	#sidebar .nav-item{
-		height:20px;
-	}
-	.pagination{
-		overflow: hidden;
-	}
-	@media(max-width:990px){
-         	#sidebar{
-			display: none;
-		}
 	}
 	#players1 select, #players2 select{
 		height: 500px;
 	}
+@media (max-width: 576px) {
+		h1, h2{
+			font-size: 2.5em;
+		}
+	}
+
     </style>
 <script
       src="https://code.jquery.com/jquery-3.6.0.min.js"

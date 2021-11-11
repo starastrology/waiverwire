@@ -1,0 +1,83 @@
+{% load da_wire_extras %}
+{% get_transaction_type request t as type %}
+{% if type.fas %}
+<ul>
+	<h5><u>Free Agent</u></h5>
+	{% include 'da_wire/transaction_type/fa.html' with fas=type.fas %}
+</ul>
+{% elif type.non_fas %}
+<ul>
+	<h5><u>{{ type.non_fas.all.0.mlbaffiliate }} #{{type.non_fas.all.0.number}}</u></h5>
+	{% include 'da_wire/transaction_type/fa.html' with fas=type.non_fas %}
+</ul>
+{% elif type.callups %}
+<ul>
+	<h5><u>Callup</u></h5>
+	{% include 'da_wire/transaction_type/callup.html' with callups=type.callups %}
+</ul>
+{% elif type.options %}
+<ul>
+	<h5><u>Option</u></h5>
+	{% include 'da_wire/transaction_type/option.html' with options=type.options %}
+</ul>
+{% elif type.dfas %}
+<ul>
+	<h5><u>DFA</u></h5>
+	{% include 'da_wire/transaction_type/dfa.html' with dfas=type.dfas %}
+</ul>
+{% elif type.trades %}
+<ul>
+	<h5><u>Trade</u></h5>
+	{% include 'da_wire/transaction_type/trade.html' with trades=type.trades %}
+</ul>
+{% elif type.waiver_claims %}
+<ul>
+	<h5><u>Waiver Claim</u></h5>
+	{% include 'da_wire/transaction_type/waiver_claim.html' with waiver_claims=type.waiver_claims %}
+</ul>
+{% elif type.fa_signings %}
+<ul>
+	<h5><u>FA Signing</u></h5>
+	{% include 'da_wire/transaction_type/fa_signing.html' with fa_signings=type.fa_signings %}
+</ul>
+{% elif type.il %}
+<ul>
+	<h5><u>Injured List</u></h5>
+	{% include 'da_wire/transaction_type/injured.html' with injured_list=type.il %}
+</ul>
+{% elif type.rehab_assignment %}
+<ul>
+	<h5><u>Rehab Assignment</u></h5>
+	{% include 'da_wire/transaction_type/rehab_assignment.html' with rehab_assignment=type.rehab_assignment %}
+</ul>
+{% elif type.personal_leave %}
+<ul>
+	<h5><u>Personal Leave</u></h5>
+	{% include 'da_wire/transaction_type/personal_leave.html' with personal_leave=type.personal_leave %}
+</ul>
+{% elif type.trade_proposals %}
+<ul>
+	<h5><u>Trade Proposal</u></h5>
+	{% include 'da_wire/transaction_type/trade_proposal.html' with trade_proposals=type.trade_proposals %}
+</ul>
+{% elif type.callup_proposals %}
+<ul>
+	<h5><u>Callup Proposal</u></h5>
+	{% include 'da_wire/transaction_type/callup_proposal.html' with callup_proposals=type.callup_proposals %}
+</ul>
+{% elif type.option_proposals %}
+<ul>
+	<h5><u>Option Proposal</u></h5>
+	{% include 'da_wire/transaction_type/option_proposal.html' with option_proposals=type.option_proposals %}
+</ul>
+{% elif type.signing_proposals %}
+<ul>
+	<h5><u>Signing Proposal</u></h5>
+	{% include 'da_wire/transaction_type/signing_proposal.html' with signing_proposals=type.signing_proposals %}
+</ul>
+{% elif type.none %}
+<ul>
+	<h5><u>Sign Up for a Pro Account</u></h5>
+	<p> In order to view this user proposal, you must have a Pro Account.
+</ul>
+{% endif %}

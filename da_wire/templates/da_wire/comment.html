@@ -1,8 +1,8 @@
 {% load da_wire_extras %}
-<hr>
+<div id="comment_section">
 {% is_pro request.user as tf %}
 {% if request.user.is_authenticated and tf %}
-<p style="text-align: center;"> Post below... </p>
+<h2>Comments</h2>
 {% elif request.user.is_authenticated %}
 	<form action="{% url 'upgrade_to_pro' %}" method="GET">
 		<button class="btn btn-warning">Upgrade to Pro for just $4.99 to comment</button>  
@@ -10,31 +10,22 @@
 {% else %}
 <p> Login to upvote, and <a href="{% url 'register_page' %}">upgrade to Pro</a> to comment! </p>
 {% endif %}
-<hr>
-
-{% if request.user.is_authenticated and tf %}
-<div>
-<form action="{% url 'comment' %}" method="POST">
-    {% csrf_token %}
-    <input type="hidden" name="tid" value="{{tid}}" />
-    <textarea required placeholder="Comment here" name="comment" cols=100 rows=10>{{ too_long }}</textarea>
-    <hr>
-    <button class="btn btn-primary" style="width:100%;">Submit</button>
-</form>
-<br style="break:float;">
-<br>
-{% if too_long %}
-<div id="messages">
-    <p>
-        Post submission may have been too long! (max 2000 chars)
-    </p>
-</div>
-{% endif %}
-</div>
-{% endif %}
 
 <div class="comments">
-	
+	{% if request.user.is_authenticated and comments %}
+	<div id="none" style="width:300px;">
+	Order comments by
+	<select>
+		<option>Top-Rated</option>
+		<option>Hot</option>
+		<option>Recent</option>
+		<option>Oldest</option>
+	</select>
+	</div>
+	{% endif %}
+	{% if not comments %}
+	<div id="none"><h3>No comments yet.</h3></div>
+	{% else %}
 {% for comment in comments %}
 <div class="comment" style="min-height: 100px;"><div>{{comment.user.username }} | {{ comment.datetime|timesince }} ago</div>
         <div style="display: inline;" id="comment_{{comment.id}}">
@@ -57,6 +48,27 @@
             </div>
         </div>
     {% endfor %}
-
+	{% endif %}
 </div>
-
+{% if request.user.is_authenticated and tf %}
+<hr>
+<div>
+<form action="{% url 'comment' %}" method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="tid" value="{{tid}}" />
+    <textarea required placeholder="Comment here" name="comment" cols=100 rows=10>{{ too_long }}</textarea>
+    <br><br>
+    <button class="btn btn-primary" style="width:100%;">Submit</button>
+</form>
+<br style="break:float;">
+<br>
+{% if too_long %}
+<div id="messages">
+    <p>
+        Post submission may have been too long! (max 2000 chars)
+    </p>
+</div>
+{% endif %}
+</div>
+{% endif %}
+</div>

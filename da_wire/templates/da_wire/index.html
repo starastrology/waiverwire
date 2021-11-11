@@ -23,18 +23,49 @@
             color: #ffffff;
 	    font-family: 'Ubuntu', sans-serif;
         }
+	#navbarNavDropdown{
+		margin-top: 20px;
+	}
+	.navbar-brand{
+		position: relative;
+    		font-size: 2em;
+	}
+	h1,h2{
+		font-size: 4em;
+		padding: 40px;
+		margin: auto;
+		width: 100%;
+		text-align: center;
+		position: relative;
+	}
+	.navbar-brand,h1,h2{
+    text-transform: uppercase;
+    font-weight: 200;
+    color: #f5f5f5 !important;
+    text-shadow: 1px 1px 1px #919191,
+        1px 2px 1px #919191,
+        1px 3px 1px #919191,
+        1px 4px 1px #919191,
+        1px 5px 1px #919191,
+        1px 6px 1px #919191,
+        1px 7px 1px #919191,
+        1px 8px 1px #919191,
+        1px 9px 1px #919191,
+        1px 10px 1px #919191,
+    1px 18px 6px rgba(16,16,16,0.4),
+    1px 22px 10px rgba(16,16,16,0.2),
+    1px 25px 35px rgba(16,16,16,0.2),
+    1px 30px 60px rgba(16,16,16,0.4);
+	}
         .r {
 		padding: 4px;
-	}/*
-	.r>div:hover{
-		cursor: pointer;
-		background-color: #eee;
-	}*/
+	}
 	.r>div {
   	    margin: 2px;	   
   	    padding: 4px;
             background-color: #ffffff;
-            border: 1px dashed var(--red);
+            border: 3px groove var(--red);
+	    height: 100%;
 	}
 	    .r{
             color: var(--blue);
@@ -80,13 +111,9 @@
 	.pagination{
 		overflow: hidden;
 	}
-	#sidebar{
-		position:fixed;
-		text-align: center;
-	}
 	@media(max-width: 977px){
-		#sidebar{
-			display: none;
+		#stats{
+			margin-top: 20px;
 		}
 	}
 	li.something a:hover{
@@ -101,6 +128,25 @@
 	li.something{
 		border-bottom: 1px solid black;
 		padding: 20px;
+	}
+	#stats td{
+		color: var(--red);
+		padding: 0 20px;
+	}
+	#stats th{
+		color: var(--blue);
+	}
+	#stats{
+		text-align: center;
+		border: 1px solid var(--blue);
+		float: right;
+	}
+	caption{
+		text-align: center;
+	}
+	.picture{
+		max-height: 50px;
+		border: 1px solid var(--blue);
 	}
     </style>
     <script
@@ -121,9 +167,29 @@
                          $('#ul_' + transaction_type).html(data);
                          form.find('.active').removeClass('active');
                          form.find('#' + transaction_type + '_' +index).addClass('active');
-                     }
+                    	$('.progress').hide(); 
+		    	clearInterval(i);
+		    },
+		    beforeSend: function(){
+			    if (transaction_type == 'fa'){
+			$('.progress').show();
+
+			    	var w=50
+				i = setInterval(function() {
+			    		$('.progress-bar').css('width', w.toString() + "%")
+					w++
+					console.log(w);
+				}, 200);
+		    	}
+		    }
                 });
         }
+	$(document).ready(function(){
+			$('.progress').hide();
+
+		});
+
+
     </script>
 </head>
 <body>

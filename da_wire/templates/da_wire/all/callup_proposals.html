@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ mlbaff.location }} {{ mlbaff.name }} Rehab Assignments</title>
+    <title>{{ mlbaff.location }} {{ mlbaff.name }} Callup Proposals</title>
     <meta name="description" content="Your favorite team's page of transactions.">
     <meta name="keywords" content="Reds, Yankees, Red Sox, MLB, baseball, major league, minor leagues, majors, minors, transactions, trades, options, free agents, players, waivers, signings, signing">
     <meta name="author" content="Dan Frecka">
@@ -64,7 +64,7 @@
     1px 25px 35px rgba(16,16,16,0.2),
     1px 30px 60px rgba(16,16,16,0.4);
 	}
- @media (max-width: 576px) {
+@media (max-width: 576px) {
 		h1, h2{
 			font-size: 2.5em;
 		}
@@ -138,24 +138,8 @@
         .page-item{
             cursor: pointer;
         }
-	#sidebar{
-		position: fixed;
-	}
-	
-	#sidebar ul{
-		font-size: 14px;
-		padding-bottom: 10px;
-	}
-	#sidebar .nav-item{
-		height:20px;
-	}
 	.pagination{
 		overflow: hidden;
-	}
-	@media(max-width:990px){
-         	#sidebar{
-			display: none;
-		}
 	}
 	.display{
 		display: inline;
@@ -170,10 +154,11 @@
       src="https://code.jquery.com/jquery-3.6.0.min.js"
           integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
       crossorigin="anonymous"></script>
+    
     	
 	{% include 'da_wire/voting_javascript.html' %}
-      
-<script>
+
+    <script>
         function pick_page(index, transaction_type){
             form = $('#' + transaction_type + '_form');
             form.find('#' + transaction_type + '_index').val(index);
@@ -186,10 +171,10 @@
                          $('#ul_' + transaction_type).html(data);
                          form.find('.active').removeClass('active');
                          form.find('#' + transaction_type + '_' +index).addClass('active');
-            		
+                    	clearInterval(i); 
                		$('.progress').hide();
 		    }
-            ,
+              	,
 		    beforeSend: function(){
 			$('.progress').show();
 
@@ -214,7 +199,9 @@
 <body>
     {% include 'da_wire/header.html' %}
     
-    <div class="container">{% if mlbaffiliates %}<div class="row"><div class="col-sm-2"></div><div class="col-sm-10"><div style="text-align: center;">
+    <div class="container">
+	    {% if mlbaff %}
+	    <div class="row"><div class="col-sm-2"></div><div class="col-sm-10"><div style="text-align: center;">
     {% for mlbaffiliate in mlbaffiliates %}
         {% if mlbaffiliate == mlbaff %} <b>{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</b> {% else %}
 	<a href="{% url 'team' mlbaffiliate.location|replace_forward_slash mlbaffiliate.name %}">{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</a>
@@ -223,15 +210,15 @@
 	    </div>
 		    </div>
 	    </div>
-	    <a href="{% url 'team' mlbaff.location|replace_forward_slash mlbaff.name %}" style="text-decoration: none;"><h1 style="text-align:center;">
+    <a href="{% url 'team' mlbaff.location|replace_forward_slash mlbaff.name %}" style="text-decoration: none;"><h1 style="text-align:center;">
 	    <img src="{% static 'da_wire/'|add:mlbaff.logo %}" style="width:150px;"> {{ mlbaff.location }} {{ mlbaff.name }}
-    </h1></a>
-       {% endif %}
+	    </h1></a>
+	{% endif %}    
 	<div class="row"><div class="r col-sm-12"><div>
 
-	<h2>Rehab Assignments</h2>
-				<ul id="ul_rehab">
-        {% include 'da_wire/transaction_type/rehab_assignment.html' %}
+	<h2>Callup Proposals</h2>
+				<ul id="ul_callup_proposal">
+        {% include 'da_wire/transaction_type/callup_proposal.html' %}
     </ul>
 
 	{% if request.resolver_match.view_name != "transaction" %}
@@ -239,21 +226,24 @@
 			action="{% url 'pick_page' %}"
 			{%else %}
 			action="{% url 'pick_page_team' %}"
-			{%endif%} method="GET" id="rehab_form">
-          	{% if request.resolver_match.view_name == 'team' %}
+			{%endif%} method="GET" id="callup_proposal_form">
+            {% if request.resolver_match.view_name == 'team' %}
 			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
-			{% endif %}
-	    	<input id="rehab_index" type="hidden" name="index" value="1" />
-                <input id="rehab_transaction_type" name="transaction_type" type="hidden" value="rehab" />
+			{% endif %}    
+	
+	    <input id="callup_proposal_index" type="hidden" name="index" value="1" />
+                <input id="callup_proposal_transaction_type" name="transaction_type" type="hidden" value="callup_proposal" />
+                <input id="callup_proposal_team" name="team" type="hidden" value="{{players.all.0.mlbaffiliate.name}}" />
+                <input id="callup_proposal_level" name="level" type="hidden" value="{{players.all.0.mlbaffiliate.level.level}}" />
                 {% csrf_token %}
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm flex-wrap">
-                        <li class="page-item active" aria-current="page" id="rehab_1">
-                          <span class="page-link" onclick="pick_page('1', 'rehab');">1</span>
+                        <li class="page-item active" aria-current="page" id="callup_proposal_1">
+                          <span class="page-link" onclick="pick_page('1', 'callup_proposal');">1</span>
                         </li>
-                    {% for i in rehab_assignment.range %}
-                        <li class="page-item" id="rehab_{{i}}">
-                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'rehab');">{{i}}</span>
+                    {% for i in callup_proposals.range %}
+                        <li class="page-item" id="callup_proposal_{{i}}">
+                            <span class="page-link" href="#" onclick="pick_page('{{i}}', 'callup_proposal');">{{i}}</span>
                         </li>
                     {% endfor %}
                     </ul>
@@ -263,7 +253,7 @@
 		{% endif %}
 		<input type=hidden name=bool value=25 />
 
-    	</form>
+    </form>
 	    {% endif %}
 	<div class="progress">
   <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 75%"></div>

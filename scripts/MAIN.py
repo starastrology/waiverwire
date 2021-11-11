@@ -2,6 +2,8 @@ from da_wire.models import Player, CallUp, Option, MLBAffiliate, Transaction, In
 import requests
 from bs4 import BeautifulSoup 
 from datetime import datetime
+
+from django.db.models import Q
 import re
 # first get all Rookie team urls
 """
@@ -65,24 +67,15 @@ for team in teams:
         for td in tds:
             player_links.append(td.a)
     for player_link in player_links:
-        url = player_link['href']
-        if "https" not in url:
-            url = "https://www.mlb.com" + url
-        page = requests.get(url)
-        soup = BeautifulSoup(page.text, 'html5lib')
         name = player_link.text.strip().split(" ")
-        div = soup.find('div', class_='player-header--vitals')
-        position = "P"
-        if div:
-            position = div.ul.li.text
-        player = Player.objects.filter(first_name__startswith=name[0], last_name__endswith=name[len(name)-1], position__position=position).first()
+        player = Player.objects.filter(Q(bb_ref__contains=player_link['href'], first_name__startswith=name[0], last_name__endswith=name[len(name)-1])).first()
         if player:
             if player.is_FA != 1:
                 player.mlbaffiliate = team
-            number = soup.find('span', class_='player-header--vitals-number')
-            if number:
-                number = int(number.text.replace("#", ""))
-                player.number = number 
+            #number = soup.find('span', class_='player-header--vitals-number')
+            #if number:
+            #    number = int(number.text.replace("#", ""))
+            #    player.number = number 
             player.save()
         else:
             #### CREATE PLAYER ####
@@ -95,6 +88,15 @@ for team in teams:
             for i in range(1, len(name)):
                 player.last_name += name[i] + " "
             player.last_name = player.last_name.strip()
+            url = player_link['href']
+            if "https" not in url:
+                url = "https://www.mlb.com" + url
+            page = requests.get(url)
+            soup = BeautifulSoup(page.text, 'html5lib')
+            div = soup.find('div', class_='player-header--vitals')
+            position = "P"
+            if div:
+                position = div.ul.li.text
             number = soup.find('span', class_='player-header--vitals-number')
             if number:
                 number = int(number.text.replace("#", ""))

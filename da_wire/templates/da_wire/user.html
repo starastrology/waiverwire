@@ -34,14 +34,11 @@
 	}
 	.r>div {
   	    margin: 2px;	   
-  	    padding: 4px;
-            background-color: #ffffff;
-            border: 1px dashed var(--red);
+  	    padding: 24px;
+            background-color: #cfcfcf;
+            border: 3px groove var(--red);
 	}
         .r {
-            background-color: #ffffff;
-            display: table-cell;
-            border: 1px dashed var(--red);
             color: var(--blue);
         }
         .upvoted{
@@ -86,18 +83,64 @@
             border: 1px solid black;
             background-color: #f09;
         }
-	.comments .comment{
-            border: 3px dashed white;
-            margin: 10px 0;
-            padding: 10px;
-            background-color: var(--red);
-        }
-	.content{
-	   border: 3px dashed white;
-	   padding: 10px;
-	   background-color: var(--blue);
-	   width: 800px;
+#navbarNavDropdown{
+		margin-top: 20px;
 	}
+	.navbar-brand{
+		position: relative;
+    		font-size: 2em;
+	}
+	h1,h2{
+		font-size: 4em;
+		padding: 40px;
+		margin: auto;
+		width: 100%;
+		text-align: center;
+		position: relative;
+	}
+	.navbar-brand,h1,h2{
+    text-transform: uppercase;
+    font-weight: 200;
+    color: #f5f5f5 !important;
+    text-shadow: 1px 1px 1px #919191,
+        1px 2px 1px #919191,
+        1px 3px 1px #919191,
+        1px 4px 1px #919191,
+        1px 5px 1px #919191,
+        1px 6px 1px #919191,
+        1px 7px 1px #919191,
+        1px 8px 1px #919191,
+        1px 9px 1px #919191,
+        1px 10px 1px #919191,
+    1px 18px 6px rgba(16,16,16,0.4),
+    1px 22px 10px rgba(16,16,16,0.2),
+    1px 25px 35px rgba(16,16,16,0.2),
+    1px 30px 60px rgba(16,16,16,0.4);
+	}
+	@media (max-width: 576px) {
+		h1, h2{
+			font-size: 2.5em;
+		}
+	}
+	.comments .comment{
+            text-align: left;
+	    border: 3px groove white;
+            display: table;
+	    margin: 10px 0;
+            padding: 10px;
+	    min-width: 600px;
+            background-color: var(--red);
+		color: white;
+	}
+        .comments .comment .text{
+             word-wrap: break-word;
+             width: 94%;
+        }
+        .comments .comment .text{
+            background-color: var(--blue);
+            padding: 10px;
+            border: 3px groove white;
+        }
         .text{
              word-wrap: break-word;
              width: 800px;
@@ -105,7 +148,7 @@
         .comments .comment .text{
             background-color: var(--blue);
             padding: 10px;
-            border: 3px dashed white;
+            border: 3px groove white;
         }
 	    .page-item{
          	cursor: pointer;
@@ -113,15 +156,15 @@
 	.comments .comment .text{
             background-color: var(--blue);
             padding: 10px;
-            border: 3px dashed white;
+            border: 3px groove white;
         }
         @media(max-width:990px){
+           .comments .comment{
+			min-width: 300px;
+		}
             .comments .comment .text{
-            width: 220px;
+            width: 85%;
             }
-	    .content{
-		width: 220px;
-	    }
         }
 	
     </style>
@@ -170,6 +213,8 @@
        <span id="messages">{{message}}</span>
        {%endfor %}
        {% endif %}
+       <div class="r">
+	       <div>
         <form action="{% url 'change_password' %}" method="POST">
             <label for="username">Username</label>
             <input value="{{request.user.username}}" readonly class="form-control" id="username" name="username" type="text" />
@@ -181,15 +226,24 @@
             <input class="form-control" id="confirm_password" name="confirm_password" type="password" />
             </br>
             {% csrf_token %}
-            <button class="btn btn-primary" type=submit>Save Changes</button>
+            <button class="btn btn-primary" style="width:100%;" type=submit>Save Changes</button>
         </form>
-	{% if not request.user.is_superuser %}
-        <form onsubmit="return confirm('Are you sure you want to close your account? All your comments and votes will be deleted permanently. If you have upgraded your account, you cannot recover it.');" action="{% url 'deleteaccount' %}" method="POST">
-            <button class="btn btn-danger" type=submit>Delete Account</button>
+	       </div>
+       </div>
+       {% if not request.user.is_superuser %}
+       
+       <div class="r"><div>	
+       <form onsubmit="return confirm('Are you sure you want to close your account? All your comments and votes will be deleted permanently. If you have upgraded your account, you cannot recover it.');" action="{% url 'deleteaccount' %}" method="POST">
+            <button class="btn btn-danger" style="width:100%;" type=submit>Delete Account</button>
             {% csrf_token %}
         </form>
+	       </div>
+       </div>
+       {% endif %}
 	{% is_pro request.user as tf %}
 	{% if not tf %}
+	<div class="r">
+		<div>
 	<form action="{% url 'upgrade_to_pro' %}" method="GET">
 		<button class="btn btn-warning">Upgrade to Pro for just $4.99</button>  
 	</form>
@@ -197,15 +251,17 @@
 	<p style="font-size: 25px;">
 		With Pro, you gain the ability to view, upvote/downvote, and create transaction proposals including trades, options, callups, and Free Agent signings! Play GM with this all new feature. Plus, you can post comments for discussion of transactions and players! One time fee. No returns.
 	</p>
+	</div>
+    </div>
 
-	{% endif %}
 		{% endif %}
-	</hr>
 
 	{% if trade_proposals %}
-	<h1>Your Trade Proposals</h1>
     	<div class="row"> 
 		<div class="r col-sm-12">
+			<div>
+
+	<h1>Your Trade Proposals</h1>
 			<ul id="ul_trade_proposal">
 	{% for trade_proposal in trade_proposals %}
 				<li class="something">
@@ -254,14 +310,16 @@
 
 </div>
     </div>
-	
+	</div>
 	{% endif %}
 
 
 	{% if callup_proposals %}
 
-		<h1>Your Callup Proposals</h1>
 <div class="row"><div class="r col-sm-12">
+		<div>
+
+		<h1>Your Callup Proposals</h1>
 		<ul id="ul_callup_proposal">
 		{% for callup_proposal in callup_proposals %}
 		<li class="something">
@@ -300,14 +358,16 @@
                 </nav>
 	</form>
 
-
+		</div>
 </div>
 </div>
 	{% endif %}
 
 {% if option_proposals %}
-    <h1>Your Option Proposals</h1>
     <div class="row"><div class="r col-sm-12">
+		    <div>
+
+    <h1>Your Option Proposals</h1>
 		    <ul id="ul_option_proposal">
 		    {% for option_proposal in option_proposals %}
 		    <li class="something">
@@ -352,14 +412,15 @@
 
 	    </div>
     </div>
-
+    </div>
     {% endif %}
 
 
 {% if signing_proposals %}
-    <h1>Your Signing Proposals</h1>
     <div class="row"><div class="r col-sm-12">
+		    <div>
 
+    <h1>Your Signing Proposals</h1>
 		    <ul id="ul_signing_proposal">
 			    {% include 'da_wire/transaction_type/signing_proposal.html' %}
 		    </ul>
@@ -396,15 +457,17 @@
 
     </div>
     </div>
-
+    </div>
 
     {% endif %}
 
 
 	{% if comments %}
-	<h1>Your comments</h1>
-
+	<div class="row">
+		<div class="r col-sm-12">
 	<div class="comments">
+	
+	<h1>Your Comments</h1>
 		<ul id="ul_comments">
 	{% for comment in comments %}
 	<li class="something">
@@ -441,7 +504,8 @@
 	</div>
 	</form>
 	{% endif %}
-
+		</div>
+	</div>
     </div>
     {% include 'da_wire/footer.html' %}
 </body>

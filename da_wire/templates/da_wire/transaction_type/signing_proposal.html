@@ -25,7 +25,7 @@
         </form> 
 	{% endif %}
 	<div class="display">
-		<h2>{{signing_proposal.date}}</h2> 
+		<h3>{{signing_proposal.date}}</h3> 
 		<h3>@{{signing_proposal.user.username}} is suggesting <b>{{signing_proposal.player.position}}</b> <a href="{% url 'transaction' signing_proposal.player.transaction.tid %}">{{signing_proposal.player}}</a> to {{signing_proposal.team_to.location}} {{signing_proposal.team_to.name}} for ${{ signing_proposal.salary.money|intword }} over {{signing_proposal.salary.years}} years</h4>
         	</h3>
 	</div>

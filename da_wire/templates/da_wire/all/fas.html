@@ -30,7 +30,46 @@
 	--ternary: white;
 	   {% endif %}
         }
-        @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300&display=swap');	
+#navbarNavDropdown{
+		margin-top: 20px;
+	}
+	.navbar-brand{
+		position: relative;
+    		font-size: 2em;
+	}
+	h1,h2{
+		font-size: 4em;
+		padding: 40px;
+		margin: auto;
+		width: 100%;
+		text-align: center;
+		position: relative;
+	}
+	.navbar-brand,h1,h2{
+    text-transform: uppercase;
+    font-weight: 200;
+    color: #f5f5f5 !important;
+    text-shadow: 1px 1px 1px #919191,
+        1px 2px 1px #919191,
+        1px 3px 1px #919191,
+        1px 4px 1px #919191,
+        1px 5px 1px #919191,
+        1px 6px 1px #919191,
+        1px 7px 1px #919191,
+        1px 8px 1px #919191,
+        1px 9px 1px #919191,
+        1px 10px 1px #919191,
+    1px 18px 6px rgba(16,16,16,0.4),
+    1px 22px 10px rgba(16,16,16,0.2),
+    1px 25px 35px rgba(16,16,16,0.2),
+    1px 30px 60px rgba(16,16,16,0.4);
+	}
+@media (max-width: 576px) {
+		h1, h2{
+			font-size: 2.5em;
+		}
+	}
+	@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300&display=swap');	
 	body{
 	    font-family: 'Ubuntu', sans-serif;
          
@@ -44,7 +83,7 @@
   	    margin: 2px;	   
   	    padding: 14px;
 	    background-color: white;
-            border: 1px dashed var(--secondary);
+            border: 3px groove var(--secondary);
 	    {% if "FFFFFF" in primary %}
 	        background-color: var(--ternary);
             {% endif %}
@@ -80,7 +119,7 @@
         .arrows{
             display: inline;
             float: left;
-            margin-top: -23px;
+            margin-top: -13px;
         }
         li.something{
             list-style-type: none;
@@ -124,6 +163,25 @@ li.something a:hover{
 		border-bottom: 1px solid black;
 		padding: 20px;
 	}
+	#stats td{
+		color: var(--secondary);
+		padding: 0 20px;
+	}
+	#stats th{
+		color: var(--primary);
+	}
+	#stats{
+		text-align: center;
+		border: 1px solid var(--primary);
+		float: right;
+	}
+	caption{
+		text-align: center;
+	}
+	.picture{
+		max-height: 50px;
+		border: 1px solid var(--primary);
+	}
     </style>
     
     <script
@@ -153,7 +211,7 @@ li.something a:hover{
 		    beforeSend: function(){
 			$('.progress').show();
 
-			    	var w=75
+			    	var w=75;
 				i = setInterval(function() {
 			    		$('.progress-bar').css('width', w.toString() + "%")
 					w++
@@ -173,9 +231,10 @@ li.something a:hover{
     {% include 'da_wire/header.html' %}
     
     <div class="container">    
-	<h2>Free Agents</h2>
 	<div class="row"><div class="r col-sm-12"><div>
-    		<ul id="ul_fa">
+    	
+	<h2>Free Agents</h2>
+				<ul id="ul_fa">
 				{% include 'da_wire/transaction_type/fa.html' %}
     		</ul>
 		<form action="{% url 'pick_page' %}" method="GET" id="fa_form">
