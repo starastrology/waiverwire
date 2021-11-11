@@ -16,7 +16,46 @@
           --red: #D50032;
 	  --ternary: var(--red);
         }
-        @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300&display=swap');	
+	#navbarNavDropdown{
+		margin-top: 20px;
+	}
+	.navbar-brand{
+		position: relative;
+    		font-size: 2em;
+	}
+	h1,h2{
+		font-size: 4em;
+		padding: 40px;
+		margin: auto;
+		width: 100%;
+		text-align: center;
+		position: relative;
+	}
+	.navbar-brand,h1,h2{
+    text-transform: uppercase;
+    font-weight: 200;
+    color: #f5f5f5 !important;
+    text-shadow: 1px 1px 1px #919191,
+        1px 2px 1px #919191,
+        1px 3px 1px #919191,
+        1px 4px 1px #919191,
+        1px 5px 1px #919191,
+        1px 6px 1px #919191,
+        1px 7px 1px #919191,
+        1px 8px 1px #919191,
+        1px 9px 1px #919191,
+        1px 10px 1px #919191,
+    1px 18px 6px rgba(16,16,16,0.4),
+    1px 22px 10px rgba(16,16,16,0.2),
+    1px 25px 35px rgba(16,16,16,0.2),
+    1px 30px 60px rgba(16,16,16,0.4);
+	}
+        	@media (max-width: 576px) {
+		h1, h2{
+			font-size: 2.5em;
+		}
+	}
+	@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300&display=swap');	
 	body{
 	    font-family: 'Ubuntu', sans-serif;
          
@@ -34,7 +73,7 @@
   	    margin: 2px;	   
   	    padding: 4px;
             background-color: #ffffff;
-            border: 1px dashed var(--red);
+            border: 3px groove var(--red);
 	}
 	    .r{
             color: var(--blue);
@@ -43,6 +82,7 @@
             list-style-type: none;
         }
     </style>
+    {% load da_wire_extras %}
     <script
       src="https://code.jquery.com/jquery-3.6.0.min.js"
           integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
@@ -53,6 +93,7 @@
     <div class="container">    
 	   	<h1>Search Results</h1>
 		</hr>
+		<div class="r">
 		<div >
 			{% if players %}
 			<h2>Players</h2>
@@ -61,9 +102,23 @@
 				<li class="something"><a href="{% url 'transaction' player.transaction.tid %}">{{player}}</a></li>
 				{% endfor %}
 			</ul>
-			{% else %}
-				<h3> No players with requested search </h3>
+			{% elif not mlbaffiliates %}
+				<h3> No players or teams with requested search </h3>
 			{% endif %}
+			{% if mlbaffiliates %}
+				<h2>Major and Minor League Teams</h2>
+				<ul>
+					{% for mlbaffiliate in mlbaffiliates %}
+						<li class="something">
+							<a href="{% url 'team' mlbaffiliate.location|replace_forward_slash mlbaffiliate.name %}">
+								{{ mlbaffiliate }}
+							</a>
+							<small>({{mlbaffiliate.level.level}})</small>
+						</li>
+					{% endfor %}
+				</ul>
+			{% endif %}
+		</div>
 		</div>
     </div>
     {% include 'da_wire/footer.html' %}

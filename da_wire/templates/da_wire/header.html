@@ -4,9 +4,15 @@
       			<span class="navbar-toggler-icon"></span>
     		</button>
 	<div class="d-md-flex d-block flex-row mx-md-auto mx-0">
-	  	<a class="navbar-brand" href="{% url 'index' %}">Waiver Wire</a>
+		<a class="navbar-brand" href="{% url 'index' %}"><i>Waiver Wire</i></a>
 	        <div class="collapse navbar-collapse mr-auto" id="navbarNavDropdown">	
 		<ul class="navbar-nav">
+			<li class="nav-item">
+				<form id="search" style="padding-right: 10px;border-right:1px solid black;" class="d-flex" method="GET" action="{% url 'search' %}">
+			<input class="form-control me-2" type="search" name="search" placeholder="Team and Player Search" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+		</form>
+			</li>
 			{% load da_wire_extras %}
 			{% is_pro request.user as tf %}
 			{% if tf %}
@@ -47,37 +53,56 @@
 	    		{% endfor %}
 				</ul>
 	  		</li>
-<style>
-@media(max-width: 977px){
-	#logout, #search, #login{
-		position: relative !important;
-		top: unset !important;
-		right: unset !important;
-		left: unset !important;
-	}
-}
-</style>
+			<li class="nav-item dropdown">
+				<a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            				Transactions
+          			</a>
+				<ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            				<li><a class="dropdown-item" href="{% url 'fas' %}">Free Agents</a></li>
+					<li><a class="dropdown-item" href="{% url 'callups' %}">Call Ups</a></li>
+					<li><a class="dropdown-item" href="{% url 'options' %}">Send Downs</a></li>
+					<li><a class="dropdown-item" href="{% url 'waiver_claims' %}">Waiver Claims</a></li>
+					<li><a class="dropdown-item" href="{% url 'dfas' %}">DFAs</a></li>
+					<li><a class="dropdown-item" href="{% url 'trades' %}">Trades</a></li>
+					<li><a class="dropdown-item" href="{% url 'il' %}">Injured List</a></li>
+					<li><a class="dropdown-item" href="{% url 'fa_signings' %}">Free Agent Signings</a></li>
+					<li><a class="dropdown-item" href="{% url 'personal_leave' %}">Personal Leave</a></li>
+					<li><a class="dropdown-item" href="{% url 'rehab' %}">Rehab Assignments</a></li>
+				</ul>
+
+
+			</li>
 
 			{% if not request.user.is_authenticated %}
       			<li class="nav-item">
           			<a class="nav-link" href="{% url 'register_page' %}">Register</a>
       			</li>
-		</ul>
+			<li class="nav-item">
+		<form class="d-flex" id="login" method="POST" action="{% url 'login' %}">
+				<div class="input-group">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="basic-addon1">@</span>
+      </div>	
+      <input type="text" name="username" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1"></div>
+      					<div class="input-group">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="basic-addon2">***</span>
+      </div>	
 
-		<form class="d-flex" style="position: absolute; left: 10px; top: 10px;" id="login" method="POST" action="{% url 'login' %}">
-      					<span class="input-group-text" id="basic-addon1">@</span>
-      					<input type="text" name="username" style="width: 100px;" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
-      					<span class="input-group-text" id="basic-addon2">***</span>
-      					<input type="password" style="width: 100px;" name="password" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon2">
-        				<button formmethod="post" class="btn btn-outline-success" type="submit">Login</button>
+      					<input type="password" name="password" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon2">
+					</div>
+					&nbsp;
+					<button formmethod="post" class="btn btn-outline-success" type="submit">Login</button>
         				{% csrf_token %}
       		</form>
+			</li>
+		</ul>
       {% else %}
 			<li class="nav-item">
 				<a class="nav-link" href="{% url 'user_page' request.user.id %}">@{{request.user.username}}{% if tf %}<sup style="color: gold;">Pro</sup>{%endif%}</a>
           		</li>
 		</ul>
-		<form id="logout" class="d-flex" style="left: 10px; top: 10px; position:absolute; right: auto;" method="POST" action="{% url 'logout' %}">
+		<form id="logout" class="d-flex" method="POST" action="{% url 'logout' %}">
 			{% csrf_token %}
 			<button class="btn btn-outline-success" type="submit">Logout</button>		
 		</form>	
@@ -89,10 +114,7 @@
       		{% endif %}
       {% endif %}
       		&nbsp;
-		<form id="search" class="d-flex" style="right:0; position: absolute; top:10px;" method="GET" action="{% url 'player_search' %}">
-			<input class="form-control me-2" type="search" name="search" placeholder="Player Search" aria-label="Search">
-        <button class="btn btn-outline-success" type="submit">Search</button>
-		</form>				
+						
 		</div>	
     	</div>
 	</div>

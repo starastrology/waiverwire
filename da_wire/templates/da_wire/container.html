@@ -1,94 +1,83 @@
 {% load da_wire_extras %}
-    <!--form>
-        Sort By:
-        <select>
-    <option>Recent</option>
-    <option>Approval</option>
-    <option>Comments</option>
-</select>
-</form-->
-
-{% if level %}
-<h1 style="text-align:center;">{{ level.level }}</h1>
-{% endif %}
-{% if request.resolver_match.view_name != "transaction" %}
 <div class="row">
-<div class="r col-sm-2" id="sidebar" style="width: 200px;">
-		<h6 style="color: var(--ternary);">Transaction Types</h6>
-		<ul class="navbar-nav">
-		{% if fas %}
-		<li class="nav-item">
-			<a class="nav-link" href="#fas">Free Agents</a>
-		</li>
-		{% endif %}
-		{% if callups %}
-		<li class="nav-item">
-			<a class="nav-link" href="#callups">Callups</a>
-
-		</li>
-		{% endif %}
-		{% if options %}
-		<li class="nav-item">
-	<a class="nav-link" href="#options">Send Downs</a>
-		</li>
-		{% endif %}
-		{% if dfas %}
-		<li class="nav-item">
-
-	<a class="nav-link" href="#dfas">DFAs</a>
-		</li>
-		{% endif %}
-		{% if trades %}
-		<li class="nav-item">
-
-	<a class="nav-link" href="#trades">Trades</a>
-		</li>
-		{% endif %}
-		{% if injured_list %}
-	<li class="nav-item">
-
-	<a class="nav-link" href="#injured_list">Injured List</a>
-		</li>
-		{% endif %}
-		{% if fa_signings %}
-		<li class="nav-item">
-
-	<a class="nav-link" href="#fa_signings">FA Signings</a>
-		</li>
-		{% endif %}
-		<!--li>
-
-	<a href="#draft_signings">Draft Signings</a>
-		</li-->
-		{% if personal_leave %}
-		<li class="nav-item">
-
-	<a  class="nav-link" href="#personal_leave">Personal Leave</a>
-		</li>
-		{% endif %}
-		{% if rehab_assignment %}
-		<li class="nav-item">
-
-	<a class="nav-link" href="#rehab">Rehab Assignment</a>
-		</li>
-		{% endif %}
-{% if players %}
-		<li class="nav-item">
-			<a href="#roster" class="nav-link">Roster</a>
-		</li>
-			{% endif %}
-			
-	</ul>
+	{% if top_transactions %}
+	<div class="r col-sm-6">
+		<div id="top_transactions">
+			<h1 style="text-align: center;">Top-Rated</h1>
+			<hr>
+		{% for t in top_transactions %}
+			<h2 style="float:left;margin-top:-20px;">{{forloop.counter}}</h2>
+			{% include 'da_wire/print_transaction.html' with t=t %}
+		{% endfor %}
+		</div>
 	</div>
-</div>
-{% endif %}
-    <div class="row">
+	{% endif %}
+	{% if hot_transactions %}
+		<div class="r col-sm-6">
+		<div id="hot_transactions">
+			<h1 style="text-align: center;">Hot</h1>
+			<hr>
+			{% for t in hot_transactions %}
+			<h2 style="float:left;margin-top:-20px;">{{forloop.counter}}</h2>
+			{% include 'da_wire/print_transaction.html' with t=t %}
+		{% endfor %}
+		</div>
+	</div>
+	{% endif %}
+	{% if trade_proposals %}
+    <div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-12 {%else%} col-lg-12 {% endif %}">
+	    <small  style="padding:10px;"><a style="float:right; padding:10px;" href="{% url 'trade_proposals' %}">view all</a></small>
+	    <div id="trade_proposals">
+		    <h1>Trade Proposals</h1> 
+    <ul id="ul_trade_proposal">
+        {% include 'da_wire/transaction_type/trade_proposal.html' %}
+    </ul>
 
-    <div class="col-sm-2"></div>
+    		</div>
+    </div> 
+    {% endif %}
+	{% if callup_proposals %}
+    <div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-12 {%else%} col-lg-12 {% endif %}">
+	   <small  style="padding:10px;"><a style="float:right; padding:10px;" href="{% url 'callup_proposals' %}">view all</a></small>
+	    <div id="callup_proposals">
+		    <h1>Callup Proposals</h1> 
+    <ul id="ul_callup_proposal">
+        {% include 'da_wire/transaction_type/callup_proposal.html' %}
+    </ul>
+
+    		</div>
+    </div> 
+    {% endif %}
+    {% if option_proposals %}
+    <div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-12 {%else%} col-lg-12 {% endif %}">
+	   <small  style="padding:10px;"><a style="float:right; padding:10px;" href="{% url 'option_proposals' %}">view all</a></small>
+
+	    <div id="option_proposals">
+		    <h1>Option Proposals</h1>     
+		    <ul id="ul_option_proposal">
+        {% include 'da_wire/transaction_type/option_proposal.html' %}
+    </ul>
+
+    		</div>
+    </div> 
+    {% endif %}
+    {% if signing_proposals %}
+    <div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-12 {%else%} col-lg-12 {% endif %}">
+	    <small  style="padding:10px;"><a style="float:right;padding:10px;" href="{% url 'signing_proposals' %}">view all</a></small>
+	    <div id="signing_proposals">
+		    <h1>Signing Proposals</h1> 
+    <ul id="ul_signing_proposal">
+        {% include 'da_wire/transaction_type/signing_proposal.html' %}
+    </ul>
+
+    		</div>
+    </div> 
+    {% endif %}
     {% if fas %}
-        <div class="r col-sm-10">
+        <div class="r col-sm-12">
+<small style="padding:10px;"><a style="float:right; " href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_trades' mlbaff.location mlbaff.name %}{%else%}{% url 'fas' %}{%endif%}">view all</a></small>
 		<div id="fas">
-			<h1 style="display:inline;">FAs</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_trades' mlbaff.location mlbaff.name %}{%else%}{% url 'fas' %}{%endif%}">view all</a></small>
+			<h1>FAs</h1> 
             <ul id="ul_fa">
                 {% include 'da_wire/transaction_type/fa.html' %}
             </ul>
@@ -116,14 +105,20 @@
                     </ul>
                 </nav>
             </form>
+		<div class="progress">
+  <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%"></div>
+</div>	
+	
         </div>
 	</div>
     {% endif %}
     </div>
     <div class="row">
-	    <div class="col-sm-2"></div>
-	{% if callups %}   
-	<div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-5 {%else%} col-sm-12 {% endif %}"><div id="callups"> <h1 style="display:inline;">Callups</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_callups' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'callups' %}{%endif%}">view all</a></small>
+	{% if callups %}  
+	<div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-6 {%else%} col-sm-12 {% endif %}">
+
+ <small style="padding:10px;"><a style="float:right; " href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_callups' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'callups' %}{%endif%}">view all</a></small>
+		<div id="callups"> <h1>Callups</h1>
     <ul id="ul_callup">
         {% include 'da_wire/transaction_type/callup.html' %}
     </ul>
@@ -159,9 +154,10 @@
    
     {% endif %}
 	{% if options %}
-	<div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-5 {%else%} col-sm-12 {% endif %}">
-	    <div id="options">
-		<h1 style="display:inline;">Send Downs</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_options' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'options' %}{%endif%}">view all</a></small>
+	<div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-6 {%else%} col-sm-12 {% endif %}">
+	    <small  style="padding:10px;"><a style="float:right; " href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_options' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'options' %}{%endif%}">view all</a></small>
+		<div id="options">
+		<h1>Send Downs</h1> 
   
 
     		<ul id="ul_option">
@@ -202,12 +198,12 @@
     </div>
     {% if waiver_claims %}
     <div class="row">
-    	<div class="col-sm-2"></div>
-	<div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-10 {%else%} col-sm-12 {% endif %}">
-	    <div id="waiver_claims">
-		<h1 style="display:inline;">Waiver Claims</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_waiver_claims' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'waiver_claims' %}{%endif%}">view all</a></small>
+	<div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-12 {%else%} col-sm-12 {% endif %}">
+	    <small style="padding:10px;"><a style="float:right; " href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_waiver_claims' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'waiver_claims' %}{%endif%}">view all</a></small>
   
 
+		<div id="waiver_claims">
+		<h1>Waiver Claims</h1> 
     		<ul id="ul_waiver_claim">
          		{% include 'da_wire/transaction_type/waiver_claim.html' %}
     		</ul>
@@ -245,10 +241,10 @@
     </div>
     {% endif %}
     <div class="row">
-	    <div class="col-sm-2"></div>
     	{% if dfas %}
-	    <div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-lg-10 {%else%} col-lg-12 {% endif %}">
-		    <div id="dfas"><h1 style="display:inline;">DFA'd</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_dfas' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'dfas' %}{%endif%}">view all</a></small>
+	    <div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-12 {%else%} col-sm-12 {% endif %}">
+		    <small style="padding:10px;"><a style="float:right; " href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_dfas' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'dfas' %}{%endif%}">view all</a></small>
+		    <div id="dfas"><h1>DFA'd</h1> 
   
             		<ul id="ul_dfa">
                 		{% include 'da_wire/transaction_type/dfa.html' %}
@@ -286,11 +282,11 @@
 		    {% endif %}
     </div>
     <div class="row">
-	    <div class="col-sm-2"></div>
 		    {% if trades %}
-    <div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-10 {%else%} col-lg-12 {% endif %}">
+    <div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-12 {%else%} col-lg-12 {% endif %}">
+	    <small  style="padding:10px;"><a style="float:right; " href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_trades' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'trades' %}{%endif%}">view all</a></small>
 	    <div id="trades">
-		    <h1 style="display:inline;">Trades</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_trades' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'trades' %}{%endif%}">view all</a></small>
+		    <h1>Trades</h1> 
     <ul id="ul_trade">
         {% include 'da_wire/transaction_type/trade.html' %}
     </ul>
@@ -338,8 +334,9 @@
     {% if injured_list %} 
     <div class="row">
 
-	    <div class="col-sm-2"></div>
-    <div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-10 {%else%} col-sm-12 {% endif %}"><div id="injured_list"><h1 style="display:inline;">Injured List</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_il' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'il' %}{%endif%}">view all</a></small>
+    <div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-12 {%else%} col-sm-12 {% endif %}">
+<small  style="padding:10px;"><a style="float:right;  " href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_il' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'il' %}{%endif%}">view all</a></small>
+	    <div id="injured_list"><h1>Injured List</h1> 
   
         <ul id="ul_injured">
         {% include 'da_wire/transaction_type/injured.html' %}
@@ -379,10 +376,10 @@
     {% if fa_signings %}
     <div class="row">
 
-	    <div class="col-sm-2"></div>
-    <div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-10 {%else%} col-sm-12 {% endif %}">
+    <div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-12 {%else%} col-sm-12 {% endif %}">
+	    <small  style="padding:10px;"><a style="float:right; " href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_fa_signings' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'fa_signings' %}{%endif%}">view all</a></small>
 	    <div id="fa_signings">
-		    <h1 style="display:inline;">FA Signings</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_fa_signings' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'fa_signings' %}{%endif%}">view all</a></small>
+		    <h1>FA Signings</h1> 
   
     <ul id="ul_fa_signing">
         {% include 'da_wire/transaction_type/fa_signing.html' %}
@@ -421,10 +418,10 @@
 	    {% if personal_leave %}
     <div class="row">
 
-	    <div class="col-sm-2"></div>
-    <div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-10 {%else%} col-sm-12 {% endif %}">
+    <div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-12 {%else%} col-sm-12 {% endif %}">
+	    <small  style="padding:10px;"><a style="float:right;  " href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_personal_leave' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'personal_leave' %}{%endif%}">view all</a></small>
 	    <div id="personal_leave">
-	    <h1 style="display:inline;">Personal Leave</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_personal_leave' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'personal_leave' %}{%endif%}">view all</a></small>
+	    <h1>Personal Leave</h1> 
   
     <ul id="ul_personal_leave">
         {% include 'da_wire/transaction_type/personal_leave.html' %}
@@ -463,10 +460,10 @@
     {% if rehab_assignment %}
     <div class="row">
 
-	    <div class="col-sm-2"></div>
-    <div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-10  {%else%} col-sm-12 {% endif %}">
+    <div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-12  {%else%} col-sm-12 {% endif %}">
+	    <small  style="padding:10px;"><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_rehab' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'rehab' %}{%endif%}">view all</a></small>
 	    <div id="rehab">
-		    <h1 style="display:inline;">Rehab Assignment</h1> <small><a style="float:right;" href="{% if request.resolver_match.view_name == 'team' %}{% url 'team_rehab' mlbaff.location|replace_forward_slash mlbaff.name %}{%else%}{% url 'rehab' %}{%endif%}">view all</a></small>
+		    <h1>Rehab Assignment</h1> 
   
     <ul id="ul_rehab">
         {% include 'da_wire/transaction_type/rehab_assignment.html' %}

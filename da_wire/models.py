@@ -249,13 +249,14 @@ class TradeProposal(models.Model):
     def __str__(self):
         return str(self.date) + " - involving " + self.players.all()[0].team_from.name
 
-
+from datetime import datetime
 
 class TransactionVote(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     is_up = models.IntegerField(default=1, validators=[MinValueValidator(0), MaxValueValidator(1)])
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
-    
+    datetime = models.DateTimeField(default=datetime.now)
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['user', 'transaction'], name='unique_user_transaction'),

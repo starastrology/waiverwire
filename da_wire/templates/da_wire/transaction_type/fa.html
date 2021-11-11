@@ -1,5 +1,7 @@
 {% for fa in fas %}
 <li class="something" id="transaction_{{fa.transaction.tid}}">
+	<div class="row">
+		<div class="col-sm-6">
                 {% if request.user.is_authenticated %}
                 <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{fa.votes}}</div>
                 <div class="arrows">
@@ -15,12 +17,25 @@
                     <div class="down" onclick="ajax_submit_downvote('{{ fa.transaction.tid }}')"></div>
                 </div>
                 {% endif %}
-
+		{% load da_wire_extras %}
 		<div class="display">
                 <span>
 			{% load static %}
-			{% if fa.picture %}<img src="{{ fa.picture }}" style="max-height:50px;"/>{% endif %} <b>{{fa.position}}</b> <i><a href="{% url 'transaction' fa.transaction.tid %}">{{fa}}</a></i> 
+			{% if fa.picture %}<img class="picture" src="{{ fa.picture }}"/>{% endif %} <b>{{fa.position}}</b> <i><a href="{% url 'transaction' fa.transaction.tid %}">{{fa}}</a></i>
                 </span>
+		</div>
+		</div>
+		<div class="col-sm-6">
+				{% if fa.stats %}<table id="stats"><caption>M{% if not fa.stats.is_mlb %}i{% endif %}LB Career</caption>
+			{% if fa.stats.batter_stats %}
+			<tr><th>AVG</th><th>OBP</th><th>OPS</th></tr>
+			<tr><td>{{fa.stats.batter_stats.avg|remove_zero}}</td><td>{{fa.stats.batter_stats.OBP|remove_zero}}</td><td>{{fa.stats.batter_stats.OPS|remove_zero}}</td>
+			{% endif %}
+			{% if fa.stats.pitcher_stats %}
+			<tr><th>ERA</th><th>SO</th><th>WHIP</th></tr>
+			<tr><td>{{fa.stats.pitcher_stats.ERA}}</td><td>{{fa.stats.pitcher_stats.SO}}</td><td>{{fa.stats.pitcher_stats.WHIP}}</td>
+			{% endif %}
+		</table>{%endif %}
 		</div>
             </li>
 {% endfor %}

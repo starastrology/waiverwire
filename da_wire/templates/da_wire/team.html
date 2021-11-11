@@ -38,13 +38,48 @@
         }
         .r {
             padding: 4px;
+	    margin-bottom: 22px;
+	}
+	#navbarNavDropdown{
+		margin-top: 20px;
+	}
+	.navbar-brand{
+		position: relative;
+    		font-size: 2em;
+	}
+	h1,h2{
+		font-size: 4em;
+		padding: 40px;
+		margin: auto;
+		width: 100%;
+		text-align: center;
+		position: relative;
+	}
+	.navbar-brand,h1,h2{
+    text-transform: uppercase;
+    font-weight: 200;
+    color: #f5f5f5 !important;
+    text-shadow: 1px 1px 1px #919191,
+        1px 2px 1px #919191,
+        1px 3px 1px #919191,
+        1px 4px 1px #919191,
+        1px 5px 1px #919191,
+        1px 6px 1px #919191,
+        1px 7px 1px #919191,
+        1px 8px 1px #919191,
+        1px 9px 1px #919191,
+        1px 10px 1px #919191,
+    1px 18px 6px rgba(16,16,16,0.4),
+    1px 22px 10px rgba(16,16,16,0.2),
+    1px 25px 35px rgba(16,16,16,0.2),
+    1px 30px 60px rgba(16,16,16,0.4);
 	}
 	.r > div{
+	    height: 100%;
   	    margin: 2px;	   
   	    padding: 14px;
 	    background-color: white;
-            display: table-cell;
-            border: 1px dashed var(--secondary);
+            border: 3px groove var(--secondary);
 	    {% if "FFFFFF" in primary %}
 	        background-color: var(--ternary);
             {% endif %}
@@ -95,16 +130,6 @@
 	.pagination{
 		overflow: hidden;
 	}
-	#sidebar{
-		position:fixed;
-		text-align: center;
-	}
-	@media(max-width: 977px){
-		#sidebar{
-			display: none;
-		}
-	}
-
 	li.something a:hover{
 		opacity: .5;
 	}
@@ -119,8 +144,14 @@
 		padding: 20px;
 		font-size: 25px;
 	}
-	#roster .arrows{
-		margin-top: -15px;
+	.picture{
+		border: 1px solid var(--primary);
+		height: 50px;
+	}
+	@media (max-width: 576px) {
+		h1, h2{
+			font-size: 2.5em;
+		}
 	}
     </style>
     <script
@@ -150,10 +181,10 @@
 <body>
     {% include 'da_wire/header.html' %}
     
-    <div class="container"><div class="row"><div class="col-sm-2"></div><div class="col-sm-10"><div style="text-align: center;">
+    <div class="container"><div class="row"><div class="col-sm-12"><div style="text-align: center;">
     {% for mlbaffiliate in mlbaffiliates %}
-        {% if mlbaffiliate == mlbaff %} <b>{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</b> {% else %}
-	<a href="{% url 'team' mlbaffiliate.location|replace_forward_slash mlbaffiliate.name %}">{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</a>
+        {% if mlbaffiliate == mlbaff %} <b>{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</b><sup>({{mlbaffiliate.level.level}})</sup> {% else %}
+	<a href="{% url 'team' mlbaffiliate.location|replace_forward_slash mlbaffiliate.name %}">{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</a><sup>({{mlbaffiliate.level.level}})</sup>
         {% endif %}  {% if forloop.counter != mlbaffiliates|length %} > {% endif %}
     {% endfor %}
 	    </div>
@@ -166,13 +197,12 @@
     
     {% include 'da_wire/container.html' %}
     <div class="row">
-	    <div class="col-sm-2"></div>
-    <div class="r col-sm-10">
+    <div class="r col-sm-12">
 	    <div id="roster"><h2>Roster</h2>
     <ul>
 	    <div class="row">
     {% for player in players %}
-    <div class="col-sm-3">
+    <div class="col-sm-6">
         <li class="something" id="transaction_{{player.transaction.tid}}">
                 {% if request.user.is_authenticated %}
                 <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{player.votes}}</div>
@@ -192,7 +222,7 @@
 
              	<!--a href="{% url 'transaction' player.transaction.tid %}">&#8618;</a-->
 		<div class="display" style="display:inline;">
-			{% if player.picture %}<img src="{{player.picture}}" style="height:50px;" />{% endif %}<b>{{player.position }}</b> <a href="{% url 'transaction' player.transaction.tid %}">{{ player }}</a> {% if player.number %}<i>#{{player.number}}</i>{% endif %}
+			{% if player.picture %}<img class="picture" src="{{player.picture}}" />{% endif %}<b>{{player.position }}</b> <a href="{% url 'transaction' player.transaction.tid %}">{{ player }}</a> {% if player.number %}<i>#{{player.number}}</i>{% endif %}
 		</div>
 	</li>
     </div>
