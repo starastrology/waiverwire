@@ -1,0 +1,1 @@
+{"options":{},"indexes":[{"v":2,"key":{"_id":1},"name":"_id_","ns":"waiverwire.da_wire_prouser"},{"v":2,"unique":true,"key":{"id":1},"name":"__primary_key__","ns":"waiverwire.da_wire_prouser"},{"v":2,"unique":true,"key":{"user_id":1},"name":"user_id_1","ns":"waiverwire.da_wire_prouser"}],"uuid":"cde27c50b7094969a64fcc2529bf1c5d"}

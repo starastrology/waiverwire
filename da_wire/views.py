@@ -3,7 +3,7 @@ from .models import MLBAffiliate, Level, Player, Option, Trade, \
     CallUp, InjuredList, FASignings, DFA, MLBTeam, PersonalLeave, Position, \
         Transaction, Comment, TransactionVote, CommentVote, PlayerTrade, TradeProposal, \
         PlayerTradeProposal, CallUpProposal, OptionProposal, ProUser, FASigningsProposal, \
-        Salary, WaiverClaim
+        Salary, WaiverClaim, ReplyNotification
 from django.db.models import Q
 from django.contrib.auth import authenticate
 from django.contrib.auth import logout, login
@@ -13,6 +13,113 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http.response import JsonResponse
 from django.conf import settings
 import stripe
+import operator
+from bson.decimal128 import Decimal128, create_decimal128_context
+import decimal
+from django.core.cache import cache
+"""
+def sort_fas(request):
+    pitcher_or_batter = request.GET['PorB']
+    if pitcher_or_batter == "All":
+        fas = Player.objects.filter(is_FA=1).order_by("last_name", "first_name")
+    elif pitcher_or_batter == "Pitchers":
+        fas = Player.objects.filter(position__position="P", is_FA=1).order_by("last_name", "first_name")
+    elif pitcher_or_batter == "Batters":
+        fas = Player.objects.filter(is_FA=1).exclude(position__position="P").order_by("last_name", "first_name")
+    for fa in fas:
+        fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+        if request.user.is_authenticated:
+            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    fa.user_upvoted = 1
+                else:
+                    fa.user_upvoted = -1
+            else:
+                fa.user_upvoted = 0
+    sort_by = request.GET['sort_by']
+    if sort_by == "Alphabetical":
+        pass
+    elif sort_by == "Top-Rated":
+        fas = sorted(fas, key=operator.attrgetter('votes'), reverse=True)
+    elif sort_by == "AVG":
+        D128_CTX = create_decimal128_context()
+        for fa in fas:
+            if fa.stats:
+                if fa.stats.batter_stats:
+                    with decimal.localcontext(D128_CTX):
+                        fa.avg = fa.stats.batter_stats.avg.to_decimal()
+                else:
+                    fa.avg = 0.0
+            else:
+                fa.avg = 0.0
+        fas = sorted(fas, key=operator.attrgetter('avg'), reverse=True)
+    elif sort_by == "OBP":
+        D128_CTX = create_decimal128_context()
+        for fa in fas:
+            if fa.stats:
+                if fa.stats.batter_stats:
+                    with decimal.localcontext(D128_CTX):
+                        fa.OBP = fa.stats.batter_stats.OBP.to_decimal()
+                else:
+                    fa.OBP = 0.0
+            else:
+                fa.OBP = 0.0
+        fas = sorted(fas, key=operator.attrgetter('OBP'), reverse=True)
+    elif sort_by == "OPS":
+        D128_CTX = create_decimal128_context()
+        for fa in fas:
+            if fa.stats:
+                if fa.stats.batter_stats:
+                    with decimal.localcontext(D128_CTX):
+                        fa.OPS = fa.stats.batter_stats.OPS.to_decimal()
+                else:
+                    fa.OPS = 0.0
+            else:
+                fa.OPS = 0.0
+        fas = sorted(fas, key=operator.attrgetter('OPS'), reverse=True)
+    elif sort_by == "ERA":
+        D128_CTX = create_decimal128_context()
+        for fa in fas:
+            if fa.stats:
+                if fa.stats.pitcher_stats:
+                    with decimal.localcontext(D128_CTX):
+                        fa.ERA = fa.stats.pitcher_stats.ERA.to_decimal()
+                else:
+                    fa.ERA = 100000.0
+            else:
+                fa.ERA = 100000.0
+        fas = sorted(fas, key=operator.attrgetter('ERA'))
+    elif sort_by == "SO":
+        for fa in fas:
+            if fa.stats:
+                if fa.stats.pitcher_stats:
+                    fa.SO = fa.stats.pitcher_stats.SO
+                else:
+                    fa.SO = 0
+            else:
+                fa.SO = 0
+        fas = sorted(fas, key=operator.attrgetter('SO'), reverse=True)
+    elif sort_by == "WHIP":
+        D128_CTX = create_decimal128_context()
+        for fa in fas:
+            if fa.stats:
+                if fa.stats.pitcher_stats:
+                    with decimal.localcontext(D128_CTX):
+                        fa.WHIP = fa.stats.pitcher_stats.WHIP.to_decimal()
+                else:
+                    fa.WHIP = 100000.0
+            else:
+                fa.WHIP = 100000.0
+        fas = sorted(fas, key=operator.attrgetter('WHIP'))
+    per_page = 25
+    fas = fas[0:per_page]
+    fas_count = fas.count()
+    upper = int(fas_count / per_page) + 1
+    context['fas_range'] = range(2, upper)
+
+    return render(request, 'da_wire/transaction_type/fa.html', {'fas': fas, 'fas_range': fas_range})
+"""
 
 @csrf_exempt
 def upgrade_to_pro(request):
@@ -177,7 +284,6 @@ def proposals(request):
                             fa.user_upvoted = -1
                     else:
                         fa.user_upvoted = 0
-                import operator
                 trade_proposals = sorted(trade_proposals, key=operator.attrgetter('votes'), reverse=True)
                 trade_proposals = trade_proposals[0:per_page]
 
@@ -248,7 +354,6 @@ def search(request):
                 name[name.index(n)] = n.capitalize()
                 
         players = Player.objects.filter(Q(first_name_unaccented__in=name)|Q(last_name_unaccented__in=name)).order_by('last_name_unaccented', 'first_name_unaccented')
-        import operator
         from functools import reduce
         mlbaffiliates = MLBAffiliate.objects.filter(reduce(operator.or_, ((Q(location__contains=x)|Q(name__contains=x)) for x in name))).order_by('location', 'name')
         return render(request, 'da_wire/search_results.html', {'mlbaffiliates': mlbaffiliates, 'players': players, 'teams': mlbteams})
@@ -450,8 +555,7 @@ def transaction(request, tid):
     transaction = Transaction.objects.filter(tid=tid).first()
     tid = transaction.tid
     
-    comments = Comment.objects.filter(transaction=transaction).order_by("-datetime")
-    
+    comments = Comment.objects.filter(reply_to=None, transaction=transaction).order_by("-datetime")
     if request.user.is_authenticated:
         for comment in comments:
             comment.votes = CommentVote.objects.filter(comment=comment, is_up=1).count() - CommentVote.objects.filter(comment=comment, is_up=0).count()
@@ -464,19 +568,18 @@ def transaction(request, tid):
             else:
                 comment.user_upvoted = 0
          
-        import operator
         comments = sorted(comments, key=operator.attrgetter('votes'), reverse=True)    
 
         up_votes = TransactionVote.objects.filter(transaction=transaction, is_up=1).count()
         down_votes = TransactionVote.objects.filter(transaction=transaction, is_up=0).count()
         votes = up_votes - down_votes
         user_transaction_vote = TransactionVote.objects.filter(transaction=transaction, user=request.user).first()
-        context = {'teams': mlbteams, \
+        context = {'teams': mlbteams, 'arrows': True, \
                        'tid': tid, 'comments': comments, 'votes': votes,
-                       'user_transaction_vote': user_transaction_vote}
+                       'user_transaction_vote': user_transaction_vote, 'indent': 0}
     else:
         context = {'teams': mlbteams,  \
-                    'tid': tid, 'comments': comments}        
+                'tid': tid, 'comments': comments, 'indent': 0}        
         
     fa = Player.objects.filter(transaction=transaction, is_FA=1).first()
     non_fa = Player.objects.filter(transaction=transaction, is_FA=0).first()
@@ -1019,14 +1122,21 @@ def comment(request):
     try:
         if request.user.prouser:
             comment = request.POST["comment"]
+            reply_to = request.POST.get('reply_to')
             tid = request.POST["tid"]
             if len(comment) > 2000:
                 return transaction(request, tid)
             _transaction = Transaction.objects.filter(tid=tid).first()
             import datetime
             now=datetime.datetime.now()
-            comment = Comment(text=comment, transaction=_transaction, user=request.user, datetime=now)
-            comment.save()
+            if reply_to:
+                comment = Comment(reply_to=reply_to, text=comment, transaction=_transaction, user=request.user, datetime=now)
+                comment.save()
+                reply_notification = ReplyNotification(reply_comment=comment)
+                reply_notification.save()
+            else:
+                comment = Comment(reply_to=None, text=comment, transaction=_transaction, user=request.user, datetime=now)
+                comment.save()
             from django.urls import reverse
             return redirect(reverse('transaction',  kwargs={'tid': tid}))
     except:
@@ -1047,12 +1157,14 @@ def pick_page(request):
     # need to check see if upper bound exists
     lower_bound = index * per_page
     upper_bound = (index + 1) * per_page
-    
-    import operator
+    user = request.GET.get('user')
  
     # Free Agents
     if transaction_type == 'trade_proposal':
-        trade_proposals = TradeProposal.objects.all().order_by('-date')
+        if user:
+            trade_proposals = TradeProposal.objects.filter(user=request.user)
+        else:
+            trade_proposals = TradeProposal.objects.all().order_by('-date')
         if request.user.is_authenticated:
             for fa in trade_proposals:
                 fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
@@ -1069,7 +1181,10 @@ def pick_page(request):
         context['trade_proposals'] = trade_proposals[lower_bound:upper_bound]
         html = render_to_string('da_wire/transaction_type/trade_proposal.html', context, request=request)
     elif transaction_type == 'callup_proposal':
-        callup_proposals = CallUpProposal.objects.all().order_by('-date')
+        if user:
+            callup_proposals = CallUpProposal.objects.filter(user=request.user)
+        else:
+            callup_proposals = CallUpProposal.objects.all().order_by('-date')
         if request.user.is_authenticated:
             for fa in callup_proposals:
                 fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
@@ -1086,7 +1201,10 @@ def pick_page(request):
         context['callup_proposals'] = callup_proposals[lower_bound:upper_bound]
         html = render_to_string('da_wire/transaction_type/callup_proposal.html', context, request=request)
     elif transaction_type == 'option_proposal':
-        option_proposals = OptionProposal.objects.all().order_by('-date')
+        if user:
+            option_proposals = OptionProposal.objects.filter(user=request.user)
+        else:
+            option_proposals = OptionProposal.objects.all().order_by('-date')
         if request.user.is_authenticated:
             for fa in option_proposals:
                 fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
@@ -1103,7 +1221,10 @@ def pick_page(request):
         context['option_proposals'] = option_proposals[lower_bound:upper_bound]
         html = render_to_string('da_wire/transaction_type/option_proposal.html', context, request=request)
     elif transaction_type == 'signing_proposal':
-        signing_proposals = FASigningsProposal.objects.all().order_by('-date')
+        if user:
+            signing_proposals = FASigningsProposal.objects.filter(user=request.user)
+        else:
+            signing_proposals = FASigningsProposal.objects.all().order_by('-date')
         if request.user.is_authenticated:
             for fa in signing_proposals:
                 fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
@@ -1490,12 +1611,12 @@ def index(request):
     per_page = 1
 
     context = {}
-    
+    context['arrows']=True
+
     values_list = list(TransactionVote.objects.filter(is_up=1).values_list('transaction__tid', flat=True))
     top_transactions = Transaction.objects.filter(tid__in=values_list)
     for t in top_transactions:
         t.count = TransactionVote.objects.filter(is_up=1, transaction=t).count() - TransactionVote.objects.filter(is_up=0, transaction=t).count()
-    import operator
     top_transactions = sorted(top_transactions, key=operator.attrgetter('count'), reverse=True)
     context['top_transactions'] = top_transactions[0:10]
 
@@ -1760,6 +1881,45 @@ def logout_view(request):
 
     return redirect(reverse('index'))
 
+def sort_comments(request):
+    sort_by = request.GET.get('sort_by')
+    tid = request.GET.get('tid')
+    transaction = Transaction.objects.filter(tid=tid).first()
+    context = {}
+    context['arrows']=True
+    context['indent']=0
+    # set session cookie
+    if sort_by == "Top-Rated":
+        comments = Comment.objects.filter(reply_to=None, transaction=transaction).order_by("-datetime")
+        for comment in comments:
+            comment.votes = CommentVote.objects.filter(comment=comment, is_up=1).count() - CommentVote.objects.filter(comment=comment, is_up=0).count()
+            user_upvoted = CommentVote.objects.filter(comment=comment, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    comment.user_upvoted = 1
+                else:
+                    comment.user_upvoted = -1
+            else:
+                comment.user_upvoted = 0
+        comments = sorted(comments, key=operator.attrgetter('votes'), reverse=True)    
+    elif sort_by == "Recent":
+        comments = Comment.objects.filter(reply_to=None, transaction=transaction).order_by("-datetime")
+        for comment in comments:
+            comment.votes = CommentVote.objects.filter(comment=comment, is_up=1).count() - CommentVote.objects.filter(comment=comment, is_up=0).count()
+            user_upvoted = CommentVote.objects.filter(comment=comment, user=request.user).first()
+            if user_upvoted:
+                if user_upvoted.is_up:
+                    comment.user_upvoted = 1
+                else:
+                    comment.user_upvoted = -1
+            else:
+                comment.user_upvoted = 0 
+    context['comments'] = comments 
+    html = render_to_string('da_wire/comments.html', context, request=request)
+    return HttpResponse(html)
+
+ 
+
 def register_page(request):
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
@@ -1826,6 +1986,18 @@ def change_password(request):
     else:
         return redirect(reverse('index'))
 
+def delete_notification(request):
+    notification = ReplyNotification.objects.get(id=request.POST['notification_id'])
+    notification.delete()
+    return redirect(reverse('user_page', kwargs={'id': request.user.id}))
+
+def delete_all_notifications(request):
+    user_comments = Comment.objects.filter(user=request.user).values_list('id', flat=True)
+    notifications = ReplyNotification.objects.filter(reply_comment__reply_to__in=user_comments)
+    for n in notifications:
+        n.delete()
+    return redirect(reverse('user_page', kwargs={'id': request.user.id}))
+
 def user_page(request, id):
     if request.user.is_authenticated and request.user.id==id:
         per_page = 1
@@ -1833,6 +2005,11 @@ def user_page(request, id):
         mlb_level = Level.objects.filter(level="MLB").first()
         mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
         
+        user_comments = Comment.objects.filter(user=request.user).values_list('id', flat=True)
+        replies = ReplyNotification.objects.filter(reply_comment__reply_to__in=user_comments)
+        context['replies'] = replies
+
+
         trade_proposals = TradeProposal.objects.filter(user=request.user).order_by('-date')
         trade_proposals_count = trade_proposals.count()
         upper = int(trade_proposals_count / per_page) + 1
@@ -1853,7 +2030,7 @@ def user_page(request, id):
         upper = int(signing_proposals_count / per_page) + 1
         context['signing_proposals_range'] = range(2, upper)
 
-
+        
 
         for fa in trade_proposals:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
@@ -1864,7 +2041,6 @@ def user_page(request, id):
         for fa in signing_proposals:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
         
-        import operator
         trade_proposals = sorted(trade_proposals, key=operator.attrgetter('votes'), reverse=True)
         trade_proposals = trade_proposals[0:per_page]
         callup_proposals = sorted(callup_proposals, key=operator.attrgetter('votes'), reverse=True)
@@ -2427,31 +2603,35 @@ def fas(request):
     per_page = 25
     mlb_level = Level.objects.filter(level="MLB").first()
     mlbteams = MLBAffiliate.objects.filter(level=mlb_level).order_by('location')
-    fas = Player.objects.filter(is_FA=1).order_by("last_name")
-    fas_count = fas.count()
-    upper = int(fas_count / per_page)
-    if fas_count % per_page == 0:
-        upper += 1
-    else:
-        upper += 2 
-
-
-    if request.user.is_authenticated:
-        for fa in fas:
-            fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
-            user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
-            if user_upvoted:
-                if user_upvoted.is_up:
-                    fa.user_upvoted = 1
+    cache1 = cache.get('fas')
+    if not cache1:
+        fas = Player.objects.filter(is_FA=1).order_by("last_name")
+        fas_count = fas.count()
+        upper = int(fas_count / per_page)
+        if fas_count % per_page == 0:
+            upper += 1
+        else:
+            upper += 2 
+        cache.set('upper', upper)
+    
+        if request.user.is_authenticated:
+            for fa in fas:
+                fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
+                user_upvoted = TransactionVote.objects.filter(transaction=fa.transaction, user=request.user).first()
+                if user_upvoted:
+                    if user_upvoted.is_up:
+                        fa.user_upvoted = 1
+                    else:
+                        fa.user_upvoted = -1
                 else:
-                    fa.user_upvoted = -1
-            else:
-                fa.user_upvoted = 0
-        import operator
-        fas = sorted(fas, key=operator.attrgetter('votes'), reverse=True)
-    fas = fas[0:per_page]
+                    fa.user_upvoted = 0
+            fas = sorted(fas, key=operator.attrgetter('votes'), reverse=True)
+        fas = fas[0:per_page]
+        cache.set('fas', fas)
+    else:
+        fas = cache1
 
-    context = {'teams': mlbteams, 'fas': fas, 'fas_range': range(2,upper) }
+    context = {'teams': mlbteams, 'fas': fas, 'fas_range': range(2,cache.get('upper')) }
     return render(request, 'da_wire/all/fas.html', context)
 
 def callups(request):
@@ -2770,6 +2950,27 @@ def team(request, location, name):
     rehab_assignment = Option.objects.filter(Q(from_level=level_obj, mlbteam=mlbaffiliate.mlbteam, \
                                 is_rehab_assignment=1)|Q(to_level=level_obj, \
                                 mlbteam=mlbaffiliate.mlbteam, is_rehab_assignment=1)).order_by("-date")
+    from itertools import chain
+    transactions = list(chain((players).values_list('transaction__tid', flat=True), (callups).values_list('transaction__tid', flat=True), (options).values_list('transaction__tid', flat=True), (waiver_claims).values_list('transaction__tid', flat=True), (trades).values_list('transaction__tid', flat=True), (injured_list).values_list('transaction__tid', flat=True), (fa_signings).values_list('transaction__tid', flat=True), (dfas).values_list('transaction__tid', flat=True), (personal_leave).values_list('transaction__tid', flat=True), (rehab_assignment).values_list('transaction__tid', flat=True)))
+    
+    #values_list = list(TransactionVote.objects.filter(is_up=1, transaction__tid__in=transactions).values_list('transaction__tid', flat=True))
+    top_transactions = Transaction.objects.filter(tid__in=transactions)
+    for t in top_transactions:
+        t.count = TransactionVote.objects.filter(is_up=1, transaction=t).count() - TransactionVote.objects.filter(is_up=0, transaction=t).count()
+    top_transactions = sorted(top_transactions, key=operator.attrgetter('count'), reverse=True)
+    top_transactions = top_transactions[0:10]
+
+    from datetime import datetime, timedelta
+    one_week_ago = datetime.now() - timedelta(days=7)
+    values_list = list(TransactionVote.objects.filter(transaction__tid__in=transactions, is_up=1, datetime__gt=one_week_ago).values_list('transaction__tid', flat=True))
+    
+    hot_transactions = Transaction.objects.filter(tid__in=values_list)
+    for t in hot_transactions:
+        t.count = TransactionVote.objects.filter(is_up=1, transaction=t, datetime__gt=one_week_ago).count() - TransactionVote.objects.filter(is_up=0, transaction=t, datetime__gt=one_week_ago).count()
+    hot_transactions = sorted(hot_transactions, key=operator.attrgetter('count'), reverse=True)
+    hot_transactions = hot_transactions[0:10]
+
+
 
     # Call Ups
     callups_count = callups.count()
@@ -2889,7 +3090,6 @@ def team(request, location, name):
                     fa.user_upvoted = -1
             else:
                 fa.user_upvoted = 0
-        import operator
         players = sorted(players, key=operator.attrgetter('votes'), reverse=True)
         for fa in callups:
             fa.votes = TransactionVote.objects.filter(is_up=1, transaction=fa.transaction).count() - TransactionVote.objects.filter(is_up=0, transaction=fa.transaction).count()
@@ -2985,7 +3185,7 @@ def team(request, location, name):
             'teams': mlbteams, 'options': options, 'waiver_claims': waiver_claims,\
                'trades': trades, 'callups': callups, 'mlbaff': mlbaffiliate, \
                    'injured_list': injured_list, 'fa_signings': fa_signings, \
-                       'dfas': dfas, \
+                   'dfas': dfas, 'hot_transactions': hot_transactions, 'top_transactions': top_transactions, \
                            'personal_leave': personal_leave, 'rehab_assignment': rehab_assignment, \
                            'primary': primary, 'secondary': secondary, 'ternary': ternary, 'logo' : logo}
     return render(request, 'da_wire/team.html', context)

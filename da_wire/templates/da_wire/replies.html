@@ -1,0 +1,30 @@
+{% load da_wire_extras %}
+{% for reply in replies %}
+{% with comment=reply.reply_comment %}
+<li class="something">
+	<div class="comment" style="min-height: 100px;">
+		<div id="comment_{{comment.id}}">
+			{{comment.user.username }} | {{ comment.datetime|timesince }} ago
+        		
+		<a href="{% url 'transaction' comment.transaction.tid %}#comment_{{comment.id}}">&#8618;</a>
+			<div class="text" >{{ comment.text|linebreaks }}</div>
+	    		{% get_comment_replies request comment.id as replies %}
+			{% if comment.user == request.user and not arrows and not replies %}
+
+	    			<form action="{% url 'delete_comment' %}" method="POST" onsubmit="return confirm('Are you sure you want to delete your comment?');">
+					<input type=hidden name=comment_id value="{{comment.id}}" />
+					<br>
+					<button class="btn btn-danger">Delete Comment</button>
+					{% csrf_token %}
+		    		</form>
+		    		<form action="{%url 'delete_notification' %}" method="POST">
+					<input type=hidden name=notification_id value="{{reply.id}}" />
+					{% csrf_token %}
+					<button class="btn btn-info">Delete Notification</button>
+				</form>
+			{% endif %}
+		</div>
+	</div>
+</li>
+	{% endwith %}
+	{% endfor %}

@@ -1,3 +1,4 @@
+{% load da_wire_extras %}
 {% for personale in personal_leave %}
         <li class="something" id="transaction_{{personale.transaction.tid}}">
                 {% if request.user.is_authenticated %}
@@ -15,7 +16,7 @@
             <div class="down" onclick="ajax_submit_downvote('{{ personale.transaction.tid }}')"></div>
                 </div>
                 {% endif %}
-                <b>{{personale.date}}</b> - <a href="{% url 'transaction' personale.player.transaction.tid %}">{{personale.player}}</a> placed on personal leave.
+		<b>{{personale.date}}</b> - <a href="{% url 'transaction' personale.player.transaction.tid %}">{{personale.player}}</a> placed on personal leave by <a href="{% url 'team' personale.team_for.location|replace_forward_slash personale.team_for.name %}">{{personale.team_for}}</a>.
                 <a href="{% url 'transaction' personale.transaction.tid %}">&rarr;</a> 
                 </li>
 {% endfor %}

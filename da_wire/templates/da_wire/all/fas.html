@@ -1,4 +1,3 @@
-
 {% load da_wire_extras %}
 <html lang="en">
 <head>
@@ -224,16 +223,98 @@ li.something a:hover{
 			$('.progress').hide();
 
 		});
-
+	
+	function enableoptions(){
+		select = $('#PorB').val()
+		if (select == "Pitchers"){
+			$('#sort_by option[value="ERA"]').prop('disabled', false);	
+			$('#sort_by option[value="SO"]').prop('disabled', false);	
+			$('#sort_by option[value="WHIP"]').prop('disabled', false);	
+			$('#sort_by option[value="AVG"]').prop('disabled', true);	
+			$('#sort_by option[value="OBP"]').prop('disabled', true);	
+			$('#sort_by option[value="OPS"]').prop('disabled', true);	
+		}
+		else if(select == "Batters"){
+			$('#sort_by option[value="ERA"]').prop('disabled', true);	
+			$('#sort_by option[value="SO"]').prop('disabled', true);	
+			$('#sort_by option[value="WHIP"]').prop('disabled', true);
+			$('#sort_by option[value="AVG"]').prop('disabled', false);	
+			$('#sort_by option[value="OBP"]').prop('disabled', false);	
+			$('#sort_by option[value="OPS"]').prop('disabled', false);	
+		}
+		else{
+			$('#sort_by option[value="ERA"]').prop('disabled', true);	
+			$('#sort_by option[value="SO"]').prop('disabled', true);	
+			$('#sort_by option[value="WHIP"]').prop('disabled', true);
+			$('#sort_by option[value="AVG"]').prop('disabled', true);	
+			$('#sort_by option[value="OBP"]').prop('disabled', true);	
+			$('#sort_by option[value="OPS"]').prop('disabled', true);	
+		
+		}
+	}
+/*
+	function query(){
+		form = $('#sort_fas')
+		$.ajax({
+                    type: form.prop('method'),
+                    url: form.prop('action'),
+                    data: form.serialize(),
+                    success : function(data) {
+                	$('#ul_fa').html(data);		
+		    }
+		});	
+	}
+*/
     </script>
 </head>
 <body>
-    {% include 'da_wire/header.html' %}
-    
+	{% include 'da_wire/header.html' %}
     <div class="container">    
 	<div class="row"><div class="r col-sm-12"><div>
     	
 	<h2>Free Agents</h2>
+	<!--form onsubmit="query(); return false;" id="sort_fas" action="{# url 'sort_fas' #}" method="GET">
+	Sort
+	<select name="PorB" id="PorB" onchange="enableoptions()">
+		<option>
+			All
+		</option>
+		<option>
+			Pitchers
+		</option>
+		<option>
+			Batters
+		</option>
+	</select>
+	By
+	<select name="sort_by" id="sort_by">
+		<option>
+			Top-Rated
+		</option>
+		<option>
+			Alphabetical
+		</option>
+		<option disabled value=AVG>
+			AVG
+		</option>
+		<option disabled value=OBP>
+			OBP
+		</option>
+		<option disabled value=OPS>
+			OPS
+		</option>
+		<option disabled value=ERA>
+			ERA
+		</option>
+		<option disabled value=SO>
+			SO
+		</option>
+		<option disabled value=WHIP>
+			WHIP
+		</option>
+	</select>
+	<button class="btn btn-info">Query</button>
+	</form-->
 				<ul id="ul_fa">
 				{% include 'da_wire/transaction_type/fa.html' %}
     		</ul>

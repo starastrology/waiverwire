@@ -1,4 +1,3 @@
-
 {% load da_wire_extras %}
 <html lang="en">
 <head>
@@ -48,8 +47,7 @@
     		font-size: 2em;
 	}
 	h1,h2{
-		font-size: 4em;
-		padding: 40px;
+		padding: 20px;
 		margin: auto;
 		width: 100%;
 		text-align: center;
@@ -142,7 +140,7 @@
 	li.something{
 		border-bottom: 1px solid black;
 		padding: 20px;
-		font-size: 25px;
+		font-size: 20px;
 	}
 	.picture{
 		border: 1px solid var(--primary);
@@ -153,6 +151,30 @@
 			font-size: 2.5em;
 		}
 	}
+	#top_transactions ul:last-of-type li.something, #hot_transactions ul:last-of-type li.something{
+		border: 0;
+	}
+	@media(max-width: 977px){
+		#stats{
+			margin-top: 20px;
+		}
+	}
+	#stats td{
+		color: var(--secondary);
+		padding: 0 20px;
+	}
+	#stats th{
+		color: var(--primary);
+	}
+	#stats{
+		text-align: center;
+		border: 1px solid var(--primary);
+		float: right;
+	}
+	caption{
+		text-align: center;
+	}
+
     </style>
     <script
       src="https://code.jquery.com/jquery-3.6.0.min.js"
@@ -180,11 +202,10 @@
 </head>
 <body>
     {% include 'da_wire/header.html' %}
-    
     <div class="container"><div class="row"><div class="col-sm-12"><div style="text-align: center;">
     {% for mlbaffiliate in mlbaffiliates %}
-        {% if mlbaffiliate == mlbaff %} <b>{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</b><sup>({{mlbaffiliate.level.level}})</sup> {% else %}
-	<a href="{% url 'team' mlbaffiliate.location|replace_forward_slash mlbaffiliate.name %}">{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</a><sup>({{mlbaffiliate.level.level}})</sup>
+        {% if mlbaffiliate == mlbaff %} <b>{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</b><sub>({{mlbaffiliate.level.level}})</sub> {% else %}
+	<a href="{% url 'team' mlbaffiliate.location|replace_forward_slash mlbaffiliate.name %}">{{ mlbaffiliate.location }} {{ mlbaffiliate.name }}</a><sub>({{mlbaffiliate.level.level}})</sub>
         {% endif %}  {% if forloop.counter != mlbaffiliates|length %} > {% endif %}
     {% endfor %}
 	    </div>

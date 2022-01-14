@@ -1,4 +1,5 @@
 {% load humanize %}
+{% load da_wire_extras %}
 {% for signing_proposal in signing_proposals %}   
 <li class="something" id="transaction_{{signing_proposal.transaction.tid}}" >
 	<h3 style="display:inline;">@{{signing_proposal.user.username}}</h3> &middot; <span class="count">{{ signing_proposal.votes }} upvotes</span> <a href="{% url 'transaction' signing_proposal.transaction.tid %}">&#8618;</a> 
@@ -24,14 +25,12 @@
             {% csrf_token %}
         </form> 
 	{% endif %}
-	<div class="display">
-		<h3>{{signing_proposal.date}}</h3> 
-		<h3>@{{signing_proposal.user.username}} is suggesting <b>{{signing_proposal.player.position}}</b> <a href="{% url 'transaction' signing_proposal.player.transaction.tid %}">{{signing_proposal.player}}</a> to {{signing_proposal.team_to.location}} {{signing_proposal.team_to.name}} for ${{ signing_proposal.salary.money|intword }} over {{signing_proposal.salary.years}} years</h4>
-        	</h3>
+	<div>
+		<b style="display:inline;">{{signing_proposal.date}}</b> -
+		<h4 style="display:inline;">@{{signing_proposal.user.username}} is suggesting <b>{{signing_proposal.player.position}}</b> <a href="{% url 'transaction' signing_proposal.player.transaction.tid %}">{{signing_proposal.player}}</a> to <a href="{% url 'team' signing_proposal.team_to.location|replace_forward_slash signing_proposal.team_to.name%}">{{signing_proposal.team_to.location}} {{signing_proposal.team_to.name}}</a> for ${{ signing_proposal.salary.money|intword }} over {{signing_proposal.salary.years}} years</h4>
+        	</h4>
 	</div>
-
 </li>
-
     {% endfor %}
 
 <script>

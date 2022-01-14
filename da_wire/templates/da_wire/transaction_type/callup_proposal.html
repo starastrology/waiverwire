@@ -17,7 +17,6 @@
             <div class="down" onclick="ajax_submit_downvote('{{ callup_proposal.transaction.tid }}')"></div>
                 </div>
 		{% endif %}
-	</li>
 	{% if callup_proposal.user.id == request.user.id %}
 	<form  style="float:right;" onsubmit="return confirm('Are you sure you want to delete your proposal?');" action="{% url 'delete_transaction' %}" method="POST">
             <button class="btn btn-danger" type=submit>Delete Proposal</button>
@@ -26,13 +25,15 @@
         </form> 
 	{% endif %}
         <div>
-<b>{{callup_proposal.date }}</b> - <a href="{% url 'transaction' callup_proposal.player.transaction.tid %}">{{callup_proposal.player }}</a> 
+		<b>{{callup_proposal.date }}</b> - <a href="{% url 'transaction' callup_proposal.player.transaction.tid %}">{{callup_proposal.player }}</a> <i>should be</i> called up
         {% get_affiliate callup_proposal.to_level callup_proposal.mlbteam as team_to %}
-        to {{team_to.location }} {{team_to.name }} from 
+	to {{callup_proposal.to_level}} <a href="{% url 'team' team_to.location|replace_forward_slash team_to.name %}">{{team_to.location }} {{team_to.name }}</a> from 
         {% get_affiliate callup_proposal.from_level callup_proposal.mlbteam as team %}
-        <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{callup_proposal.from_level.level }} {{ team.location }}</a>
-	<h4><b>{{callup_proposal.player.position }}</b> {{ callup_proposal.player }} <i>should be</i> called up from {{callup_proposal.from_level.level}} to {{ callup_proposal.to_level.level }}</h4>
+	{{callup_proposal.from_level.level }}
+	<a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{ team.location }} {{team.name}}</a>
         </div>
+	
+	</li>
 	{% endfor %}
 
 <script>

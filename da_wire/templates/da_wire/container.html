@@ -4,7 +4,6 @@
 	<div class="r col-sm-6">
 		<div id="top_transactions">
 			<h1 style="text-align: center;">Top-Rated</h1>
-			<hr>
 		{% for t in top_transactions %}
 			<h2 style="float:left;margin-top:-20px;">{{forloop.counter}}</h2>
 			{% include 'da_wire/print_transaction.html' with t=t %}
@@ -16,7 +15,6 @@
 		<div class="r col-sm-6">
 		<div id="hot_transactions">
 			<h1 style="text-align: center;">Hot</h1>
-			<hr>
 			{% for t in hot_transactions %}
 			<h2 style="float:left;margin-top:-20px;">{{forloop.counter}}</h2>
 			{% include 'da_wire/print_transaction.html' with t=t %}

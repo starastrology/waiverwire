@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-i1l(e27&kdv$v4nv1klv7_terx$ry4#i*rm*_h+tu&r=#7vffy
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', 'waiverwire.org', '3.23.131.192']
+ALLOWED_HOSTS = ['localhost', 'waiverwire.org', '3.145.144.29']
 
 
 # Application definition
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'da_wire',
     'django.contrib.humanize',
+    'clear_cache', 
 ]
 
 import os
@@ -88,7 +89,18 @@ DATABASES = {
         'ENFORCE_SCHEMA': False,
     }
 }
-
+"""
+CACHES = {
+    'default': {
+        'BACKEND': 'django_elastipymemcache.backend.ElastiPymemcache',
+        'LOCATION': 'waiver-wire-elasticache.vomwbs.cfg.use2.cache.amazonaws.com:11211',
+        'OPTIONS': {
+          'ignore_exc': True, # pymemcache Client params
+          'ignore_cluster_errors': True, # ignore get cluster info error
+        }
+    }
+}
+"""
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

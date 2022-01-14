@@ -1,9 +1,8 @@
-
 {% load da_wire_extras %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ mlbaff.location }} {{ mlbaff.name }} Trades</title>
+    <title>{{ mlbaff.location }} {{ mlbaff.name }} Trade Proposals</title>
     <meta name="description" content="Your favorite team's page of transactions.">
     <meta name="keywords" content="Reds, Yankees, Red Sox, MLB, baseball, major league, minor leagues, majors, minors, transactions, trades, options, free agents, players, waivers, signings, signing">
     <meta name="author" content="Dan Frecka">
@@ -198,7 +197,6 @@
 </head>
 <body>
     {% include 'da_wire/header.html' %}
-    
     <div class="container">
 	    {% if mlbaff %}
 	    <div class="row"><div class="col-sm-2"></div><div class="col-sm-10"><div style="text-align: center;">
