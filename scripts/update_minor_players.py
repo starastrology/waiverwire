@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup 
 
 from da_wire.models import MLBAffiliate, Player, Position, Transaction
-locations = MLBAffiliate.objects.all().exclude(level__level="MLB").filter(location="Tampa")
+locations = MLBAffiliate.objects.all().exclude(level__level="MLB")
 for location in locations:
     mlbaffiliate = location
     if mlbaffiliate.name=="RailRiders":
@@ -13,6 +13,8 @@ for location in locations:
         URL = "https://www.milb.com/st-lucie/roster"
     elif mlbaffiliate.location == "Carolina":
         URL = "https://www.milb.com/carolina-mudcats/roster"
+    elif mlbaffiliate.location == "Charlotte":
+        URL = "https://www.milb.com/charlotte-knights/roster"
     else:
         URL = "https://www.milb.com/" + mlbaffiliate.location.replace(" ", "-").lower() + "/roster"
  

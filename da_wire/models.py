@@ -267,7 +267,8 @@ class Comment(models.Model):
     datetime = models.DateTimeField()
     user = models.ForeignKey(User, on_delete=models.CASCADE)  
     text = models.TextField(validators=[MinLengthValidator(1), MaxLengthValidator(2000)])
-    
+    reply_to = models.IntegerField(default=None)
+
 class CommentVote(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     is_up = models.IntegerField(default=1, validators=[MinValueValidator(0), MaxValueValidator(1)])
@@ -278,3 +279,5 @@ class CommentVote(models.Model):
             models.UniqueConstraint(fields=['user', 'comment'], name='unique_user_comment'),
         ]
         
+class ReplyNotification(models.Model):
+    reply_comment = models.ForeignKey(Comment, on_delete=models.CASCADE)

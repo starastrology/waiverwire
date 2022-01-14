@@ -95,14 +95,16 @@ for location in locations:
                             elif pos_bool and (i[0].isupper() or i[0].isnumeric()):
                                 pos = i
                                 pos_bool = False
-                            elif i[0].isupper() or i != "for" or i != "assignment.":
+                            elif i[0].isupper() or (i != "for" and i != "assignment."):
                                 player += i + " "
                         if verb == "designated":
                             team = team.strip()
                             player = player.strip()
-                            team = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
+                            if team == "Cleveland Indians":
+                                team = MLBAffiliate.objects.get(name="Guardians")
+                            else:
+                                team = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
                             player = Player.objects.filter(first_name_unaccented__startswith=player.split(" ")[0], last_name_unaccented__endswith=player.split(" ")[len(player.split(" "))-1]).first()
-                            
                             if not player:
                                 a = tds[1].find_all('a')
                                 if a:
@@ -150,8 +152,14 @@ for location in locations:
                                 continue
                             team_to = team_to.strip()
                             team_to = team_to[0:len(team_to)-1]
-                            team = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
-                            team_to = MLBAffiliate.objects.filter(location__startswith=team_to.split(" ")[0], name__endswith=team_to.split(" ")[len(team_to.split(" "))-1]).first()
+                            if team == "Cleveland Indians":
+                                team = MLBAffiliate.objects.get(name="Guardians")
+                            else:
+                                team = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
+                            if team_to == "Cleveland Indians":
+                                team_to = MLBAffiliate.objects.get(name="Guardians")
+                            else: 
+                                team_to = MLBAffiliate.objects.filter(location__startswith=team_to.split(" ")[0], name__endswith=team_to.split(" ")[len(team_to.split(" "))-1]).first()
                             player = Player.objects.filter(first_name_unaccented__startswith=player.split(" ")[0], last_name_unaccented__endswith=player.split(" ")[len(player.split(" "))-1]).first()
                             #IF PLAYER DOES NOT EXIST IN DATABASE 
                             if not player:
@@ -162,6 +170,8 @@ for location in locations:
                                     URL = "https://www.mlb.com" + link
                                     player = add_player_to_db(player, URL, team_to)
                             if player:
+                                if not team or not team_to:
+                                    continue
                                 option = Option.objects.filter(is_rehab_assignment=0, date=past.date(), player=player, from_level=team.level, to_level=team_to.level, mlbteam=mlbaffiliate.mlbteam).first()
                                 if not option:
                                     t = Transaction()
@@ -198,8 +208,14 @@ for location in locations:
                             player = player[0].text
                             team_from = team_from.strip()
                             team_from = team_from[0:len(team_to)-1]
-                            team_from = MLBAffiliate.objects.filter(location__startswith=team_from.split(" ")[0], name__endswith=team_from.split(" ")[len(team_from.split(" "))-1]).first()
-                            team_to = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
+                            if team_from == "Cleveland Indians":
+                                team_from = MLBAffiliate.objects.get(name="Guardians")
+                            else:
+                                team_from = MLBAffiliate.objects.filter(location__startswith=team_from.split(" ")[0], name__endswith=team_from.split(" ")[len(team_from.split(" "))-1]).first()
+                            if team_to == "Cleveland Indians":
+                                team_to = MLBAffiliate.objects.get(name="Guardians")
+                            else:
+                                team_to = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
                             player = Player.objects.filter(first_name_unaccented__startswith=player.split(" ")[0], last_name_unaccented__endswith=player.split(" ")[len(player.split(" "))-1]).first()
                             #IF PLAYER DOES NOT EXIST IN DATABASE 
                             if not player:
@@ -210,7 +226,7 @@ for location in locations:
                                     URL = "https://www.mlb.com" + link
                                     player = add_player_to_db(player, URL, team_to)
                             if player:
-                                if not team_from:
+                                if not team_from or not team_to:
                                     continue
                                 callup = CallUp.objects.filter(date=past.date(), player=player, from_level=team_from.level, to_level=team_to.level, mlbteam=mlbaffiliate.mlbteam).first()
                                 if not callup:
@@ -241,7 +257,10 @@ for location in locations:
                                 player = tds[1].find_all('a')[0].text
                             else:
                                 continue
-                            team = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
+                            if team == "Cleveland Indians":
+                                team = MLBAffiliate.objects.get(name="Guardians")
+                            else:
+                                team = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
                             player = Player.objects.filter(first_name_unaccented__startswith=player.split(" ")[0], last_name_unaccented__endswith=player.split(" ")[len(player.split(" "))-1]).first()
                             
                             if not player:
@@ -259,6 +278,7 @@ for location in locations:
                                     fa_signing = FASignings(transaction=t, date=past.date(), player=player, team_to=team, is_draftpick=0)
                                     fa_signing.save()
                                     player.mlbaffiliate = team
+                                    player.is_FA = 0
                                     player.save()
                                     print("Processing FA signing", player, team)
                     
@@ -286,8 +306,14 @@ for location in locations:
                                 player = tds[1].find_all('a')[0].text
                             else:
                                 continue
-                            team = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
-                            team_from = MLBAffiliate.objects.filter(location__startswith=team_from.split(" ")[0], name__endswith=team_from.split(" ")[len(team_from.split(" "))-1]).first()
+                            if team == "Cleveland Indians":
+                                team = MLBAffiliate.objects.get(name="Guardians")
+                            else:
+                                team = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
+                            if team_from == "Cleveland Indians":
+                                team_from = MLBAffiliate.objects.get(name="Guardians")
+                            else:
+                                team_from = MLBAffiliate.objects.filter(location__startswith=team_from.split(" ")[0], name__endswith=team_from.split(" ")[len(team_from.split(" "))-1]).first()
                             player = Player.objects.filter(first_name_unaccented__startswith=player.split(" ")[0], last_name_unaccented__endswith=player.split(" ")[len(player.split(" "))-1]).first()
                             
                             if not player:
@@ -329,7 +355,10 @@ for location in locations:
                             team = team.strip()
                             player = player.strip()
                             player = tds[1].find_all('a')[0].text
-                            team = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
+                            if team == "Cleveland Indians":
+                                team = MLBAffiliate.objects.get(name="Guardians")
+                            else:
+                                team = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
                             player = Player.objects.filter(first_name_unaccented__startswith=player.split(" ")[0], last_name_unaccented__endswith=player.split(" ")[len(player.split(" "))-1]).first()
                             if not player:
                                 a = tds[1].find_all('a')
@@ -366,7 +395,10 @@ for location in locations:
                             team = team.strip()
                             player = player.strip()
                             player = tds[1].find_all('a')[0].text
-                            team = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
+                            if team == "Cleveland Indians":
+                                team = MLBAffiliate.objects.get(name="Guardians")
+                            else:
+                                team = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
                             player = Player.objects.filter(first_name_unaccented__startswith=player.split(" ")[0], last_name_unaccented__endswith=player.split(" ")[len(player.split(" "))-1]).first()
                             if not player:
                                 a = tds[1].find_all('a')
@@ -408,8 +440,14 @@ for location in locations:
                             player = tds[1].find_all('a')[0].text
                             team_to = team_to.strip()
                             team_to = team_to[0:len(team_to)-1]
-                            team = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
-                            team_to = MLBAffiliate.objects.filter(location__startswith=team_to.split(" ")[0], name__endswith=team_to.split(" ")[len(team_to.split(" "))-1]).first()
+                            if team == "Cleveland Indians":
+                                team = MLBAffiliate.objects.get(name="Guardians")
+                            else:
+                                team = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
+                            if team_to == "Cleveland Indians":
+                                team_to = MLBAffiliate.objects.get(name="Guardians")
+                            else:
+                                team_to = MLBAffiliate.objects.filter(location__startswith=team_to.split(" ")[0], name__endswith=team_to.split(" ")[len(team_to.split(" "))-1]).first()
                             player = Player.objects.filter(first_name_unaccented__startswith=player.split(" ")[0], last_name_unaccented__endswith=player.split(" ")[len(player.split(" "))-1]).first()
                             #IF PLAYER DOES NOT EXIST IN DATABASE 
                             if not player:
@@ -477,8 +515,14 @@ for location in locations:
                                 team_to = team_to[0:len(team_to)-1]
                     
                             #print("Team:", team, "Team_to:", team_to, "Player:", players)
-                            team_from = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
-                            team_to = MLBAffiliate.objects.filter(location__startswith=team_to.split(" ")[0], name__endswith=team_to.split(" ")[len(team_to.split(" "))-1]).first()
+                            if team_from == "Cleveland Indians":
+                                team_from = MLBAffiliate.objects.get(name="Guardians")
+                            else:
+                                team_from = MLBAffiliate.objects.filter(location__startswith=team.split(" ")[0], name__endswith=team.split(" ")[len(team.split(" "))-1]).first()
+                            if team_to == "Cleveland Indians":
+                                team_to = MLBAffiliate.objects.get(name="Guardians")
+                            else:
+                                team_to = MLBAffiliate.objects.filter(location__startswith=team_to.split(" ")[0], name__endswith=team_to.split(" ")[len(team_to.split(" "))-1]).first()
                             if (len(players)==2 and players[1] == "omfggg") or len(players)==1:
                                 name = players[0].split(" ")
                                 end = name[len(name)-1]
@@ -578,12 +622,17 @@ for location in locations:
                             URL = tds[1].find_all('a')[0]['href']
                             #URL = "https://www.mlb.com" + link
                             player = add_player_to_db(player, URL, None)
-                            if player:
+                            # Lookup FA Signing
+                            fa_signing = FASignings.objects.filter(player=player, date__gt=past.date())
+                            if player and not fa_signing:
+                                player.mlbaffiliate = None
+                                player.is_FA = 1
+                                player.save()   
+                                print(player, "elected free agency")      
+                        else:
+                            fa_signing = FASignings.objects.filter(player=player, date__gt=past.date())
+                            if not fa_signing:
                                 player.mlbaffiliate = None
                                 player.is_FA = 1
                                 player.save()
-                        else:
-                            player.mlbaffiliate = None
-                            player.is_FA = 1
-                            player.save()
-                        print(player, "elected free agency")      
+                                print(player, "elected free agency")      

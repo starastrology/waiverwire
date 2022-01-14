@@ -132,6 +132,9 @@
             background-color: var(--red);
 		color: white;
 	}
+	p{
+		margin: 0;
+	}
         .comments .comment .text{
              word-wrap: break-word;
              width: 94%;
@@ -255,6 +258,24 @@
     </div>
 
 		{% endif %}
+	{% if replies %}
+	<div class="row">
+		<div class="r col-sm-12">
+			<div>
+				<h1> Reply Notifications ({{replies|length }})</h1>
+				<div class="comments">
+					<ul id="ul_replies">
+						{% include 'da_wire/replies.html' %}
+					</ul> 
+				</div>
+				<form action="{% url 'delete_all_notifications'%}" method=POST >
+					<button class="btn btn-info">Delete ALL Notifications</button>
+					{% csrf_token %}
+				</form>
+			</div>
+		</div>
+    	</div>
+	{% endif %}
 
 	{% if trade_proposals %}
     	<div class="row"> 
@@ -263,38 +284,13 @@
 
 	<h1>Your Trade Proposals</h1>
 			<ul id="ul_trade_proposal">
-	{% for trade_proposal in trade_proposals %}
-				<li class="something">
-				<h3 style="display:inline;">@{{trade_proposal.user.username}}</h3> 
-				&middot; 
-				<span>{{ trade_proposal.votes }} upvotes</span> 
-				<a href="{% url 'transaction' trade_proposal.transaction.tid %}">&#8618;</a> 
-       				<form  style="float:right;" onsubmit="return confirm('Are you sure you want to delete your proposal?');" action="{% url 'delete_transaction' %}" method="POST">
-           		 		<button class="btn btn-danger" type=submit>Delete Proposal</button>
-	    				<input type=hidden name="tid" value="{{ trade_proposal.transaction.tid }}" />
-            				{% csrf_token %}
-        			</form> 
-				<div>
-					<b style="display:inline;">{{ trade_proposal.date }}</b><a href="{% url 'transaction' trade_proposal.transaction.tid %}">&#8618;</a>
-			{% for players in trade_proposal.players.all %}{% with forloop.counter as cntr %} {% for player in players.players.all %} 
-					<div>
-						<a href="{% url 'transaction' player.transaction.tid %}">
-							{{player}}
-						</a>
-						to {{players.team_to.mlbteam.name}} (from 
-						<a href="{% url 'team' players.team_from.location|replace_forward_slash players.team_from.name %}">{{players.team_from.mlbteam.name}}</a>
-						){% if cntr != trade_proposal.players.all|length %} {% endif %}
-					</div> 
-			{% endfor %}{% endwith %} 
-			{% endfor %}
-    				</div>
-				</li>
-				{%endfor %}
+				{% include 'da_wire/transaction_type/trade_proposal.html' %}
 			</ul>
 	<form action="{% url 'pick_page' %}" method="GET" id="trade_proposal_form">
 	    <input id="trade_proposal_index" type="hidden" name="index" value="1" />
                 <input id="trade_proposal_transaction_type" name="transaction_type" type="hidden" value="trade_proposal" />
-                <nav aria-label="...">
+		<input name="user" type=hidden value=1 />
+		<nav aria-label="...">
                     <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="trade_proposal_1">
                           <span class="page-link" onclick="pick_page('1', 'trade_proposal');">1</span>
@@ -321,30 +317,14 @@
 
 		<h1>Your Callup Proposals</h1>
 		<ul id="ul_callup_proposal">
-		{% for callup_proposal in callup_proposals %}
-		<li class="something">
-	<h3 style="display:inline;">@{{callup_proposal.user.username}}</h3> &middot; <span>{{ callup_proposal.votes }} upvotes</span> <a href="{% url 'transaction' callup_proposal.transaction.tid %}">&#8618;</a> 
-       	<form  style="float:right;" onsubmit="return confirm('Are you sure you want to delete your proposal?');" action="{% url 'delete_transaction' %}" method="POST">
-            <button class="btn btn-danger" type=submit>Delete Proposal</button>
-	    <input type=hidden name="tid" value="{{ callup_proposal.transaction.tid }}" />
-            {% csrf_token %}
-        </form> 
-        <div>
-<b>{{callup_proposal.date }}</b> - <a href="{% url 'transaction' callup_proposal.player.transaction.tid %}">{{callup_proposal.player }}</a> 
-        {% get_affiliate callup_proposal.to_level callup_proposal.mlbteam as team_to %}
-        to {{team_to.location }} {{team_to.name }} from 
-        {% get_affiliate callup_proposal.from_level callup_proposal.mlbteam as team %}
-        <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{callup_proposal.from_level.level }} {{ team.location }}</a>
-		
-	<h4><b>{{callup_proposal.player.position }}</b> {{ callup_proposal.player }} <i>should be</i> called up from {{callup_proposal.from_level.level}} to {{ callup_proposal.to_level.level }}</h4>
-        </div>
-		</li>
-	{% endfor %}
+			{% include 'da_wire/transaction_type/callup_proposal.html' %}
 		</ul>
 <form action="{% url 'pick_page' %}" method="GET" id="callup_proposal_form">
 	    <input id="callup_proposal_index" type="hidden" name="index" value="1" />
                 <input id="callup_proposal_transaction_type" name="transaction_type" type="hidden" value="callup_proposal" />
-                <nav aria-label="...">
+                
+		<input name="user" type=hidden value=1 />
+		<nav aria-label="...">
                     <ul class="pagination pagination-sm flex-wrap">
                         <li class="page-item active" aria-current="page" id="callup_proposal_1">
                           <span class="page-link" onclick="pick_page('1', 'callup_proposal');">1</span>
@@ -369,31 +349,12 @@
 
     <h1>Your Option Proposals</h1>
 		    <ul id="ul_option_proposal">
-		    {% for option_proposal in option_proposals %}
-		    <li class="something">
-		<h3 style="display:inline;">@{{option_proposal.user.username}}</h3> &middot; <span>{{ option_proposal.votes }} upvotes</span> <a href="{% url 'transaction' option_proposal.transaction.tid %}">&#8618;</a> 
-       	<form  style="float:right;" onsubmit="return confirm('Are you sure you want to delete your proposal?');" action="{% url 'delete_transaction' %}" method="POST">
-            <button class="btn btn-danger" type=submit>Delete Proposal</button>
-	    <input type=hidden name="tid" value="{{ option_proposal.transaction.tid }}" />
-            {% csrf_token %}
-        </form>
-	<div>
-		<b>{{option_proposal.date }}</b> - <a href="{% url 'transaction' option_proposal.player.transaction.tid %}">{{option_proposal.player }}</a> <i>should be</i> optioned
-        {% get_affiliate option_proposal.to_level option_proposal.mlbteam as team_to %}
-        to {{team_to.location }} {{team_to.name }} ({{ option_proposal.to_level.level }}) from {{ option_proposal.from_level.level }} 
-        {% get_affiliate option_proposal.from_level option_proposal.mlbteam as team %}
-        <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{ team.location }}</a>
-		
-	
-	<h4>@{{ option_proposal.user.username }} is proposing that <b>{{option_proposal.player.position }}</b> {{ option_proposal.player }} be optioned from {{option_proposal.from_level}} to {{ option_proposal.to_level }}</h4>
-       
-	
-	</div>
-		    </li>
-	{% endfor %}
+		    	{% include 'da_wire/transaction_type/option_proposal.html' %}
 		    </ul>
    <form action="{% url 'pick_page' %}" method="GET" id="option_proposal_form">
-	    <input id="option_proposal_index" type="hidden" name="index" value="1" />
+		
+		<input name="user" type=hidden value=1 />
+	   <input id="option_proposal_index" type="hidden" name="index" value="1" />
                 <input id="option_proposal_transaction_type" name="transaction_type" type="hidden" value="option_proposal" />
                 <nav aria-label="...">
                     <ul class="pagination pagination-sm flex-wrap">
@@ -434,7 +395,8 @@
             {% if request.resolver_match.view_name == 'team' %}
 			<input type="hidden" name="mid" value="{{ mlbaff.id }}" />
 			{% endif %}    
-	
+		
+		<input name="user" type=hidden value=1 />
 	    <input id="signing_proposal_index" type="hidden" name="index" value="1" />
                 <input id="signing_proposal_transaction_type" name="transaction_type" type="hidden" value="signing_proposal" />
                 <nav aria-label="...">
@@ -469,22 +431,7 @@
 	
 	<h1>Your Comments</h1>
 		<ul id="ul_comments">
-	{% for comment in comments %}
-	<li class="something">
-		<div class="comment" style="min-height: 100px;">
-			<div>{{comment.user.username }} | {{ comment.datetime|timesince }} ago &middot; {{comment.votes}} upvotes <a href="{% url 'transaction' comment.transaction.tid %}">&#8618;</a></div>
-            <div class="text" >{{ comment.text|linebreaks }}</div>
-            <div style="display: inline;" id="comment_{{comment.id}}">
-		    <form action="{% url 'delete_comment' %}" method="POST" onsubmit="return confirm('Are you sure you want to delete your comment?');">
-			<input type=hidden name=comment_id value="{{comment.id}}" />
-			<br>
-			<button class="btn btn-danger">Delete Comment</button>
-			{% csrf_token %}
-		</form>
-	    </div>
-        </div>
-	</li>
-		{% endfor %}
+			{% include 'da_wire/comments.html' %}
 		</ul>
 
 	<form method="GET" id="comments_form">

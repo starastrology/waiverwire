@@ -31,8 +31,7 @@
     		font-size: 2em;
 	}
 	h1,h2{
-		font-size: 4em;
-		padding: 40px;
+		padding: 20px;
 		margin: auto;
 		width: 100%;
 		text-align: center;
@@ -99,7 +98,7 @@
         }
         li.something{
             list-style-type: none;
-            font-size: 25px;
+            font-size: 20px;
 	    min-height: 50px;
         }
         .upvoted{
@@ -126,7 +125,7 @@
 		display: inline;
 	}
 	li.something{
-		border-bottom: 1px solid black;
+		border-bottom: 1px solid var(--red);
 		padding: 20px;
 	}
 	#stats td{
@@ -147,6 +146,9 @@
 	.picture{
 		max-height: 50px;
 		border: 1px solid var(--blue);
+	}
+	#top_transactions ul:last-of-type li.something, #hot_transactions ul:last-of-type li.something{
+		border: 0;
 	}
     </style>
     <script

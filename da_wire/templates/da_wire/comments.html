@@ -1,16 +1,68 @@
-	{% for comment in comments %}
-	<li class="something">
-		<div class="comment" style="min-height: 100px;">
-			<div>{{comment.user.username }} | {{ comment.datetime|timesince }} ago &middot; {{comment.votes}} upvotes <a href="{% url 'transaction' comment.transaction.tid %}">&#8618;</a></div>
+{% load da_wire_extras %}
+{% for comment in comments %}
+<li class="something" style="{% multiply indent 40 as i %} margin-left: {{i}}px;">
+	<div class="comment" style="min-height: 100px; width:calc(300px - {{i}}px); {% if indent >= 12 %} min-width: calc(600px - {% multiply indent|add:"-11" 40 as j %}{{j}}px); width: calc(600px - {{j}}px);{% endif %}">
+			<div id="comment_{{comment.id}}">	
+			{{comment.user.username }} | {{ comment.datetime|timesince }} ago
+			
+		{% if not arrows %}	
+		&middot; {{comment.votes}} upvotes <a href="{% url 'transaction' comment.transaction.tid %}#comment_{{comment.id}}">&#8618;</a>
+		{% else %}
+			<div style="display:inline;" class="count">{{comment.votes}}</div>
+		<div class="arrows">
+                    <form id="comment_upvote_{{comment.id}}" action="{% url 'transaction_upvote' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="pid" value="{{ comment.id }}">
+                    </form>
+                    <form id="comment_downvote_{{comment.id}}" action="{% url 'transaction_downvote' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="pid" value="{{ comment.id }}">
+                    </form>
+                    <div class="up" onclick="ajax_submit_upvote_comment('{{comment.id}}')"></div>
+                    <div class="down" onclick="ajax_submit_downvote_comment('{{comment.id}}')"></div>
+                </div> 	
+		{% endif %}
             <div class="text" >{{ comment.text|linebreaks }}</div>
-            <div style="display: inline;" id="comment_{{comment.id}}">
-		    <form action="{% url 'delete_comment' %}" method="POST" onsubmit="return confirm('Are you sure you want to delete your comment?');">
+	    {% get_comment_replies request comment.id as replies %}
+		{% if comment.user == request.user and not arrows and not replies %}
+	    <form action="{% url 'delete_comment' %}" method="POST" onsubmit="return confirm('Are you sure you want to delete your comment?');">
 			<input type=hidden name=comment_id value="{{comment.id}}" />
 			<br>
 			<button class="btn btn-danger">Delete Comment</button>
 			{% csrf_token %}
 		    </form>
-	    </div>
-        </div>
+		    {% endif %}
+			</div>
+			{% if arrows %}
+			<hr>
+		<a onclick="$('#reply_{{comment.id}}').toggle();" style="float:right;" class="btn btn-info" href="#reply">Reply</a>
+		<div id="reply_{{comment.id}}" style="display: none;padding: 10px; clear: float;">
+			<h3 style="text-align: center;">Reply to @{{comment.user}}</h3>
+			<form action="{% url 'comment' %}" method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="reply_to" value="{{comment.id}}" />
+    <input type="hidden" name="tid" value="{{tid}}" />
+    <textarea required placeholder="Comment here" name="comment" cols=100 rows=10>{{ too_long }}</textarea>
+    <br><br>
+    <button class="btn btn-primary" style="width:100%;">Submit</button>
+</form>
+		</div>
+{% endif %}
+
+		</div>
 	</li>
-		{% endfor %}
+	{% if request.resolver_match.view_name != "get_comments" and request.resolver_match.view_name != "user_page" %}
+	{% include 'da_wire/comments.html' with indent=indent|add:1 comments=replies %}
+	{% endif %}
+	{% endfor %}
+	<script>
+		$(document).ready(function(){
+	      {% for comment in comments %}
+                  {% if comment.user_upvoted == 1 %}
+                         $('#comment_{{comment.id}} .up').addClass('upvoted');
+                  {% elif comment.user_upvoted == -1 %}       
+                         $('#comment_{{comment.id}} .down').addClass('upvoted');
+                  {% endif %}
+              {% endfor %}
+});
+	</script>

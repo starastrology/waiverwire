@@ -1,3 +1,4 @@
+{% load da_wire_extras %}
 {% for trade in trades %}
         <li class="something" id="transaction_{{trade.transaction.tid}}">
                 {% if request.user.is_authenticated %}
@@ -18,11 +19,13 @@
 		
         <a href="{% url 'transaction' trade.transaction.tid %}">&#8618;</a> 
 		<div class="display">
-		<b>{{ trade.date }}</b> - {% for players in trade.players.all %}{% with forloop.counter as cntr %} {% for player in players.players.all %} 
-		<a href="{% url 'transaction' player.transaction.tid %}">{{player}}</a> 
-		to <b style="color: {{players.team_to.colors.all.0}}; text-shadow: 1px 1px {{players.team_to.colors.all.1}};">{{players.team_to.mlbteam.name}}</b> (from <b style="color: {{players.team_from.colors.all.0}}; text-shadow: 1px 1px {{players.team_from.colors.all.1}};">{{players.team_from.mlbteam.name}}</b>){% if cntr != trade.players.all|length %}, 
-        {% endif %} {% endfor %}{% endwith %} 
-        {% endfor %} 
+			<b>{{ trade.date }}</b><ul>{% for players in trade.players.all %}{% with forloop.counter as cntr %} {% for player in players.players.all %} 
+				<li><a href="{% url 'transaction' player.transaction.tid %}">{{player}}</a> 
+					to <a href="{% url 'team' players.team_to.location|replace_forward_slash players.team_to.name %}"><b style="color: {{players.team_to.colors.all.0}}; text-shadow: 1px 1px {{players.team_to.colors.all.1}};">{{players.team_to.mlbteam.name}}</b></a> from <a href="{% url 'team' players.team_from.location|replace_forward_slash players.team_from.name %}"><b style="color: {{players.team_from.colors.all.0}}; text-shadow: 1px 1px {{players.team_from.colors.all.1}};">{{players.team_from.mlbteam.name}}</b></a></li> {% endfor %} 
+       {% if cntr != trade.players.all|length %} 
+	<hr>{% endif %}
+				{% endwith %} 
+	{% endfor %} </ul>
 	</div>
 	</li>
 {% endfor %}

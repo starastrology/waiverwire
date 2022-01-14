@@ -24,14 +24,13 @@
         </form>
 	{% endif %}
 	<div>
-		<b>{{option_proposal.date }}</b> - <a href="{% url 'transaction' option_proposal.player.transaction.tid %}">{{option_proposal.player }}</a> <i>should be</i> optioned
+		<b>{{option_proposal.date }}</b> - {{option_proposal.player.position}} <a href="{% url 'transaction' option_proposal.player.transaction.tid %}">{{option_proposal.player }}</a> <i>should be</i> optioned
         {% get_affiliate option_proposal.to_level option_proposal.mlbteam as team_to %}
-        to {{team_to.location }} {{team_to.name }} ({{ option_proposal.to_level.level }}) from {{ option_proposal.from_level.level }} 
+	to <a href="{% url 'team' team_to.location|replace_forward_slash team_to.name%}">{{team_to.location }} {{team_to.name }}</a> ({{ option_proposal.to_level.level }}) from {{ option_proposal.from_level.level }} 
         {% get_affiliate option_proposal.from_level option_proposal.mlbteam as team %}
         <a href="{% url 'team' team.location|replace_forward_slash team.name %}">{{ team.location }}</a>
-		
+	</div>	
 	
-	<h4>@{{ option_proposal.user.username }} is proposing that <b>{{option_proposal.player.position}}</b> {{ option_proposal.player }} be optioned from {{option_proposal.from_level}} to {{ option_proposal.to_level }}</h4>
 	</li>
 	{% endfor %}
 <script>

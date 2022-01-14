@@ -3,11 +3,12 @@ from .models import MLBTeam, MLBAffiliate, Level, Salary, Position, Player, \
 DFA, InjuredList, PersonalLeave, Option, FASignings, Trade, PlayerTrade, CallUp, \
     Color, Transaction, Comment, TransactionVote, CommentVote, TradeProposal, PlayerTradeProposal, \
     CallUpProposal, OptionProposal, FASigningsProposal, Stats, BatterStats, PitcherStats, ProUser, \
-    WaiverClaim
+    WaiverClaim, ReplyNotification
 
 class PlayerAdmin(admin.ModelAdmin):
     search_fields = ['last_name', 'last_name_unaccented']
 
+admin.site.register(ReplyNotification)
 admin.site.register(WaiverClaim)
 admin.site.register(ProUser)
 admin.site.register(MLBTeam)

@@ -27,21 +27,24 @@
         	</form> 
 	{% endif %}
 	<div>
-		<b style="display:inline;">{{ trade_proposal.date }}</b>
+		<b>{{ trade_proposal.date }}</b>
 		<ul>
 {% for players in trade_proposal.players.all %}
 {% with forloop.counter as cntr %} 
 	{% for player in players.players.all %} 
 		<li>
 			<a href="{% url 'transaction' player.transaction.tid %}">{{player}}</a>
-			to {{players.team_to.mlbteam.name}} (from 
-			<a href="{% url 'team' players.team_from.location|replace_forward_slash players.team_from.name %}">{{players.team_from.mlbteam.name}}</a>)
-			{% if cntr != trade_proposal.players.all|length %} {% endif %}
+			to <a href="{% url 'team' players.team_to.location|replace_forward_slash players.team_to.name %}">{{players.team_to.mlbteam.name}}</a> from 
+			<a href="{% url 'team' players.team_from.location|replace_forward_slash players.team_from.name %}">{{players.team_from.mlbteam.name}}</a>
 		</li> 
-	{% endfor %}{% endwith %} 
+	{% endfor %}
+	{% if cntr != trade_proposal.players.all|length %} 
+	<hr>{% endif %}
+	{% endwith %} 
 {% endfor %}
 		</ul>
-    </li>
+	</div>
+	</li>
 {%endfor %}
 <script>
           $(document).ready(function(){

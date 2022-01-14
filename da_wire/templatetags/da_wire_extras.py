@@ -1,7 +1,7 @@
 from da_wire.models import MLBAffiliate, Player, Option, Trade, \
     CallUp, InjuredList, FASignings, DFA, PersonalLeave, \
     TradeProposal, CallUpProposal, OptionProposal, FASigningsProposal, \
-    WaiverClaim, TransactionVote, ProUser
+    WaiverClaim, TransactionVote, ProUser, Comment, CommentVote, ReplyNotification
 
 from django import template
 import urllib.parse
@@ -273,3 +273,32 @@ def get_transaction_type(request, transaction):
                                                         return {'none': True }
                                                 else:
                                                     return {'none': True }
+@register.simple_tag
+def get_comment_replies(request, comment_id):
+    comments = Comment.objects.filter(reply_to=comment_id).order_by("-datetime")
+    for comment in comments:
+        comment.votes = CommentVote.objects.filter(comment=comment, is_up=1).count() - CommentVote.objects.filter(comment=comment, is_up=0).count()
+        user_upvoted = CommentVote.objects.filter(comment=comment, user=request.user).first()
+        if user_upvoted:
+            if user_upvoted.is_up:
+                comment.user_upvoted = 1
+            else:
+                comment.user_upvoted = -1
+        else:
+            comment.user_upvoted = 0
+    import operator
+    comments = sorted(comments, key=operator.attrgetter('votes'), reverse=True)
+    return comments
+
+@register.simple_tag()
+def multiply(qty, unit_price, *args, **kwargs):
+    # you would need to do any localization of the result here
+    return qty * unit_price
+
+@register.simple_tag
+def get_notifications(request):
+    user_comments = Comment.objects.filter(user=request.user).values_list('id', flat=True)
+    replies = ReplyNotification.objects.filter(reply_comment__reply_to__in=user_comments)
+    return replies.count()
+
+

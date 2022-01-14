@@ -33,7 +33,7 @@ def strip_accents(text):
 
     return str(text)
 
-teams = MLBAffiliate.objects.all().order_by("location", "name")
+teams = MLBAffiliate.objects.filter(level__level="Rk").order_by("location", "name")
 for team in teams:
     print(team)
     url = ""

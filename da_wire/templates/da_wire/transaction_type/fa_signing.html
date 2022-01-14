@@ -1,3 +1,4 @@
+{% load da_wire_extras %}
 {% for fa_signing in fa_signings %}
         <li class="something" id="transaction_{{fa_signing.transaction.tid}}">
                 {% if request.user.is_authenticated %}
@@ -17,7 +18,7 @@
                 {% endif %}
                 <a href="{% url 'transaction' fa_signing.transaction.tid %}">&#8618;</a>
 		<div class="display">
-			<b>{{fa_signing.date}}</b> - <a href="{% url 'transaction' fa_signing.player.transaction.tid %}">{{fa_signing.player}}</a> to {{fa_signing.team_to.location}} {{fa_signing.team_to.name}}
+			<b>{{fa_signing.date}}</b> - <a href="{% url 'transaction' fa_signing.player.transaction.tid %}">{{fa_signing.player}}</a> to <a href="{% url 'team' fa_signing.team_to.location|replace_forward_slash fa_signing.team_to.name %}">{{fa_signing.team_to.location}} {{fa_signing.team_to.name}}</a>
         	</div>        
 	</li>
 {% endfor %}
