@@ -30,7 +30,10 @@ def add_player_to_db(player, URL, mlbaffiliate):
     last_name = last_name.strip() 
     print("created player:", name[0] + " " + last_name)
     span = soup.find_all('span', class_="player-header--vitals-number")
-    number = span[0].text[1:]
+    if span:
+        number = span[0].text[1:]
+    else:
+        number = 0
     if div:
         li = div[0].ul.li.text
         position = Position.objects.filter(position=li).first()
@@ -248,7 +251,7 @@ for location in locations:
                             elif pos_bool and (i[0].isupper() or i[0].isnumeric()):
                                 pos = i
                                 pos_bool = False
-                            elif i[0].isupper() or i != "off" or i != "waivers" or i != "from":
+                            elif (i and i[0].isupper()) or i != "off" or i != "waivers" or i != "from":
                                 player += i + " "
                             
                         if verb=="signed":

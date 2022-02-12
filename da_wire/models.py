@@ -60,7 +60,7 @@ class Position(models.Model):
         return self.position
     
 class Transaction(models.Model):
-    tid = models.AutoField(primary_key=True)
+    tid = models.AutoField(primary_key=True, unique=True)
 
 class PitcherStats(models.Model):
     ERA = models.DecimalField(max_digits=6, decimal_places=2)

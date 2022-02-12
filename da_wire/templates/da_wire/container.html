@@ -1,21 +1,22 @@
 {% load da_wire_extras %}
 <div class="row">
-	{% if top_transactions %}
-	<div class="r col-sm-6">
-		<div id="top_transactions">
-			<h1 style="text-align: center;">Top-Rated</h1>
-		{% for t in top_transactions %}
+	
+	{% if hot_transactions %}
+		<div class="r col-sm-6">
+		<div id="hot_transactions">
+			<h2 style="text-align: center; background-color: lightgray;  border-bottom: 5px dotted {% if primary %} var(--primary); {% else %} var(--red); {% endif %} margin-bottom: 30px;">Hot</h2>
+			{% for t in hot_transactions %}
 			<h2 style="float:left;margin-top:-20px;">{{forloop.counter}}</h2>
 			{% include 'da_wire/print_transaction.html' with t=t %}
 		{% endfor %}
 		</div>
 	</div>
 	{% endif %}
-	{% if hot_transactions %}
-		<div class="r col-sm-6">
-		<div id="hot_transactions">
-			<h1 style="text-align: center;">Hot</h1>
-			{% for t in hot_transactions %}
+{% if top_transactions %}
+	<div class="r col-sm-6">
+		<div id="top_transactions">
+			<h2 style="text-align: center; background-color: lightgray; border-bottom: 5px dashed {% if primary %} var(--primary); {% else %} var(--red); {% endif %} margin-bottom: 30px;">Top-Rated</h2>
+		{% for t in top_transactions %}
 			<h2 style="float:left;margin-top:-20px;">{{forloop.counter}}</h2>
 			{% include 'da_wire/print_transaction.html' with t=t %}
 		{% endfor %}

@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-i1l(e27&kdv$v4nv1klv7_terx$ry4#i*rm*_h+tu&r=#7vffy'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['localhost', 'waiverwire.org', '3.145.144.29']
+DEBUG = False
+SECURE_SSL_REDIRECT = True
+ALLOWED_HOSTS = ['localhost', 'waiverwire.org', '3.145.144.29', '18.118.105.237']
 
 
 # Application definition
@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'da_wire',
     'django.contrib.humanize',
-    'clear_cache', 
+    #'clear_cache', 
 ]
 
 import os
@@ -140,9 +140,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 if DEBUG:
-    STATICFILES_DIRS = ["C:\\Users\\15134\\Desktop\\WaiverWire\\WaiverWire\\static"]
+    #STATICFILES_DIRS = ["C:\\Users\\15134\\Desktop\\WaiverWire\\WaiverWire\\static"]
+    STATICFILES_DIRS = ["/home/ubuntu/proj/WaiverWire/static"]
 else:
-    STATIC_ROOT = os.path.join(BASE_DIR, "WaiverWire/static/")
+    STATIC_ROOT = "/home/ubuntu/proj/WaiverWire/static/" #os.path.join(BASE_DIR, "WaiverWire/static/")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
