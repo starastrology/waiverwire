@@ -1,7 +1,7 @@
 {% for fa in fas %}
 <li class="something" id="transaction_{{fa.transaction.tid}}">
 	<div class="row">
-		<div class="col-sm-6">
+		<div class="col-sm-12">
                 {% if request.user.is_authenticated %}
                 <div style="display:inline; padding-right: 2px; border-right: 2px solid black;" class="count">{{fa.votes}}</div>
                 <div class="arrows">
@@ -25,7 +25,7 @@
                 </span>
 		</div>
 		</div>
-		<div class="col-sm-6">
+		<div class="col-sm-12">
 				{% if fa.stats %}<table id="stats"><caption>M{% if not fa.stats.is_mlb %}i{% endif %}LB Career</caption>
 			{% if fa.stats.batter_stats %}
 			<tr><th>AVG</th><th>OBP</th><th>OPS</th></tr>
