@@ -198,8 +198,8 @@ for location in locations:
                                 pos_bool = False
                             elif i == "from":
                                 name_bln = False
-                            elif name_bln and (i[0].isupper() or i != "from"):
-                                player += i + " "
+                            #elif name_bln and (i[0].isupper() or i != "from"):
+                            #    player += i + " "
                             elif not name_bln and i[0].isupper():
                                 team_from += i + " "
                             
@@ -350,7 +350,7 @@ for location in locations:
                                 pos_bool = False
                             elif (i[0].isupper() or i !="on" or i != "the") and not i[0].isnumeric():
                                 player += i + " "
-                            elif i[0].isnumeric():
+                            elif i[0].isnumeric() and "-" in i:
                                 days = i.split("-")
                                 days = days[0]
                             
