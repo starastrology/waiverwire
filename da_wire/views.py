@@ -1601,6 +1601,74 @@ def pick_page_team(request):
         html = ""
     return HttpResponse(html)
 
+def get_transactions_feed(request):
+    select = request.POST["select"]
+    team = request.POST.get("team")
+    context = {}
+    if team:
+        mlbaffiliate = MLBAffiliate.objects.get(pk=team)
+        level_obj = mlbaffiliate.level
+        players = Player.objects.filter(mlbaffiliate=mlbaffiliate).order_by("last_name")
+        mlb_level = Level.objects.filter(level="MLB").first()
+        options = Option.objects.filter(Q(mlbteam=mlbaffiliate.mlbteam, from_level=level_obj, is_rehab_assignment=0) \
+                                    |Q(mlbteam=mlbaffiliate.mlbteam, to_level=level_obj, is_rehab_assignment=0)).order_by("-date")
+        callups = CallUp.objects.filter(Q(mlbteam=mlbaffiliate.mlbteam, from_level=level_obj) \
+                                    |Q(mlbteam=mlbaffiliate.mlbteam, to_level=level_obj)).order_by("-date")
+        waiver_claims = WaiverClaim.objects.filter(Q(team_to=mlbaffiliate) | Q(team_from=mlbaffiliate)).order_by('-date')
+        trades = Trade.objects.filter(Q(players__team_to=mlbaffiliate)|Q(players__team_from=mlbaffiliate)).order_by("-date")
+        injured_list = InjuredList.objects.filter(team_for=mlbaffiliate).order_by("-date")
+        fa_signings = FASignings.objects.filter(team_to=mlbaffiliate, is_draftpick=0).order_by("-date")
+        dfas = DFA.objects.filter(team_by=mlbaffiliate).order_by("-date")
+        personal_leave = PersonalLeave.objects.filter(team_for=mlbaffiliate).order_by("-date")
+        rehab_assignment = Option.objects.filter(Q(from_level=level_obj, mlbteam=mlbaffiliate.mlbteam, \
+                                is_rehab_assignment=1)|Q(to_level=level_obj, \
+                                mlbteam=mlbaffiliate.mlbteam, is_rehab_assignment=1)).order_by("-date")
+        from itertools import chain
+        transactions = list(chain((players).values_list('transaction__tid', flat=True), (callups).values_list('transaction__tid', flat=True), (options).values_list('transaction__tid', flat=True), (waiver_claims).values_list('transaction__tid', flat=True), (trades).values_list('transaction__tid', flat=True), (injured_list).values_list('transaction__tid', flat=True), (fa_signings).values_list('transaction__tid', flat=True), (dfas).values_list('transaction__tid', flat=True), (personal_leave).values_list('transaction__tid', flat=True), (rehab_assignment).values_list('transaction__tid', flat=True)))
+        
+        if select == "Hot":
+            from datetime import datetime, timedelta
+            one_week_ago = datetime.now() - timedelta(days=7)
+            values_list = list(TransactionVote.objects.filter(transaction__tid__in=transactions, is_up=1, datetime__gt=one_week_ago).values_list('transaction__tid', flat=True))
+
+            hot_transactions = Transaction.objects.filter(tid__in=values_list)
+            for t in hot_transactions:
+                t.count = TransactionVote.objects.filter(is_up=1, transaction=t, datetime__gt=one_week_ago).count() - TransactionVote.objects.filter(is_up=0, transaction=t, datetime__gt=one_week_ago).count()
+            hot_transactions = sorted(hot_transactions, key=operator.attrgetter('count'), reverse=True)
+            context['feed_title'] = "Hot " + mlbaffiliate.location + " " + mlbaffiliate.name + " Players & Transactions"
+            context['transactions'] = hot_transactions[0:10]
+
+        elif select == "Top-Rated":
+            top_transactions = Transaction.objects.filter(tid__in=transactions)
+            for t in top_transactions:
+                t.count = TransactionVote.objects.filter(is_up=1, transaction=t).count() - TransactionVote.objects.filter(is_up=0, transaction=t).count()
+            top_transactions = sorted(top_transactions, key=operator.attrgetter('count'), reverse=True)
+            context['feed_title'] = "Top-Rated " + mlbaffiliate.location + " " + mlbaffiliate.name + " Players & Transactions"
+            context['transactions'] = top_transactions[0:10]
+
+    else:
+        if select == "Hot":
+            from datetime import datetime, timedelta
+            context['feed_title'] = "Hot Players & Transactions"
+            one_week_ago = datetime.now() - timedelta(days=7)
+            values_list = list(TransactionVote.objects.filter(is_up=1, datetime__gt=one_week_ago).values_list('transaction__tid', flat=True))
+            hot_transactions = Transaction.objects.filter(tid__in=values_list)
+            for t in hot_transactions:
+                t.count = TransactionVote.objects.filter(is_up=1, transaction=t, datetime__gt=one_week_ago).count() - TransactionVote.objects.filter(is_up=0, transaction=t, datetime__gt=one_week_ago).count()
+            hot_transactions = sorted(hot_transactions, key=operator.attrgetter('count'), reverse=True)
+            context['transactions'] = hot_transactions[0:25]
+        elif select == "Top-Rated":
+            context["feed_title"] = "Top-Rated Players & Transactions"
+            values_list = list(TransactionVote.objects.filter(is_up=1).values_list('transaction__tid', flat=True))
+            top_transactions = Transaction.objects.filter(tid__in=values_list)
+            for t in top_transactions:
+                t.count = TransactionVote.objects.filter(is_up=1, transaction=t).count() - TransactionVote.objects.filter(is_up=0, transaction=t).count()
+            top_transactions = sorted(top_transactions, key=operator.attrgetter('count'), reverse=True)
+            context['transactions'] = top_transactions[0:25]
+
+
+    html = render_to_string('da_wire/transactions_feed.html', context, request=request)
+    return HttpResponse(html)
 
 
 def index(request):
@@ -1613,13 +1681,6 @@ def index(request):
     context = {}
     context['arrows']=True
 
-    values_list = list(TransactionVote.objects.filter(is_up=1).values_list('transaction__tid', flat=True))
-    top_transactions = Transaction.objects.filter(tid__in=values_list)
-    for t in top_transactions:
-        t.count = TransactionVote.objects.filter(is_up=1, transaction=t).count() - TransactionVote.objects.filter(is_up=0, transaction=t).count()
-    top_transactions = sorted(top_transactions, key=operator.attrgetter('count'), reverse=True)
-    context['top_transactions'] = top_transactions[0:10]
-
     from datetime import datetime, timedelta
     one_week_ago = datetime.now() - timedelta(days=7)
     values_list = list(TransactionVote.objects.filter(is_up=1, datetime__gt=one_week_ago).values_list('transaction__tid', flat=True))
@@ -1627,7 +1688,8 @@ def index(request):
     for t in hot_transactions:
         t.count = TransactionVote.objects.filter(is_up=1, transaction=t, datetime__gt=one_week_ago).count() - TransactionVote.objects.filter(is_up=0, transaction=t, datetime__gt=one_week_ago).count()
     hot_transactions = sorted(hot_transactions, key=operator.attrgetter('count'), reverse=True)
-    context['hot_transactions'] = hot_transactions[0:10]
+    context['feed_title'] = "Hot Players & Transactions"
+    context['transactions'] = hot_transactions[0:25]
     context['teams']=mlbteams
              
 
@@ -2953,13 +3015,6 @@ def team(request, location, name):
     from itertools import chain
     transactions = list(chain((players).values_list('transaction__tid', flat=True), (callups).values_list('transaction__tid', flat=True), (options).values_list('transaction__tid', flat=True), (waiver_claims).values_list('transaction__tid', flat=True), (trades).values_list('transaction__tid', flat=True), (injured_list).values_list('transaction__tid', flat=True), (fa_signings).values_list('transaction__tid', flat=True), (dfas).values_list('transaction__tid', flat=True), (personal_leave).values_list('transaction__tid', flat=True), (rehab_assignment).values_list('transaction__tid', flat=True)))
     
-    #values_list = list(TransactionVote.objects.filter(is_up=1, transaction__tid__in=transactions).values_list('transaction__tid', flat=True))
-    top_transactions = Transaction.objects.filter(tid__in=transactions)
-    for t in top_transactions:
-        t.count = TransactionVote.objects.filter(is_up=1, transaction=t).count() - TransactionVote.objects.filter(is_up=0, transaction=t).count()
-    top_transactions = sorted(top_transactions, key=operator.attrgetter('count'), reverse=True)
-    top_transactions = top_transactions[0:10]
-
     from datetime import datetime, timedelta
     one_week_ago = datetime.now() - timedelta(days=7)
     values_list = list(TransactionVote.objects.filter(transaction__tid__in=transactions, is_up=1, datetime__gt=one_week_ago).values_list('transaction__tid', flat=True))
@@ -3181,11 +3236,16 @@ def team(request, location, name):
                     fa.user_upvoted = -1
             else:
                 fa.user_upvoted = 0    
+    feed_title = "Hot " + mlbaffiliate.location + " " + mlbaffiliate.name + " Players & Transactions"
     context = {'trades_range': trades_range, 'players': players, 'mlbaffiliates': mlbaffiliates, \
             'teams': mlbteams, 'options': options, 'waiver_claims': waiver_claims,\
                'trades': trades, 'callups': callups, 'mlbaff': mlbaffiliate, \
                    'injured_list': injured_list, 'fa_signings': fa_signings, \
-                   'dfas': dfas, 'hot_transactions': hot_transactions, 'top_transactions': top_transactions, \
+                   'dfas': dfas, 'transactions': hot_transactions, 'feed_title': feed_title, \
                            'personal_leave': personal_leave, 'rehab_assignment': rehab_assignment, \
                            'primary': primary, 'secondary': secondary, 'ternary': ternary, 'logo' : logo}
     return render(request, 'da_wire/team.html', context)
+
+def csrf_failure(request, reason=""):
+    ctx = {'message': reason}
+    return render('da_wire/csrf_failure.html', ctx)

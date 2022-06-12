@@ -27,6 +27,8 @@ DEBUG = True
 SECURE_SSL_REDIRECT = True
 ALLOWED_HOSTS = ['localhost', 'waiverwire.org', '3.145.144.29', '18.118.105.237']
 
+CSRF_FAILURE_VIEW = 'da_wire.views.csrf_failure'
+
 
 # Application definition
 

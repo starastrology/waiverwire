@@ -3,8 +3,8 @@ import requests
 from bs4 import BeautifulSoup 
 from datetime import datetime
 import re
-players = Player.objects.all().order_by('mlbaffiliate__location')
-
+players = Player.objects.all().order_by('mlbaffiliate__location')[1640:]
+ct = 1640
 for player in players:
     if "milb" in player.bb_ref:
         print(player)
@@ -37,14 +37,16 @@ for player in players:
                 continue
             teams = x.group().replace("to ", "").split(" from ")
             teams[1] = teams[1][0:len(teams[1])-1]
-            end = teams[0].split(" ")[len(teams[0].split(" ") - 1)]
+            team_to = teams[0].split(" ")
+            end = team_to[len(team_to)-1]
             if end == "Blue" or end == "Red" or end == "Black" or end == "Gold":
                 end = teams[0].split(" ")[len(teams[0].split(" "))-2: len(teams[0].split(" "))]
                 end = end[0] + " " + end[1]
             team_to = MLBAffiliate.objects.filter(location__startswith=teams[0].split(" ")[0], name__endswith=end).first()
-            end = teams[1].split(" ")[len(teams[1].split(" ") - 1)]
+            team_from = teams[1].split(" ")
+            end = team_from[len(team_from) - 1]
             if end == "Blue" or end == "Red" or end == "Black" or end == "Gold":
-                end = teams[1].split(" ")[len(teams[1].split(" "))-2: len(teams[0].split(" "))]
+                end = teams[1].split(" ")[len(teams[1].split(" "))-2: len(teams[1].split(" "))]
                 end = end[0] + " " + end[1]
             team_from = MLBAffiliate.objects.filter(location__startswith=teams[1].split(" ")[0], name__endswith=end).first()
             if not team_from or not team_to:
@@ -75,12 +77,12 @@ for player in players:
             team_to = transaction.split(" to ")[1]
             # remove period
             team_to = team_to[0:len(team_to)-1]
-            end = teams[0].split(" ")[len(teams[0].split(" ") - 1)]
+            end = team_to.split(" ")[len(team_to.split(" ")) - 1]
             if end == "Blue" or end == "Red" or end == "Black" or end == "Gold":
                 end = team_to.split(" ")[len(team_to.split(" "))-2: len(team_to.split(" "))]
                 end = end[0] + " " + end[1]
             team_to = MLBAffiliate.objects.filter(location__startswith=team_to.split(" ")[0], name__endswith=end).first()
-            end = teams[1].split(" ")[len(teams[1].split(" ") - 1)]
+            end = team_from.split(" ")[len(team_from.split(" ")) - 1]
             if end == "Blue" or end == "Red" or end == "Black" or end == "Gold":
                 end = team_from.split(" ")[len(team_from.split(" "))-2: len(team_from.split(" "))]
                 end = end[0] + " " + end[1]
@@ -106,12 +108,12 @@ for player in players:
                 continue
             # remove period
             team_from = team_from[0:len(team_from)-1]
-            end = teams[0].split(" ")[len(teams[0].split(" ") - 1)]
+            end = teams[0].split(" ")[len(teams[0].split(" ")) - 1]
             if end == "Blue" or end == "Red" or end == "Black" or end == "Gold":
                 end = team_to.split(" ")[len(team_to.split(" "))-2: len(team_to.split(" "))]
                 end = end[0] + " " + end[1]
             team_to = MLBAffiliate.objects.filter(location__startswith=team_to.split(" ")[0], name__endswith=end).first()
-            end = teams[1].split(" ")[len(teams[1].split(" ") - 1)]
+            end = teams[1].split(" ")[len(teams[1].split(" ")) - 1]
             if end == "Blue" or end == "Red" or end == "Black" or end == "Gold":
                 end = team_from.split(" ")[len(team_from.split(" "))-2: len(team_from.split(" "))]
                 end = end[0] + " " + end[1]
@@ -136,12 +138,12 @@ for player in players:
                 continue
             # remove period
             team_from = team_from[0:len(team_from)-1]
-            end = teams[0].split(" ")[len(teams[0].split(" ") - 1)]
+            end = team_to.split(" ")[len(team_to.split(" ")) - 1]
             if end == "Blue" or end == "Red" or end == "Black" or end == "Gold":
                 end = team_to.split(" ")[len(team_to.split(" "))-2: len(team_to.split(" "))]
                 end = end[0] + " " + end[1]
             team_to = MLBAffiliate.objects.filter(location__startswith=team_to.split(" ")[0], name__endswith=end).first()
-            end = teams[1].split(" ")[len(teams[1].split(" ") - 1)]
+            end = team_from.split(" ")[len(team_from.split(" ")) - 1]
             if end == "Blue" or end == "Red" or end == "Black" or end == "Gold":
                 end = team_from.split(" ")[len(team_from.split(" "))-2: len(team_from.split(" "))]
                 end = end[0] + " " + end[1]
@@ -151,7 +153,7 @@ for player in players:
                 t = Transaction()
                 t.save()
                 callup = CallUp(transaction=t, player=player, from_level=team_from.level, to_level=team_to.level, date=date, mlbteam=team_to.mlbteam)
-                option.save()
+                callup.save()
                 player.mlbaffiliate = team_to
                 player.save()
         elif "injured" in t and "placed" in t:
@@ -159,7 +161,7 @@ for player in players:
             x = re.search("([0-9]*)-day", transaction)
             days = x.group().replace("-day", "")
             team = transaction.split(" placed ")[0]
-            end = team.split(" ")[len(team.split(" ") - 1)]
+            end = team.split(" ")[len(team.split(" ")) - 1]
             if end == "Blue" or end == "Red" or end == "Black" or end == "Gold":
                 end = team.split(" ")[len(team.split(" "))-2: len(team.split(" "))]
                 end = end[0] + " " + end[1]
@@ -170,5 +172,6 @@ for player in players:
                 t.save()
                 injured_list = InjuredList(transaction=t, player=player, date=date, length=days, team_for=team)
                 injured_list.save()
-            
+        ct += 1
+        print(ct)
 

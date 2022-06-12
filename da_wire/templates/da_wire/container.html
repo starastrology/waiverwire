@@ -1,28 +1,58 @@
 {% load da_wire_extras %}
+{% if request.resolver_match.view_name != 'transaction' %}
+<div style="margin-top: 20px;">
+	<form id="transactions_feed" action="{% url 'get_transactions_feed' %}" method="POST">
+		<select name="select">
+			<option selected>Hot</option>
+			<option>Top-Rated</option>
+		</select>
+		{% csrf_token %}
+		<input type=hidden name="team" value="{{ mlbaff.id }}" />
+	</form>
+</div>
+<script>
+	$(document).ready(function(){
+		$('.progress').hide();
+		$('#transactions_feed').change(function(){
+			form = $('#transactions_feed');
+			$.ajax({
+                    		type: "POST",
+                    		url: "{% url 'get_transactions_feed' %}",
+                    		data: form.serialize(),
+                    		success : function(data) {
+					$('#hot_transactions').html(data);
+					$('.progress').hide(); 
+		    			clearInterval(i);
+		    		},
+		    		beforeSend: function(){
+					$('.progress').show();
+
+			    		var w=50
+					i = setInterval(function() {
+			    			$('.progress-bar').css('width', w.toString() + "%")
+						w++
+						console.log(w);
+					}, 200);
+		    		}
+                	});		
+		});
+	});
+</script>
+{% endif %}
 <div class="row">
 	
-	{% if hot_transactions %}
-		<div class="r col-sm-6">
-		<div id="hot_transactions">
-			<h2 style="text-align: center; background-color: lightgray;  border-bottom: 5px dotted {% if primary %} var(--primary); {% else %} var(--red); {% endif %} margin-bottom: 30px;">Hot</h2>
-			{% for t in hot_transactions %}
-			<h2 style="float:left;margin-top:-20px;">{{forloop.counter}}</h2>
-			{% include 'da_wire/print_transaction.html' with t=t %}
-		{% endfor %}
+{% if request.resolver_match.view_name != 'transaction' %}
+<div class="col-sm-12">
+					<div class="progress">
+  <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%"></div>
+</div>	
+</div>
+		<div class="r col-sm-12">
+			<div id="hot_transactions">
+				{% include 'da_wire/transactions_feed.html' %}		
+			</div>
 		</div>
-	</div>
-	{% endif %}
-{% if top_transactions %}
-	<div class="r col-sm-6">
-		<div id="top_transactions">
-			<h2 style="text-align: center; background-color: lightgray; border-bottom: 5px dashed {% if primary %} var(--primary); {% else %} var(--red); {% endif %} margin-bottom: 30px;">Top-Rated</h2>
-		{% for t in top_transactions %}
-			<h2 style="float:left;margin-top:-20px;">{{forloop.counter}}</h2>
-			{% include 'da_wire/print_transaction.html' with t=t %}
-		{% endfor %}
-		</div>
-	</div>
-	{% endif %}
+		{% endif %}
 	{% if trade_proposals %}
     <div class="r {% if request.resolver_match.view_name != 'transaction' %}  col-sm-12 {%else%} col-lg-12 {% endif %}">
 	    <small  style="padding:10px;"><a style="float:right; padding:10px;" href="{% url 'trade_proposals' %}">view all</a></small>

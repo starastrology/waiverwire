@@ -50,11 +50,7 @@
 		padding: 20px;
 		margin: auto;
 		width: 100%;
-		text-align: center;
 		position: relative;
-	}
-	h5{
-		text-align: center;
 	}
 	.navbar-brand,h1,h2{
     text-transform: uppercase;
@@ -101,6 +97,10 @@
         .down{
             background-image: url("{% static 'da_wire/down.png' %}");
         }
+	.count{
+		color: red;
+		font-size: 30px;
+	}
         .up, .down{
             background-repeat: no-repeat;
             background-size: 18px;
@@ -114,9 +114,9 @@
             cursor: pointer;
         }
         .arrows{
-            display: inline;
+            margin-top: -18px;
+	    display: inline;
             float: left;
-            margin-top: -23px;
         }
         li.something{
             list-style-type: none;
@@ -170,9 +170,7 @@
 		color: var(--primary);
 	}
 	#stats{
-		text-align: center;
 		border: 1px solid var(--primary);
-		float: right;
 	}
 	caption{
 		text-align: center;

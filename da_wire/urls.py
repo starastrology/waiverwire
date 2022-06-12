@@ -15,6 +15,7 @@ urlpatterns = [
     path('config/', views.stripe_config),
     path('create-checkout-session/', views.create_checkout_session),
     path('upgrade', views.upgrade_to_pro, name='upgrade_to_pro'),
+    path('get_transactions_feed', views.get_transactions_feed, name='get_transactions_feed'),
     path('get_players', views.get_players, name='get_players'),
     path('get_levels', views.get_levels, name='get_levels'),
     path('proposals', views.proposals, name='proposals'),

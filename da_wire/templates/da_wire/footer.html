@@ -1,10 +1,10 @@
 <nav class="navbar-light bg-light" style="padding: 10px; text-align:center; display: block; min-height: 100%;" id="footer">
     {% load static %}
 
-	<div class="container">
+    <div class="container" style="{% if not fa and team_to.logo %}height:500px;{% endif %}">
     <div class="row"><div class="col-sm-12">
     <p>{% if logo %}
-        <img style="height: 140px; max-width:100%;" src="{% static 'da_wire/'|add:logo %}" alt="...">{% else %}<a href="http://mlb.com" target=_blank>
+        <img style="height: 140px; max-width:100%;" src="{% static 'da_wire/'|add:logo %}" alt="...">{% elif fa and not team_to.logo %}<a href="http://mlb.com" target=_blank>
         <img style="height: 140px;" src="{% static 'da_wire/mlb.png' %}" alt="..."></a>{% endif %}
     </p>
 	    </div>
@@ -16,20 +16,5 @@
 	<div class="col-sm-2"><a href="{% url 'contact' %}">Contact</a></div>
 	<div class="col-sm-3"></div>
     </div>
-    <br>
-    <div class="row">
-	<div class="col-sm-4"></div>
-	<div class="col-sm-4">
-		<style>
-			#twitter:hover, #facebook:hover{
-				opacity: .7;
-			}
-		</style>
-		<a href="https://twitter.com/WaiverWire_org" target=_blank><img id="twitter" style="width: 40px;" src="{% static 'da_wire/twitter.png' %}" /></a> 
-		<a id="facebook" href="https://www.facebook.com/groups/416761253331273/" target=_blank><img style="width: 50px;" src="{% static 'da_wire/facebook.png' %}" /></a>	
-	</div>
-	<div class="col-sm-4"></div>
-    </div>
-	</div>
     
 </nav>

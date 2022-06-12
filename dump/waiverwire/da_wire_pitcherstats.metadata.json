@@ -1,1 +1,1 @@
-{"options":{},"indexes":[{"v":2,"key":{"_id":1},"name":"_id_","ns":"waiverwire.da_wire_pitcherstats"},{"v":2,"unique":true,"key":{"id":1},"name":"__primary_key__","ns":"waiverwire.da_wire_pitcherstats"}],"uuid":"20252fded51d481aacb30b4f2b10f202"}
+{"options":{},"indexes":[{"v":2,"key":{"_id":1},"name":"_id_","ns":"waiverwire.da_wire_pitcherstats"},{"v":2,"unique":true,"key":{"id":1},"name":"__primary_key__","ns":"waiverwire.da_wire_pitcherstats"}],"uuid":"c7e3f7d517754e51a6ba9896c6749387"}

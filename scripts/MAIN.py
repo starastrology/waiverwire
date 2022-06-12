@@ -88,6 +88,7 @@ for team in teams:
             for i in range(1, len(name)):
                 player.last_name += name[i] + " "
             player.last_name = player.last_name.strip()
+            print(player)
             url = player_link['href']
             if "https" not in url:
                 url = "https://www.mlb.com" + url

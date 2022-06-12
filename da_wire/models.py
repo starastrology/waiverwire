@@ -131,7 +131,8 @@ class Option(models.Model):
     mlbteam = models.ForeignKey(MLBTeam, on_delete=models.CASCADE)
 
     def __str__(self):
-        return str(self.date) + " " + self.player.first_name + " " + self.player.last_name
+        return str(self.transaction.tid)
+        #return str(self.date) + " " + self.player.first_name + " " + self.player.last_name
 
 class OptionProposal(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
@@ -158,7 +159,8 @@ class CallUp(models.Model):
     mlbteam = models.ForeignKey(MLBTeam, on_delete=models.CASCADE)
 
     def __str__(self):
-        return str(self.date) + " " + self.player.first_name + " " + self.player.last_name
+        return str(self.transaction.tid)
+        #return str(self.date) + " " + self.player.first_name + " " + self.player.last_name
 
 class CallUpProposal(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)

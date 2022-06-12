@@ -1,0 +1,5 @@
+<h2 style="text-align: center; background-color: lightgray;  border-bottom: 5px dotted {% if primary %} var(--primary); {% else %} var(--red); {% endif %} margin-bottom: 30px;">{{ feed_title }}</h2>
+{% for t in transactions %}
+<h2 style="float:left;margin-top:-20px;">{{forloop.counter}}</h2>
+	{% include 'da_wire/print_transaction.html' with t=t %}
+{% endfor %}

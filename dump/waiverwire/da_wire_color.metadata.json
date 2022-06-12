@@ -1,1 +1,1 @@
-{"options":{},"indexes":[{"v":2,"key":{"_id":1},"name":"_id_","ns":"waiverwire.da_wire_color"},{"v":2,"unique":true,"key":{"pkey":1},"name":"__primary_key__","ns":"waiverwire.da_wire_color"}],"uuid":"52686bf6e7b0433d9bd712e3f2e9d8cf"}
+{"options":{},"indexes":[{"v":2,"key":{"_id":1},"name":"_id_","ns":"waiverwire.da_wire_color"},{"v":2,"unique":true,"key":{"pkey":1},"name":"__primary_key__","ns":"waiverwire.da_wire_color"}],"uuid":"dc3d492daf5f4d12aeb337deb16e6f6c"}

@@ -19,7 +19,6 @@ def add_player_to_db(player, URL, mlbaffiliate):
     try:
         page = requests.get(URL)
     except requests.exceptions.ConnectionError as e:
-        #print(e)
         return 0
     soup = BeautifulSoup(page.text, 'html5lib') 
     div = soup.find_all('div', class_="player-header--vitals")
@@ -318,7 +317,6 @@ for location in locations:
                             else:
                                 team_from = MLBAffiliate.objects.filter(location__startswith=team_from.split(" ")[0], name__endswith=team_from.split(" ")[len(team_from.split(" "))-1]).first()
                             player = Player.objects.filter(first_name_unaccented__startswith=player.split(" ")[0], last_name_unaccented__endswith=player.split(" ")[len(player.split(" "))-1]).first()
-                            
                             if not player:
                                 a = tds[1].find_all('a')
                                 if a:
@@ -428,14 +426,14 @@ for location in locations:
                             elif bln:
                                 bln = False
                                 verb = i
-                            elif pos_bool and (i[0].isupper() or i[0].isnumeric()):
+                            elif pos_bool and (i[0].isupper() or (i[0].isnumeric() and i[len(i)-1].isnumeric())):
                                 pos = i
                                 pos_bool = False
                             elif i == "to":
                                 name_bln = False
                             elif name_bln and (i[0].isupper() or i != "on" or i !="a" or i !="rehab" or i !="assignment" or i != "to"):
                                 player += i + " "
-                            elif not name_bln and i[0].isupper():
+                            elif not name_bln and (i[0].isupper() or i[0] == "6"):
                                 team_to += i + " "
                             
                         if verb == "sent":

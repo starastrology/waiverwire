@@ -43,7 +43,7 @@ for location in locations:
                     team = spans[1].text.split(" ")[1]
                 if team != "":
                     print(full_name, team)
-                    mlbaffiate = MLBAffiliate.objects.filter(abbreviation=team).first()
+                    mlbaffiliate = MLBAffiliate.objects.filter(abbreviation=team).first()
                     if mlbaffiliate:
                         player.mlbaffiliate = mlbaffiliate
                         player.save()
@@ -79,30 +79,8 @@ for location in locations:
                         last_name += name[i] + " "
                     last_name = last_name.strip() 
                     p = Player.objects.filter(last_name=last_name, first_name=name[0], mlbaffiliate=mlbaffiliate).first()
-                    if not p:
-                        link = a['href']
-                        URL = "https://www.milb.com" + link
-                        page = requests.get(URL)
-                        soup = BeautifulSoup(page.text, 'html5lib') 
-                        div = soup.find_all('div', class_="player-header--vitals")
-                        if div:
-                            li = div[0].ul.li.text
-                            position = Position.objects.filter(position=li).first()
-                        else:
-                            break
-                        t = Transaction()
-                        t.save()
-                        p = Player(last_name=last_name, first_name=name[0], mlbaffiliate=mlbaffiliate, position=position, number=number, bb_ref=URL, transaction=t)
-                        p.save()
-                    else:
-                        #look for the player
-                        p = Player.objects.filter(last_name=last_name, first_name=name[0]).first()
-                        if p:
-                            p.mlbaffiliate=mlbaffiliate
-                            p.number = number
-                            p.save()
-                        else:
-                        #otherwise create the player
+                    try:
+                        if not p:
                             link = a['href']
                             URL = "https://www.milb.com" + link
                             page = requests.get(URL)
@@ -117,4 +95,28 @@ for location in locations:
                             t.save()
                             p = Player(last_name=last_name, first_name=name[0], mlbaffiliate=mlbaffiliate, position=position, number=number, bb_ref=URL, transaction=t)
                             p.save()
-                    
+                        else:
+                            #look for the player
+                            p = Player.objects.filter(last_name=last_name, first_name=name[0]).first()
+                            if p:
+                                p.mlbaffiliate=mlbaffiliate
+                                p.number = number
+                                p.save()
+                            else:
+                                #otherwise create the player
+                                link = a['href']
+                                URL = "https://www.milb.com" + link
+                                page = requests.get(URL)
+                                soup = BeautifulSoup(page.text, 'html5lib') 
+                                div = soup.find_all('div', class_="player-header--vitals")
+                                if div:
+                                    li = div[0].ul.li.text
+                                    position = Position.objects.filter(position=li).first()
+                                else:
+                                    break
+                                t = Transaction()
+                                t.save()
+                                p = Player(last_name=last_name, first_name=name[0], mlbaffiliate=mlbaffiliate, position=position, number=number, bb_ref=URL, transaction=t)
+                                p.save()
+                    except:
+                        pass
